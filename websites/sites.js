@@ -94,57 +94,6 @@ const leadership = {
   },
 };
 
-const notJustOk = {
-  siteUrl: [
-    "https://notjustok.com/news",
-    "https://notjustok.com/category/songs",
-    "https://notjustok.com/category/song/lyrics/",
-    "https://notjustok.com/category/videos/",
-  ],
-  listings: {
-    mainContainerEl: ".jeg_inner_content",
-    postHeadLineContainerEl: "",
-    postContainerEl: ".jeg_posts",
-  },
-  titleEl: {
-    tag: ".jeg_post_title a",
-    link: "",
-  },
-  titleLinkEl: {
-    tag: ".jeg_post_title a",
-    source: "href",
-  },
-  imageEl: {
-    tag: "img",
-    source: "src",
-    alt: "",
-  },
-  post: {
-    categoryEl: ".jeg_meta_category a",
-    authorEl: ".jeg_meta_author a",
-    datePostedEl: ".meta_left .jeg_meta_date a",
-    mainContainerEl: ".jeg_inner_content",
-    contentEl: ".content-inner",
-    elToReFromPostEl: [
-      ".code-block",
-      ".jeg_postblock_21",
-      ".jnews_inline_related_post",
-      ".jeg_post_tags",
-      ".jnews_inline_related_post_wrapper",
-    ],
-    imageEl: {
-      tag: ".wp-post-image",
-      tag1: "",
-      source: "src",
-      source1: "srcset",
-      alt: "",
-    },
-  },
-};
-
-// const siteNames = [notJustOk];
-// const siteNames = [notJustOk];
-const siteNames = [leadership];
-// const siteNames = [dailypost, leadership];
+const siteNames = [dailypost, leadership];
 
 export default siteNames;
