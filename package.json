@@ -1,0 +1,19 @@
+{
+  "name": "newscraping",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "cheerio": "^1.1.1",
+    "dotenv": "^17.2.1",
+    "openai": "^5.10.2",
+    "puppeteer": "^24.14.0"
+  }
+}
