@@ -1,10 +1,8 @@
-// const puppeteer = require("puppeteer");
+
 import preparePuppeteer  from "./puppeteerPreparation.js";
 import siteNames from "./websites/sites.js";
 import postListing  from "./postListings.js";
-// const postListing = require("./postListings.js");
-// const postDetails = require("./postDetails.js");
-// import { getPostCotent } from "./getPostContent.js";
+import getPostCotent from "./postContent.js";
 
 async function main() {
   //loop through each siteName and its URLs
@@ -17,13 +15,10 @@ async function main() {
       const postListings = await postListing(page, siteNames, siteName, url);
 
       // Process the post listings to get the content
-      const postContent = await getPostCotent(
-        postListings,
-        page,
-        siteNames[siteName]
-      );
+      const postContent = await getPostCotent(postListings, page, siteNames[siteName]);
     }
   }
 }
 
 main();
+

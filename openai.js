@@ -1,38 +1,18 @@
 import OpenAI from "openai";
 import dotenv from "dotenv"; 
 
-// require("dotenv").config();
-// const dontenv = require("dotenv");
+// Load environment variables from .env file
+// Ensure you have a .env file with OPENAI_API_KEY set
 dotenv.config(); // Load environment variables from .env file
 
+// Initialize OpenAI client with your API key
+// Make sure to set your OpenAI API key in the environment variable OPENAI_API_KEY
 const openAIClient = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY // Use your environment variable for security
 });
 
-const title = "Shaping Smart Nations: How London School of Emerging Technology (LSET) Global Education Model Is Resonating with Singapore’s Smart Nation Aspirations";
-
-const cont = [
-    '\n' +
-      '\t\t\t\t\t\t\t\t\t\t\t\t\t\t\n' +
-      '\n' +
-      '<p>The Federal Government has secured financing for the entire Aba to Maiduguri corridor, cutting across Borno, Yobe, Gombe, Bauchi, Plateau, Kaduna, Nasarawa, and Benue, of the 1443 kilometer Portharcourt Eastern Narrow Gauge Railway Project.</p>\n' 
-+
-      '\n' +
-      '\n' +
-      '<p>The Minister of Transport, Senator Saidu Alkali, stated this at the ongoing government-citizen engagement forum in Kaduna on Wednesday.</p>\n' +
-      '<p>The Minister also disclosed that government has also rehabilitated the old Lagos-Kano Narrow Gauge and freight services linking Apapa to Kano Inland Dry Port.</p>\n' +
-      '\n' +
-      '<p>The Federal Government had earlier assured Nigerians that the Kaduna-Kano Standard Gauge Rail Line will be completed by next year.</p>\n' +
-      '<p>The Minister revealed that at the inception of the Tinubu administration on May 29, 2023, the project stood at 15 percent completion.</p>\n' +
-      '<p>However, as of now, significant progress has been made, with the project reaching 53 percent completion.</p>\n' +      
-      '\n' +
-      '\n' +
-      '\n' +
-      '\n' +
-      '\n' +
-      '\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t'
-  ]
-
+// Function to convert content using OpenAI's GPT model
+// This function takes content as input and returns the converted content
 export async function contentConverter(content) {
   const completion = await openAIClient.chat.completions.create({
     model: "gpt-4o-mini",
@@ -43,21 +23,13 @@ export async function contentConverter(content) {
       },
       {
         role: "user",
-        content: `Rewrite the text in an informal tone: ${content}`
+        content: `Rewrite the content: ${content}`
       }
     ]
    
   });
 
-
-//   console.log(completion.choices[0].message.content);
-
+  // Return the converted content from the OpenAI response
+  // Ensure to handle cases where the response might not contain the expected structure
   return completion.choices[0].message.content;
 }
-
-// const txt = await contentConverter(title);
-// const content = await contentConverter(cont);
-
-// console.log({txt, content});
-
-// module.exports = {contentConverter};

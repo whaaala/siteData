@@ -1,40 +1,33 @@
 import * as cheerio from 'cheerio'
 import {getContent, getAttribute} from "./functions.js";
 import * as converter from "./openai.js";
-// const converter = require("./openai.js");
-export default async function getPostCotent(postListings, page, postEls) {
-  // Wait for the main container to load
 
+
+export default async function getPostCotent(postListings, page, postEls) {
+  // Loop through each postListing to get the content
   for (let listing = 0; listing < postListings.length; listing++) {
 
-    if(postListings[listing].url === undefined){
-    return;
-  }else {
-    //Go to the URL the siteName is pointing to
+    // Check if the postListing has a URL, if not, skip to the next iteration
+    // This is to avoid errors if the URL is undefined or null
+    if(postListings[listing].url === undefined) return;
+  
+    //Go to the post URL
     await page.goto(postListings[listing].url);
-  }
-    // await page.goto(postListings[listing].url);
-
+  
+  // Wait for the page to load
     const html = await page.content();
 
     // Load the HTML into cheerio
     const $ = cheerio.load(html);
 
-    //await sleep(3000)
-
-    // console.log(siteNames[siteName].post);
-
-    //  console.log(postEls.post.datePostedEl);
+    //Get the date, author, category and image link of the post
     const timePosted = getContent($, postEls.post.datePostedEl);
-    // const postedTime = $(timePosted).text()
     const author = getContent($, postEls.post.authorEl);
     const category = getContent($, postEls.post.categoryEl);
-    const imageLink = getAttribute(
-      $,
-      postEls.post.imageEl.tag,
-      postEls.post.imageEl.source
-    );
+    const imageLink = getAttribute($,postEls.post.imageEl.tag, postEls.post.imageEl.source);
 
+    //Get the post content
+    //Find the main container element that holds the post content
     const postDetails = $(postEls.post.mainContainerEl)
       .find(postEls.post.contentEl)
       .map((_, el) => {
@@ -50,16 +43,18 @@ export default async function getPostCotent(postListings, page, postEls) {
       })
       .get();
 
+    //Add the post details to the postListings array
     postListings[listing].author = author;
     postListings[listing].timePosted = timePosted;
     postListings[listing].category = category;
     postListings[listing].imageLink = imageLink;
     postListings[listing].postDetails = postDetails;
 
-    postListings[listing].title = await converter.contentConverter(postListings[listing].title);
-    // sleep(4000);
-    postListings[listing].postDetails = await converter.contentConverter(postDetails);
+    // Convert the post title and content using the contentConverter function
+    // postListings[listing].title = await converter.contentConverter(postListings[listing].title);
+    // postListings[listing].postDetails = await converter.contentConverter(postDetails);
 
+    // Log the postListings for debugging
      console.log(postListings[listing]);
   }
 }

@@ -1,10 +1,10 @@
 
-import puppeteer from "puppeteer";
 import {getElementContent, getElementAttributeValue} from "./functions.js";
-// const puppeteer = require("puppeteer")
 import * as cheerio from 'cheerio'
-// const cheerio = require("cheerio");
 
+
+// Array to store post data
+// This will hold the post listings with their details
 const postData = [];
 
 // Function to fetch post listings from a site
@@ -21,47 +21,41 @@ const postData = [];
   // Load the HTML into cheerio
   const $ = cheerio.load(html);
 
-  // Select the main container and find the post listings and place them in an array
+  // Get the post listings from the main container element
+  // This will find the elements that match the post container and extract their content
   const result = $(siteNames[siteName].listings.mainContainerEl)
     .find(siteNames[siteName].listings.postContainerEl)
     .children()
     .map((index, content) => {
       // Extract the title
-      const title = getElementContent(
-        $,
-        content,
-        siteNames[siteName].titleEl.tag,
-        siteNames[siteName].titleEl.tag
-      );
+      const title = getElementContent($, content, siteNames[siteName].titleEl.tag, siteNames[siteName].titleEl.tag);
 
       // Extract the image URL
-      const url = getElementAttributeValue(
-        $,
-        content,
-        siteNames[siteName].titleLinkEl.tag,
-        siteNames[siteName].titleLinkEl.tag,
-        siteNames[siteName].titleLinkEl.source
-      );
+      const url = getElementAttributeValue($, content, siteNames[siteName].titleLinkEl.tag, siteNames[siteName].titleLinkEl.tag, siteNames[siteName].titleLinkEl.source);
 
       //Get the date the posting is retrieved
       const dateRetrieved = new Date().toISOString();
 
+      // Find if the postLink already exists in the postData array
+      // This prevents adding duplicate posts to the postData array
       const postLink = postData.find((data) => data.title === title);
+      
+      // If the postLink already exists, skip adding it to avoid duplicates
+      // This prevents adding the same post multiple times
+      if (postLink) return;
+      
+      // Add the post data to the postData array
+      // This will store the URL, title, website name, and date retrieved for each post
+      postData.push({ url, title, website, dateRetrieved });
 
-      if (postLink) {
-        return;
-      } else {
-        postData.push({ url, title, website, dateRetrieved });
-        return { url, title, website, dateRetrieved };
-      }
+      // Return the post data object
+      // This will be used to create the post listings
+      return { url, title, website, dateRetrieved };
+      
     })
     .get();
-
-  // console.log(postData);
-
-  // Close the page after processing
-  // page.close();
-
-  // Return the result
-  return result;
+    
+    //return the result array containing post listings
+    // This will be used in the main function to process each post listing
+    return result;
 }
