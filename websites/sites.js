@@ -94,6 +94,54 @@ const leadership = {
   },
 };
 
-const siteNames = [dailypost, leadership];
+const gistlover  = {
+  siteUrl: [
+    "https://www.gistlover.com/category/news",
+    "https://www.gistlover.com/category/entertainment",
+    // "https://www.gistlover.com/category/extra",
+  ],
+  listings: {
+    mainContainerEl: ".mh-content",
+    postHeadLineContainerEl: "",
+    postContainerEl: "article",
+  },
+  titleEl: {
+    tag: ".entry-title a",
+    link: "",
+  },
+  titleLinkEl: {
+    tag: ".entry-title a",
+    source: "href",
+  },
+  imageEl: {
+    tag: "",
+    source: "src",
+    alt: "",
+  },
+  post: {
+    categoryEl: ".mh-meta .entry-meta-categories a",
+    authorEl: ".mh-meta .entry-meta-author a",
+    datePostedEl: ".mh-meta .entry-meta-date a",
+    mainContainerEl: ".mh-content",
+    contentEl: ".entry-content",
+    elToReFromPostEl: [
+      ".code-block",
+      ".quads-location",
+      "ul",
+       ".wp-block-image",
+      ".mh-social-bottom",
+    ],
+    imageEl: {
+      tag: ".wp-block-image img",
+      tag1: "",
+      source: "src",
+      source1: "srcset",
+      alt: "",
+    },
+  },
+};
+
+const siteNames = [dailypost, leadership, gistlover];
+
 
 export default siteNames;

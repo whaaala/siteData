@@ -6,7 +6,7 @@ import * as converter from "./openai.js";
 export default async function getPostCotent(postListings, page, postEls) {
   // Loop through each postListing to get the content
   for (let listing = 0; listing < postListings.length; listing++) {
-
+    
     // Check if the postListing has a URL, if not, skip to the next iteration
     // This is to avoid errors if the URL is undefined or null
     if(postListings[listing].url === undefined) return;
