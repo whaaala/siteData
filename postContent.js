@@ -1,6 +1,7 @@
 import * as cheerio from 'cheerio'
 import {getContent, getAttribute} from "./functions.js";
 import * as converter from "./openai.js";
+import {isMoreThan24HoursFromNow} from "./timeConverter.js";
 
 
 export default async function getPostCotent(postListings, page, postEls) {
@@ -22,6 +23,13 @@ export default async function getPostCotent(postListings, page, postEls) {
 
     //Get the date, author, category and image link of the post
     const timePosted = getContent($, postEls.post.datePostedEl);
+   
+    // Check if the post is more than 24 hours old
+    // If it is, skip this post and continue to the next one
+    if (isMoreThan24HoursFromNow(timePosted)) {
+      console.log(`Skipping post "${postListings[listing].title}" from "${postListings[listing].website}" it was posted at ${timePosted} and it is more than 20 hours old.`);
+      return; // Skip this post if it's older than 24 hours
+    }
     const author = getContent($, postEls.post.authorEl);
     const category = getContent($, postEls.post.categoryEl);
     const imageLink = getAttribute($,postEls.post.imageEl.tag, postEls.post.imageEl.source);
