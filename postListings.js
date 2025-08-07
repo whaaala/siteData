@@ -1,11 +1,25 @@
 
 import {getElementContent, getElementAttributeValue} from "./functions.js";
 import * as cheerio from 'cheerio'
+import {isMoreThan24HoursAgo} from "./timeConverter.js";
+import fs from 'fs';
 
+
+// Helper function to write array to file as JSON
+function writeArrayToFile(array, filename) {
+  fs.writeFileSync(filename, JSON.stringify(array, null, 2), 'utf-8');
+}
 
 // Array to store post data
 // This will hold the post listings with their details
 const postData = [];
+
+// Remove objects from postData if their 'time' property is more than 24 hours ago
+for (let i = postData.length - 1; i >= 0; i--) {
+  if (postData[i].dateRetrieved && isMoreThan24HoursAgo(postData[i].dateRetrieved)) {
+    postData.splice(i, 1);
+  }
+}
 
 // Function to fetch post listings from a site
  export default async function postListing(page, siteNames, siteName, url) {

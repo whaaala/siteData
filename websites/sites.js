@@ -98,7 +98,7 @@ const gistlover  = {
   siteUrl: [
     "https://www.gistlover.com/category/news",
     "https://www.gistlover.com/category/entertainment",
-    // "https://www.gistlover.com/category/extra",
+    "https://www.gistlover.com/category/extra",
   ],
   listings: {
     mainContainerEl: ".mh-content",
