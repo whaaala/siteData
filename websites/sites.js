@@ -141,7 +141,8 @@ const gistlover  = {
   },
 };
 
-const siteNames = [dailypost, leadership, gistlover];
+// const siteNames = [dailypost, leadership, gistlover];
+const siteNames = [leadership];
 
 
 export default siteNames;
