@@ -9,16 +9,6 @@ import fetch from 'node-fetch';
 const mongoUri = 'mongodb://localhost:27017/sitedata'; // Change to your MongoDB URI
 mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true });
 
-//
-const categories = ['news', 'entertainment', 'sports', 'lifestyle', 'health & fitness', 'food & drink', 'gists'];
-const newsAuthors = ['Wahaala', 'Wahala', 'Wahaala Wahala', 'Wahaala2'];
-const entertainmentAuthors = ['Wahaala', 'Wahaala2', 'Wahaala Wahala'];
-const sportsAuthors = ['Wahaala', 'Wahaala2', 'Wahaala Wahala'];
-const lifestyleAuthors = ['Wahaala', 'Wahaala2', 'Wahaala Wahala'];
-const helthAndfitnessAuthors = ['Wahaala', 'Wahaala2', 'Wahaala Wahala'];
-const foodAndDrinkAuthors = ['Wahaala', 'Wahaala2', 'Wahaala Wahala'];
-const gistAuthors = ['Wahaala', 'Wahaala2', 'Wahaala Wahala'];
-
 
 
 const postSchema = new mongoose.Schema({
@@ -91,7 +81,7 @@ async function postToWordpress(post, featuredMediaId, imageUrl) {
     status: 'publish',
     categories: post.categories || [],
     author: post.author || undefined,
-    excerpt: post.title,
+    excerpt:post.excerpt,
     featured_media: featuredMediaId || undefined,
     format: 'standard'
   };
@@ -116,10 +106,13 @@ async function postToWordpress(post, featuredMediaId, imageUrl) {
 
 // Map normalized category names to WordPress category IDs
 const wpCategoryMap = {
-  News: 1,           // <-- Replace with your actual WordPress category ID for "news"
-  ENTERAINMENT: 2,  // <-- Replace with your actual WordPress category ID for "entertainment"
-  SPORTS: 3,         // <-- Replace with your actual WordPress category ID for "sports"
-  LIFESTYLE: 4       // <-- Replace with your actual WordPress category ID for "lifestyle"
+  News: 35,         
+  Entertainment: 21, 
+  Sports: 45,        
+  Lifestyle: 30,    
+  HealthAndFitness: 27,     
+  FoodAndDrink: 24,    
+  Gists: 1,     
 };
 
 // Map category to WordPress author IDs (arrays for random selection)
@@ -136,6 +129,16 @@ function getRandomAuthorId(category) {
   if (!authors || authors.length === 0) return undefined;
   return authors[Math.floor(Math.random() * authors.length)];
 }
+
+
+ // Add a short excerpt/summary for post listing view
+// // You can use the first 30 words of the rewritten content as an excerpt
+function getExcerpt(htmlContent, wordCount = 30) {
+  // Remove HTML tags and get plain text
+  const text = htmlContent.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  return text.split(' ').slice(0, wordCount).join(' ') + '...';
+}
+      
 
 
 
@@ -168,12 +171,13 @@ export default async function getPostCotent(postListings, page, postEls) {
     const author = getContent($, postEls.post.authorEl);
     let category = getContent($, postEls.post.categoryEl);
     const imageLink = getAttribute($,postEls.post.imageEl.tag, postEls.post.imageEl.source);
+    
 
     // Normalize category for WordPress
     if (category) {
       const cat = category.trim().toLowerCase();
       if (cat === 'news' || cat === 'hot-news'  || cat === 'politics' || cat === 'metro' || cat === 'nigeria-news' || cat === 'business-news') {
-        category = 'news';
+        category = 'News';
       } else if (
         cat === 'entertainment' ||
         cat === 'movies & tv' ||
@@ -181,15 +185,15 @@ export default async function getPostCotent(postListings, page, postEls) {
         cat === 'extra' ||
         cat === 'events'
       ) {
-        category = 'entertainment';
-      } else if (cat === 'sports' || cat === 'sport-news' ) {
-        category = 'sports';
+        category = 'Entertainment';
+      } else if (cat === 'sports' || cat === 'sport-news' || cat === 'Sport') {
+        category = 'Sports';
       } else if (
         cat === 'relationships' ||
         cat === 'beauty' ||
         cat === 'scoop'
       ) {
-        category = 'lifestyle';
+        category = 'Lifestyle';
       }
     }
 
@@ -240,11 +244,14 @@ export default async function getPostCotent(postListings, page, postEls) {
     });
 
     // Save original title/content
+    // console.log(`Processing post: ${postListings[listing].title}`);
+    
     const originalTitle = postListings[listing].title;
     const originalDetails = Array.isArray(postDetails) ? postDetails.join('\n') : postDetails;
 
     // Use ChatGPT to rewrite the title and content
-    const rewrittenTitle = await converter.rewriteTitle(originalTitle);
+    const rewrittenTitle = await converter.rewriteTitle(postListings[listing].title);
+    let safeTitle = Array.isArray(rewrittenTitle) ? rewrittenTitle[0] : rewrittenTitle;
     const rewrittenDetailsArr = await Promise.all(
       postDetails.map(async htmlContent => {
         // Remove all spaces from content before sending to ChatGPT
@@ -254,29 +261,38 @@ export default async function getPostCotent(postListings, page, postEls) {
     );
     let rewrittenDetails = rewrittenDetailsArr.join('\n');
 
-      // Remove featured image from post content if it matches the main image
+     // Remove only the first <img> tag in the content (keep the rest)
+     rewrittenDetails = rewrittenDetails.replace(/<img[^>]*>/i, '');
+
+    // Remove featured image from post content if it matches the main image
     if (imageLink) {
-      // Remove <img> tags with src matching the featured image from rewrittenDetails
       rewrittenDetails = rewrittenDetails.replace(
         new RegExp(`<img[^>]+src=["']${imageLink.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["'][^>]*>`, 'gi'),
         ''
       );
     }
-      // Convert the post title and content using the contentConverter function
+
+    // Convert the post title and content using the contentConverter function
       // const convertedTitle = await converter.contentConverter(postListings[listing].title);
       // const convertedDetails = await converter.contentConverter(postDetails);
 
       // Check if post exists in MongoDB by URL or title
-      const existing = await Post.findOne({ $or: [{ url: postListings[listing].url }, { title: postListings[listing].title }] });
-      if (existing) {
-        console.log(`Post "${ postListings[listing].title}" already exists in MongoDB. Skipping.`);
-        continue;
-      }
+    const existing = await Post.findOne({ $or: [{ url: postListings[listing].url }, { title: postListings[listing].title }] });
+    if (existing) {
+      console.log(`Post "${ postListings[listing].title}" already exists in MongoDB. Skipping.`);
+      continue;
+    }
+
+     
+      // ...inside your main loop, after rewrittenDetails is created:
+      const excerpt = getExcerpt(rewrittenDetails, 30); // Get first 30 words as excerpt
+      console.log(excerpt);
+      
 
       // Save to MongoDB
       const postDoc = new Post({
          url: postListings[listing].url,
-         title: originalTitle,
+         title: safeTitle,
          rewrittenTitle: rewrittenTitle,
          website: postListings[listing].website,
          dateRetrieved: postListings[listing].dateRetrieved,
@@ -285,7 +301,8 @@ export default async function getPostCotent(postListings, page, postEls) {
          category,
          imageLink,
          postDetails: originalDetails,
-         rewrittenDetails: rewrittenDetails
+         rewrittenDetails: rewrittenDetails,
+         excerpt // <-- add this field
       });
       
       await postDoc.save();
@@ -310,11 +327,12 @@ export default async function getPostCotent(postListings, page, postEls) {
       // }, featuredMediaId);
 
       const wpResult = await postToWordpress({
-      title: rewrittenTitle,
+      title: safeTitle, // Only the rewritten title is used
       postDetails: rewrittenDetails,
       categories: wpCategoryId,
+      excerpt, // <-- add this for WordPress listing
       // author: wpAuthorId
-    }, featuredMediaId, imageLink);
+    }, featuredMediaId);
 
         if (wpResult) {
           // Update MongoDB with WordPress info

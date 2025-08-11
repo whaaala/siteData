@@ -16,7 +16,7 @@ const openAIClient = new OpenAI({
  * @param {string} title - The original title.
  * @returns {Promise<string>} - The rewritten title.
  */
-export async function rewriteTitle(title) {
+export async function rewriteTitle(title) {  
   const completion = await openAIClient.chat.completions.create({
     model: "gpt-4.1",
     messages: [
@@ -26,7 +26,7 @@ export async function rewriteTitle(title) {
       },
       {
         role: "user",
-        content: `Rewrite this title in a short, concise, and catchy way. Only return the rewritten title itself:\n${title}`
+        content: `Rewrite the title in a short, concise way. Only return the rewritten title itself:\n${title}`
       }
     ]
   });

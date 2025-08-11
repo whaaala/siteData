@@ -84,7 +84,7 @@ function writeArrayToFile(array, filename) {
       
       // Return the post data object
       // This will be used to create the post listings
-      return postObj;
+      return { url, title, website, dateRetrieved };
       
     })
     .get();

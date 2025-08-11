@@ -56,7 +56,7 @@ const leadership = {
   listings: {
     mainContainerEl: ".jeg_inner_content",
     postHeadLineContainerEl: "",
-    postContainerEl: ".jeg_posts",
+    postContainerEl: ".jeg_post",
   },
   titleEl: {
     tag: ".jeg_post_title a",
