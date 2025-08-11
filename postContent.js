@@ -117,10 +117,10 @@ const wpCategoryMap = {
 
 // Map category to WordPress author IDs (arrays for random selection)
 const wpAuthorMap = {
-  news: [10, 14],           // <-- Replace with your WordPress author IDs for news
-  entertainment: [11, 15],  // <-- Replace with your WordPress author IDs for entertainment
-  sports: [12, 16],         // <-- Replace with your WordPress author IDs for sports
-  lifestyle: [13, 17]       // <-- Replace with your WordPress author IDs for lifestyle
+  News: [5, 3, 4, 6],           
+  Entertainment: [11, 15],  // <-- Replace with your WordPress author IDs for entertainment
+  Sports: [12, 16],         // <-- Replace with your WordPress author IDs for sports
+  Lifestyle: [13, 17]       // <-- Replace with your WordPress author IDs for lifestyle
 };
 
 // Helper to randomly select an author ID from the array
@@ -199,7 +199,7 @@ export default async function getPostCotent(postListings, page, postEls) {
 
      // Map to WordPress category ID
     const wpCategoryId = wpCategoryMap[category] ? [wpCategoryMap[category]] : [];
-    // const wpAuthorId = getRandomAuthorId(category);
+    const wpAuthorId = getRandomAuthorId(category);
 
     //Get the post content
     //Find the main container element that holds the post content
@@ -293,10 +293,11 @@ export default async function getPostCotent(postListings, page, postEls) {
       const postDoc = new Post({
          url: postListings[listing].url,
          title: safeTitle,
+         originalTitle: originalTitle,
          rewrittenTitle: rewrittenTitle,
          website: postListings[listing].website,
          dateRetrieved: postListings[listing].dateRetrieved,
-         author,
+         author: wpAuthorId,
          timePosted,
          category,
          imageLink,
@@ -331,7 +332,7 @@ export default async function getPostCotent(postListings, page, postEls) {
       postDetails: rewrittenDetails,
       categories: wpCategoryId,
       excerpt, // <-- add this for WordPress listing
-      // author: wpAuthorId
+      author: wpAuthorId
     }, featuredMediaId);
 
         if (wpResult) {
