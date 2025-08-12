@@ -118,9 +118,12 @@ const wpCategoryMap = {
 // Map category to WordPress author IDs (arrays for random selection)
 const wpAuthorMap = {
   News: [5, 3, 4, 6],           
-  Entertainment: [11, 15],  // <-- Replace with your WordPress author IDs for entertainment
-  Sports: [12, 16],         // <-- Replace with your WordPress author IDs for sports
-  Lifestyle: [13, 17]       // <-- Replace with your WordPress author IDs for lifestyle
+  Entertainment: [7, 8, 9, 10],  
+  Sports: [11, 12, 13, 14],         
+  Lifestyle: [15, 16, 17],
+  HealthAndFitness: [18, 19, 20],
+  FoodAndDrink: [21, 22, 23],
+  Gists: [24, 25, 26],
 };
 
 // Helper to randomly select an author ID from the array
@@ -285,7 +288,7 @@ export default async function getPostCotent(postListings, page, postEls) {
 
      
       // ...inside your main loop, after rewrittenDetails is created:
-      const excerpt = getExcerpt(rewrittenDetails, 30); // Get first 30 words as excerpt
+      const excerpt = getExcerpt(rewrittenDetails, 40); // Get first 40 words as excerpt
       console.log(excerpt);
       
 
