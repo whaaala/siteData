@@ -179,13 +179,12 @@ export default async function getPostCotent(postListings, page, postEls) {
     // Normalize category for WordPress
     if (category) {
       const cat = category.trim().toLowerCase();
-      if (cat === 'news' || cat === 'hot-news'  || cat === 'politics' || cat === 'metro' || cat === 'nigeria-news' || cat === 'business-news') {
+      if (cat === 'news' || cat === 'hot-news'  || cat === 'politics' || cat === 'metro' || cat === 'nigeria-news' || cat === 'business-news'  || cat === 'business') {
         category = 'News';
       } else if (
         cat === 'entertainment' ||
         cat === 'movies & tv' ||
         cat === 'bn tv' ||
-        cat === 'extra' ||
         cat === 'events'
       ) {
         category = 'Entertainment';
@@ -197,6 +196,10 @@ export default async function getPostCotent(postListings, page, postEls) {
         cat === 'scoop'
       ) {
         category = 'Lifestyle';
+      } else if (
+        cat === 'extra'
+      ) {
+        category = 'Gists';
       }
     }
 
@@ -221,6 +224,31 @@ export default async function getPostCotent(postListings, page, postEls) {
       })
       .get();
 
+      // Replace website names in the content with NOWAHALAZONE
+     const siteNamePatterns = [
+      /\bDaily\s*Post\b/gi,
+      /\bDAILY\s*POST\b/gi,
+      /\bDAILYPOST\b/gi,
+      /\bLeadership\b/gi,
+      /\bLEADERSHIP\b/gi,
+      /\bGistlover\b/gi,
+      /\bGISTLOVER\b/gi
+    ];
+    
+  function replaceSiteNamesOutsideTags(html) {
+  // Split by HTML tags, only replace in text nodes (even indices)
+  return html.split(/(<[^>]+>)/g).map((part, i) => {
+    if (i % 2 === 0) { // text node
+      siteNamePatterns.forEach(pattern => {
+        part = part.replace(pattern, 'NOWAHALAZONE');
+      });
+    }
+    return part;
+  }).join('');
+}
+
+postDetails = postDetails.map(htmlContent => replaceSiteNamesOutsideTags(htmlContent));
+
        // --- Custom embed handling for X, Facebook, Instagram ---
     // Replace links with your own embed code using your profile
     const myXProfile = "wahaala2"; // Replace with your X (Twitter) username
@@ -228,21 +256,30 @@ export default async function getPostCotent(postListings, page, postEls) {
     const myInstagramProfile = "wahaalawahala"; // Replace with your Instagram username
 
     postDetails = postDetails.map(htmlContent => {
-      // X (Twitter) embed
+      // X (Twitter) embed (official blockquote)
       htmlContent = htmlContent.replace(
-        /https:\/\/x\.com\/([A-Za-z0-9_]+)/g,
-        `<blockquote class="twitter-tweet"><a href="https://x.com/$1">View on X</a> by <a href="https://x.com/${myXProfile}">@${myXProfile}</a></blockquote>`
+        /https:\/\/x\.com\/([A-Za-z0-9_]+)\/status\/(\d+)/gi,
+        `<blockquote class="twitter-tweet"><a href="https://x.com/$1/status/$2"></a></blockquote>`
       );
-      // Facebook embed
+      
+      // Facebook embed (official div)
       htmlContent = htmlContent.replace(
-        /https:\/\/facebook\.com\/([A-Za-z0-9_.]+)/g,
-        `<div class="fb-post" data-href="https://facebook.com/$1"><a href="https://facebook.com/${myFacebookProfile}">My Facebook Profile</a></div>`
+        /https:\/\/facebook\.com\/([^\/]+\/(posts|videos|photos)\/\d+)/gi,
+        `<div class="fb-post" data-href="https://facebook.com/$1"></div>`
       );
-      // Instagram embed
+      
+      // Instagram embed (official blockquote)
       htmlContent = htmlContent.replace(
-        /https:\/\/instagram\.com\/([A-Za-z0-9_.]+)/g,
-        `<blockquote class="instagram-media"><a href="https://instagram.com/$1">View on Instagram</a> by <a href="https://instagram.com/${myInstagramProfile}">@${myInstagramProfile}</a></blockquote>`
+        /https:\/\/instagram\.com\/(p|reel|tv)\/([A-Za-z0-9_-]+)/gi,
+        `<blockquote class="instagram-media" data-instgrm-permalink="https://instagram.com/$1/$2/" data-instgrm-version="14"></blockquote>`
       );
+      
+      // TikTok embed (official blockquote)
+      htmlContent = htmlContent.replace(
+        /https:\/\/www\.tiktok\.com\/@([A-Za-z0-9_.-]+)\/video\/(\d+)/gi,
+        `<blockquote class="tiktok-embed" cite="https://www.tiktok.com/@$1/video/$2" data-video-id="$2" style="max-width: 605px;min-width: 325px;"><section></section></blockquote>`
+      );
+      
       return htmlContent;
     });
 

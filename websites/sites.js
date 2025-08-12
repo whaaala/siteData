@@ -1,7 +1,8 @@
 const dailypost = {
   siteUrl: [
-    "https://dailypost.ng/hot-news/",
-    "https://dailypost.ng/politics/",
+    "https://dailypost.ng/",
+    // "https://dailypost.ng/hot-news/",
+    // "https://dailypost.ng/politics/",
     "https://dailypost.ng/metro/",
     "https://dailypost.ng/entertainment/",
     "https://dailypost.ng/sport-news/",
@@ -49,9 +50,11 @@ const dailypost = {
 
 const leadership = {
   siteUrl: [
+    "https://leadership.ng/opinion/columns/",
     "https://leadership.ng/nigeria-news/",
     "https://leadership.ng/politics/",
     "https://leadership.ng/nigeria-news/business-news/",
+    "https://leadership.ng/nigeria-news/entertainment-news/"
   ],
   listings: {
     mainContainerEl: ".jeg_inner_content",
@@ -96,8 +99,9 @@ const leadership = {
 
 const gistlover  = {
   siteUrl: [
-    "https://www.gistlover.com/category/news",
-    "https://www.gistlover.com/category/entertainment",
+    "https://www.gistlover.com/category/religion/",
+    // "https://www.gistlover.com/category/news",
+    // "https://www.gistlover.com/category/entertainment",
     "https://www.gistlover.com/category/extra",
   ],
   listings: {
@@ -128,7 +132,6 @@ const gistlover  = {
       ".code-block",
       ".quads-location",
       "ul",
-       ".wp-block-image",
       ".mh-social-bottom",
     ],
     imageEl: {
@@ -142,7 +145,7 @@ const gistlover  = {
 };
 
 // const siteNames = [dailypost, leadership, gistlover];
-const siteNames = [leadership];
+const siteNames = [gistlover];
 
 
 export default siteNames;
