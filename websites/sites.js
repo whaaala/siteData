@@ -51,10 +51,10 @@ const dailypost = {
 const leadership = {
   siteUrl: [
     "https://leadership.ng/opinion/columns/",
-    "https://leadership.ng/nigeria-news/",
+    // "https://leadership.ng/nigeria-news/",
     "https://leadership.ng/politics/",
-    "https://leadership.ng/nigeria-news/business-news/",
-    "https://leadership.ng/nigeria-news/entertainment-news/"
+    // "https://leadership.ng/nigeria-news/business-news/",
+    // "https://leadership.ng/nigeria-news/entertainment-news/"
   ],
   listings: {
     mainContainerEl: ".jeg_inner_content",

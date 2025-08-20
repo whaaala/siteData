@@ -1,149 +1,15 @@
 import * as cheerio from 'cheerio'
 import {getContent, getAttribute} from "./functions.js";
 import * as converter from "./openai.js";
-import {isMoreThan24HoursFromNow} from "./timeConverter.js";
-import mongoose from 'mongoose';
-import fetch from 'node-fetch';
+import { Post } from './db.js';
+import { uploadImageToWordpress, postToWordpress } from './wordpress.js';
+import { wpCategoryMap, getRandomAuthorId } from './categoryMap.js';
+import { normalizeCategory } from './normalizeCategory.js';
+import { getExcerpt, siteNamePatterns, replaceSiteNamesOutsideTags, replaceSiteNamesInPostDetails, saveNewPostToDb, normalizeString } from './utils.js';
+import { embedSocialLinks } from './embedUtils.js';
 
-// --- Mongoose Setup ---
-const mongoUri = 'mongodb://localhost:27017/sitedata'; // Change to your MongoDB URI
-mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true });
-
-
-
-const postSchema = new mongoose.Schema({
-  url: String,
-  title: String,
-  website: String,
-  dateRetrieved: String,
-  author: String,
-  timePosted: String,
-  category: String,
-  imageLink: String,
-  postDetails: mongoose.Schema.Types.Mixed,
-  wpPostId: Number,
-  wpPostUrl: String,
-  wpFeaturedMediaId: Number
-});
-const Post = mongoose.model('Post', postSchema);
-
-/**
- * Download an image from a URL and upload it to WordPress media library.
- * Returns the WordPress media ID if successful, or null if failed.
- */
-async function uploadImageToWordpress(imageUrl, wordpressUrl, username, password) {
-  // Download the image
-  const imageResponse = await fetch(imageUrl);
-  if (!imageResponse.ok) {
-    console.error(`Failed to download image: ${imageResponse.statusText}`);
-    return null;
-  }
-  const imageBuffer = await imageResponse.buffer();
-  const fileName = imageUrl.split('/').pop().split('?')[0] || 'image.jpg';
-  const contentType = imageResponse.headers.get('content-type') || 'image/jpeg';
-
-  // Upload to WordPress
-  const mediaResponse = await fetch(`${wordpressUrl}/wp-json/wp/v2/media`, {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64'),
-      'Content-Disposition': `attachment; filename="${fileName}"`,
-      'Content-Type': contentType
-    },
-    body: imageBuffer
-  });
-
-  if (!mediaResponse.ok) {
-    const errorText = await mediaResponse.text();
-    console.error(`Failed to upload image to WordPress: ${mediaResponse.statusText}\n${errorText}`);
-    return null;
-  }
-  const mediaData = await mediaResponse.json();
-  return mediaData.id;
-}
-
-async function postToWordpress(post, featuredMediaId, imageUrl) {
-  const wordpressUrl = 'https://stag-blogsites.itechnolabs.co.in'; // <-- Replace with your site
-      const username = 'wahala'; // <-- Replace with your username
-      const password = 'vhST ICrX ZT6K Jgq1 TGv0 5uKJ'; // <-- Replace with your app password
-
-  // Add main image to content HTML if available
-  let contentHtml = '';
-  if (imageUrl) {
-    contentHtml += `<img src="${imageUrl}" alt="${post.title}" style="max-width:100%;height:auto;" /><br/>`;
-  }
-  // post.postDetails is already HTML (may contain images, embeds, etc.)
-  contentHtml += Array.isArray(post.postDetails) ? post.postDetails.join('\n') : post.postDetails;
-
-  const body = {
-    title: post.title,
-    content: contentHtml,
-    status: 'publish',
-    categories: post.categories || [],
-    author: post.author || undefined,
-    excerpt:post.excerpt,
-    featured_media: featuredMediaId || undefined,
-    format: 'standard'
-  };
-
-  const response = await fetch(`${wordpressUrl}/wp-json/wp/v2/posts`, {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64'),
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(body)
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error(`Failed to upload image to WordPress: ${response.statusText}\n${errorText}`);
-    return null;
-  }
- const postData = await response.json();
-  return postData;
-}
-
-// Map normalized category names to WordPress category IDs
-const wpCategoryMap = {
-  News: 35,         
-  Entertainment: 21, 
-  Sports: 45,        
-  Lifestyle: 30,    
-  HealthAndFitness: 27,     
-  FoodAndDrink: 24,    
-  Gists: 1,     
-};
-
-// Map category to WordPress author IDs (arrays for random selection)
-const wpAuthorMap = {
-  News: [5, 3, 4, 6],           
-  Entertainment: [7, 8, 9, 10],  
-  Sports: [11, 12, 13, 14],         
-  Lifestyle: [15, 16, 17],
-  HealthAndFitness: [18, 19, 20],
-  FoodAndDrink: [21, 22, 23],
-  Gists: [24, 25, 26],
-};
-
-// Helper to randomly select an author ID from the array
-function getRandomAuthorId(category) {
-  const authors = wpAuthorMap[category];
-  if (!authors || authors.length === 0) return undefined;
-  return authors[Math.floor(Math.random() * authors.length)];
-}
-
-
- // Add a short excerpt/summary for post listing view
-// // You can use the first 30 words of the rewritten content as an excerpt
-function getExcerpt(htmlContent, wordCount = 30) {
-  // Remove HTML tags and get plain text
-  const text = htmlContent.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-  return text.split(' ').slice(0, wordCount).join(' ') + '...';
-}
-      
-
-
+// Array to store post data
+const featuredCountPerCategory = {};
 
 export default async function getPostCotent(postListings, page, postEls) {
   // Loop through each postListing to get the content
@@ -165,43 +31,12 @@ export default async function getPostCotent(postListings, page, postEls) {
     //Get the date, author, category and image link of the post
     const timePosted = getContent($, postEls.post.datePostedEl);
    
-    // Check if the post is more than 24 hours old
-    // If it is, skip this post and continue to the next one
-    // if (isMoreThan24HoursFromNow(timePosted)) {
-    //   console.log(`Skipping post "${postListings[listing].title}" from "${postListings[listing].website}" it was posted at ${timePosted} and it is more than 20 hours old.`);
-    //   return; // Skip this post if it's older than 24 hours
-    // }
+    // Get the author and category, normalize category
+    // Use getContent to extract text from the specified element
     const author = getContent($, postEls.post.authorEl);
     let category = getContent($, postEls.post.categoryEl);
+    category = normalizeCategory(category);
     const imageLink = getAttribute($,postEls.post.imageEl.tag, postEls.post.imageEl.source);
-    
-
-    // Normalize category for WordPress
-    if (category) {
-      const cat = category.trim().toLowerCase();
-      if (cat === 'news' || cat === 'hot-news'  || cat === 'politics' || cat === 'metro' || cat === 'nigeria-news' || cat === 'business-news'  || cat === 'business') {
-        category = 'News';
-      } else if (
-        cat === 'entertainment' ||
-        cat === 'movies & tv' ||
-        cat === 'bn tv' ||
-        cat === 'events'
-      ) {
-        category = 'Entertainment';
-      } else if (cat === 'sports' || cat === 'sport-news' || cat === 'Sport') {
-        category = 'Sports';
-      } else if (
-        cat === 'relationships' ||
-        cat === 'beauty' ||
-        cat === 'scoop'
-      ) {
-        category = 'Lifestyle';
-      } else if (
-        cat === 'extra'
-      ) {
-        category = 'Gists';
-      }
-    }
 
      // Map to WordPress category ID
     const wpCategoryId = wpCategoryMap[category] ? [wpCategoryMap[category]] : [];
@@ -224,68 +59,18 @@ export default async function getPostCotent(postListings, page, postEls) {
       })
       .get();
 
-      // Replace website names in the content with NOWAHALAZONE
-     const siteNamePatterns = [
-      /\bDaily\s*Post\b/gi,
-      /\bDAILY\s*POST\b/gi,
-      /\bDAILYPOST\b/gi,
-      /\bLeadership\b/gi,
-      /\bLEADERSHIP\b/gi,
-      /\bGistlover\b/gi,
-      /\bGISTLOVER\b/gi
-    ];
+      postDetails = replaceSiteNamesInPostDetails(postDetails);
+      postDetails = postDetails.map(htmlContent => replaceSiteNamesOutsideTags(htmlContent));
+      
+
+    const myXProfile = process.env.MY_X_PROFILE;
+    const myFacebookProfile = process.env.MY_FACEBOOK_PROFILE;
+    const myInstagramProfile = process.env.MY_INSTAGRAM_PROFILE;
+    const myTiktokProfile = process.env.MY_TIKTOK_PROFILE;
     
-  function replaceSiteNamesOutsideTags(html) {
-  // Split by HTML tags, only replace in text nodes (even indices)
-  return html.split(/(<[^>]+>)/g).map((part, i) => {
-    if (i % 2 === 0) { // text node
-      siteNamePatterns.forEach(pattern => {
-        part = part.replace(pattern, 'NOWAHALAZONE');
-      });
-    }
-    return part;
-  }).join('');
-}
+    const profiles = { myXProfile, myFacebookProfile, myInstagramProfile, myTiktokProfile };
+    postDetails = embedSocialLinks(postDetails, profiles);
 
-postDetails = postDetails.map(htmlContent => replaceSiteNamesOutsideTags(htmlContent));
-
-       // --- Custom embed handling for X, Facebook, Instagram ---
-    // Replace links with your own embed code using your profile
-    const myXProfile = "wahaala2"; // Replace with your X (Twitter) username
-    const myFacebookProfile = "Wahaala"; // Replace with your Facebook username
-    const myInstagramProfile = "wahaalawahala"; // Replace with your Instagram username
-
-    postDetails = postDetails.map(htmlContent => {
-      // X (Twitter) embed (official blockquote)
-      htmlContent = htmlContent.replace(
-        /https:\/\/x\.com\/([A-Za-z0-9_]+)\/status\/(\d+)/gi,
-        `<blockquote class="twitter-tweet"><a href="https://x.com/$1/status/$2"></a></blockquote>`
-      );
-      
-      // Facebook embed (official div)
-      htmlContent = htmlContent.replace(
-        /https:\/\/facebook\.com\/([^\/]+\/(posts|videos|photos)\/\d+)/gi,
-        `<div class="fb-post" data-href="https://facebook.com/$1"></div>`
-      );
-      
-      // Instagram embed (official blockquote)
-      htmlContent = htmlContent.replace(
-        /https:\/\/instagram\.com\/(p|reel|tv)\/([A-Za-z0-9_-]+)/gi,
-        `<blockquote class="instagram-media" data-instgrm-permalink="https://instagram.com/$1/$2/" data-instgrm-version="14"></blockquote>`
-      );
-      
-      // TikTok embed (official blockquote)
-      htmlContent = htmlContent.replace(
-        /https:\/\/www\.tiktok\.com\/@([A-Za-z0-9_.-]+)\/video\/(\d+)/gi,
-        `<blockquote class="tiktok-embed" cite="https://www.tiktok.com/@$1/video/$2" data-video-id="$2" style="max-width: 605px;min-width: 325px;"><section></section></blockquote>`
-      );
-      
-      return htmlContent;
-    });
-
-    // Save original title/content
-    // console.log(`Processing post: ${postListings[listing].title}`);
-    
     const originalTitle = postListings[listing].title;
     const originalDetails = Array.isArray(postDetails) ? postDetails.join('\n') : postDetails;
 
@@ -311,94 +96,81 @@ postDetails = postDetails.map(htmlContent => replaceSiteNamesOutsideTags(htmlCon
         ''
       );
     }
+    // Normalize the title and details
+    const urlToCheck = normalizeString(postListings[listing].url);
+    const titleToCheck = normalizeString(postListings[listing].title);
 
-    // Convert the post title and content using the contentConverter function
-      // const convertedTitle = await converter.contentConverter(postListings[listing].title);
-      // const convertedDetails = await converter.contentConverter(postDetails);
+    // Check if post exists in MongoDB by URL or title
+   const existing = await Post.findOne({
+    $or: [
+      { url: urlToCheck },
+      { title: titleToCheck }
+    ]
+  });
+  
+  if (existing) {
+    console.log(`Post "${postListings[listing].title}" already exists in MongoDB. Skipping.`);
+    continue;
+  }
+    const excerpt = getExcerpt(rewrittenDetails, 40); // Get first 40 words as excerpt
+    
+    // Save to MongoDB
+    const postDoc = await saveNewPostToDb(Post, {
+      url: urlToCheck,
+      title: safeTitle,
+      originalTitle: originalTitle,
+      rewrittenTitle: rewrittenTitle,
+      website: postListings[listing].website,
+      dateRetrieved: postListings[listing].dateRetrieved,
+      author: wpAuthorId,
+      timePosted,
+      category,
+      imageLink,
+      postDetails: originalDetails,
+      rewrittenDetails: rewrittenDetails,
+      excerpt
+    });
+      
+    await postDoc.save();
+    console.log('Saved to MongoDB:', postDoc.title);
 
-      // Check if post exists in MongoDB by URL or title
-    const existing = await Post.findOne({ $or: [{ url: postListings[listing].url }, { title: postListings[listing].title }] });
-    if (existing) {
-      console.log(`Post "${ postListings[listing].title}" already exists in MongoDB. Skipping.`);
-      continue;
+    // Upload image and get media ID
+    const wordpressUrl = process.env.WORDPRESS_URL;
+    const username = process.env.WORDPRESS_USERNAME;
+    const password = process.env.WORDPRESS_PASSWORD;
+    let featuredMediaId = null;
+
+    if (imageLink) {
+      featuredMediaId = await uploadImageToWordpress(imageLink, wordpressUrl, username, password);
     }
-
-     
-      // ...inside your main loop, after rewrittenDetails is created:
-      const excerpt = getExcerpt(rewrittenDetails, 40); // Get first 40 words as excerpt
-      console.log(excerpt);
-      
-
-      // Save to MongoDB
-      const postDoc = new Post({
-         url: postListings[listing].url,
-         title: safeTitle,
-         originalTitle: originalTitle,
-         rewrittenTitle: rewrittenTitle,
-         website: postListings[listing].website,
-         dateRetrieved: postListings[listing].dateRetrieved,
-         author: wpAuthorId,
-         timePosted,
-         category,
-         imageLink,
-         postDetails: originalDetails,
-         rewrittenDetails: rewrittenDetails,
-         excerpt // <-- add this field
-      });
-      
-      await postDoc.save();
-      console.log('Saved to MongoDB:', postDoc.title);
-
-      // Upload image and get media ID
-      const wordpressUrl = 'https://stag-blogsites.itechnolabs.co.in'; // <-- Replace with your site
-      const username = 'wahala'; // <-- Replace with your username
-      const password = 'vhST ICrX ZT6K Jgq1 TGv0 5uKJ'; // <-- Replace with your app password
-      let featuredMediaId = null;
-      if (imageLink) {
-        featuredMediaId = await uploadImageToWordpress(imageLink, wordpressUrl, username, password);
-      }
-
-      // Send to WordPress with featured image and HTML content (image at top, HTML content may contain images/embeds)
-      // const wpResult = await postToWordpress({
-      //   // ...postDoc.toObject(),
-      //   title:  postListings[listing].title,
-      //   postDetails: Array.isArray(postDetails) ? postDetails.join('\n') : postDetails,
-      //   categories: wpCategoryId,
-      //   // author: wpAuthorId
-      // }, featuredMediaId);
-
-      const wpResult = await postToWordpress({
+    
+    if (!featuredCountPerCategory[category]) featuredCountPerCategory[category] = 0;
+    let is_featured = false;
+    if (featuredCountPerCategory[category] < 2) {
+      is_featured = true;
+      featuredCountPerCategory[category]++;
+    }
+    
+    const wpResult = await postToWordpress({
       title: safeTitle, // Only the rewritten title is used
       postDetails: rewrittenDetails,
       categories: wpCategoryId,
       excerpt, // <-- add this for WordPress listing
-      author: wpAuthorId
-    }, featuredMediaId);
+      author: wpAuthorId,
+      is_featured
+    }, featuredMediaId, wordpressUrl, username, password);
 
-        if (wpResult) {
-          // Update MongoDB with WordPress info
-          postDoc.wpPostId = wpResult.id;
-          postDoc.wpPostUrl = wpResult.link;
-          postDoc.wpFeaturedMediaId = featuredMediaId;
-          await postDoc.save();
-          console.log(`Posted to WordPress: ${wpResult.link}`);
-        } else {
-          console.log(`Failed to post "${postListings[listing].title}" to WordPress.`);
-        }
-
-
-    //Add the post details to the postListings array
-    // postListings[listing].author = author;
-    // postListings[listing].timePosted = timePosted;
-    // postListings[listing].category = category;
-    // postListings[listing].imageLink = imageLink;
-    // postListings[listing].postDetails = postDetails;
-
-    // // Convert the post title and content using the contentConverter function
-    // postListings[listing].title = await converter.contentConverter(postListings[listing].title);
-    // postListings[listing].postDetails = await converter.contentConverter(postDetails);
-
-    // // Log the postListings for debugging
-    //  console.log(postListings[listing]);
+    // If posting to WordPress was successful, update the post document with WordPress info
+    // This will store the WordPress post ID, URL, and featured media ID in Mongo
+    if (wpResult) {
+      // Update MongoDB with WordPress info
+      postDoc.wpPostId = wpResult.id;
+      postDoc.wpPostUrl = wpResult.link;
+      postDoc.wpFeaturedMediaId = featuredMediaId;
+      await postDoc.save();
+      console.log(`Posted to WordPress: ${wpResult.link}`);
+    } else {
+      console.log(`Failed to post "${postListings[listing].title}" to WordPress.`);
+    }
   }
 }
