@@ -1,5 +1,5 @@
 
-import {getElementContent, getElementAttributeValue} from "./functions.js";
+import {getElementContent, getElementAttributeValue, getContent} from "./functions.js";
 import * as cheerio from 'cheerio'
 import {isMoreThan24HoursAgo} from "./timeConverter.js";
 import fs from 'fs';
@@ -62,6 +62,12 @@ function writeArrayToFile(array, filename) {
       // Extract the image URL
       const url = getElementAttributeValue($, content, siteNames[siteName].titleLinkEl.tag, siteNames[siteName].titleLinkEl.tag, siteNames[siteName].titleLinkEl.source);
 
+      let category = "";
+      if (siteNames[siteName].categoryEl && siteNames[siteName].categoryEl !== "") {
+        category = getContent($, siteNames[siteName].categoryEl);
+      }
+
+
       //Get the date the posting is retrieved
       const dateRetrieved = new Date().toISOString();
 
@@ -76,7 +82,7 @@ function writeArrayToFile(array, filename) {
       // Add the post data to the postData array
       // This will store the URL, title, website name, and date retrieved for each post
       // postData.push({ url, title, website, dateRetrieved });
-      const postObj = { url, title, website, dateRetrieved };
+      const postObj = { url, title, website, category, dateRetrieved };
       postData.push(postObj);
 
       // Write updated postData array to file after every addition
@@ -84,8 +90,8 @@ function writeArrayToFile(array, filename) {
       
       // Return the post data object
       // This will be used to create the post listings
-      return { url, title, website, dateRetrieved };
-      
+      return { url, title, website, category, dateRetrieved };
+
     })
     .get();
     

@@ -20,6 +20,8 @@ export function normalizeCategory(rawCategory) {
     cat === 'entertainment' ||
     cat === 'movies & tv' ||
     cat === 'bn tv' ||
+    cat === 'songs' ||
+    cat === 'lyrics' ||
     cat === 'events'
   ) {
     return 'Entertainment';

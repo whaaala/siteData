@@ -5,8 +5,9 @@ import { Post } from './db.js';
 import { uploadImageToWordpress, postToWordpress } from './wordpress.js';
 import { wpCategoryMap, getRandomAuthorId } from './categoryMap.js';
 import { normalizeCategory } from './normalizeCategory.js';
-import { getExcerpt, siteNamePatterns, replaceSiteNamesOutsideTags, replaceSiteNamesInPostDetails, saveNewPostToDb, normalizeString } from './utils.js';
+import { getExcerpt, siteNamePatterns, replaceSiteNamesOutsideTags, replaceSiteNamesInPostDetails, saveNewPostToDb, normalizeString, removeSourceSiteLinks, removeLastSocialElementIfNotJustOk } from './utils.js';
 import { replaceSocialLinksWithEmbeds } from './embedUtils.js';
+import { fixAndUploadBrokenImages } from './fixImages.js';
 
 // Array to store post data
 const featuredCountPerCategory = {};
@@ -34,9 +35,19 @@ export default async function getPostCotent(postListings, page, postEls) {
     // Get the author and category, normalize category
     // Use getContent to extract text from the specified element
     const author = getContent($, postEls.post.authorEl);
-    let category = getContent($, postEls.post.categoryEl);
+    let category = postListings[listing].category;
+    if ((!category || category === "" || category === "No content") && postEls.post.categoryEl && postEls.post.categoryEl !== "") {
+        category = getContent($, postEls.post.categoryEl);
+    }
+    // let category = getContent($, postEls.post.categoryEl);
     category = normalizeCategory(category);
     const imageLink = getAttribute($,postEls.post.imageEl.tag, postEls.post.imageEl.source);
+    // If imageLink does not start with http, prepend the website domain
+    // if (imageLink && !/^https?:\/\//i.test(imageLink)) {
+    //     // Ensure website does not end with '/' and imageLink does not start with '/'
+    //     const website = postListings[listing].website.replace(/\/$/, '');
+    //     imageLink = website + (imageLink.startsWith('/') ? '' : '/') + imageLink;
+    // }
 
      // Map to WordPress category ID
     const wpCategoryId = wpCategoryMap[category] ? [wpCategoryMap[category]] : [];
@@ -61,6 +72,14 @@ export default async function getPostCotent(postListings, page, postEls) {
 
       postDetails = replaceSiteNamesInPostDetails(postDetails);
       postDetails = postDetails.map(htmlContent => replaceSiteNamesOutsideTags(htmlContent));
+
+      // After extracting postDetails but before rewriting:
+      postDetails = postDetails.map(htmlContent =>
+        htmlContent
+        .split('\n')
+        .filter(line => !/Read the Latest Sports News/i.test(line))
+        .join('\n')
+      );
       
 
     const myXProfile = process.env.MY_X_PROFILE;
@@ -86,6 +105,25 @@ export default async function getPostCotent(postListings, page, postEls) {
     );
     let rewrittenDetails = rewrittenDetailsArr.join('\n');
 
+    rewrittenDetails = removeLastSocialElementIfNotJustOk(
+      rewrittenDetails,
+      postListings[listing].website
+    );
+    // Remove the specific text from the content
+    rewrittenDetails = rewrittenDetails.replace(/updates as they drop/gi, '');
+
+    // Replace img src with data-src if data-src exists
+{
+  const $ = cheerio.load(rewrittenDetails);
+  $('img').each((_, img) => {
+    const dataSrc = $(img).attr('data-src');
+    if (dataSrc) {
+      $(img).attr('src', dataSrc);
+    }
+  });
+  rewrittenDetails = $.html();
+}
+
     if (imageLink) {
       const $ = cheerio.load(rewrittenDetails);
       $(`img[src="${imageLink}"]`).remove();
@@ -94,9 +132,27 @@ export default async function getPostCotent(postListings, page, postEls) {
 
     let processedContent = await replaceSocialLinksWithEmbeds(rewrittenDetails);
  
+    // Remove the specific text from the content
+    rewrittenDetails = rewrittenDetails.replace(/latest Naija/gi, '');
 
      // Remove only the first <img> tag in the content (keep the rest)
      rewrittenDetails = rewrittenDetails.replace(/<img[^>]*>/i, '');
+
+     // Remove links to the source site from the processed content
+     const siteUrl = postListings[listing].website;
+     processedContent = removeSourceSiteLinks(processedContent, siteUrl);
+
+      const wordpressUrl = process.env.WORDPRESS_URL;
+      const username = process.env.WORDPRESS_USERNAME;
+      const password = process.env.WORDPRESS_PASSWORD;
+
+     processedContent = await fixAndUploadBrokenImages(
+      processedContent,
+      wordpressUrl,
+      username,
+      password
+    );
+
 
     // Remove featured image from post content if it matches the main image
     // if (imageLink) {
@@ -144,9 +200,7 @@ export default async function getPostCotent(postListings, page, postEls) {
     console.log('Saved to MongoDB:', postDoc.title);
 
     // Upload image and get media ID
-    const wordpressUrl = process.env.WORDPRESS_URL;
-    const username = process.env.WORDPRESS_USERNAME;
-    const password = process.env.WORDPRESS_PASSWORD;
+   
     let featuredMediaId = null;
 
     if (imageLink) {

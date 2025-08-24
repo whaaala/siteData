@@ -145,8 +145,58 @@ const gistlover  = {
   },
 };
 
+const notJustOk   = {
+   siteUrl: [
+    "https://notjustok.com/news",
+    "https://notjustok.com/category/songs/",
+    "https://notjustok.com/category/lyrics/",
+    "https://notjustok.com/category/sports/",
+  ],
+   listings: {
+    mainContainerEl: ".article-list-hot",
+    postHeadLineContainerEl: "",
+    postContainerEl: "ul",
+  },
+  titleEl: {
+    tag: ".list-title h3",
+    link: "",
+  },
+  titleLinkEl: {
+    tag: ".list-title",
+    source: "href",
+  },
+  imageEl: {
+    tag: "img",
+    source: "src",
+    alt: "",
+  },
+   categoryEl: ".article-list-heading h1",
+  post: {
+    categoryEl: "",
+    authorEl: ".single-article-author a",
+    datePostedEl: ".single-article-time",
+    mainContainerEl: ".single-article-content",
+    contentEl: "article",
+    elToReFromPostEl: [
+      ".code-block",
+      ".jeg_postblock_21",
+      ".jnews_inline_related_post",
+      ".jeg_post_tags",
+      ".jnews_inline_related_post_wrapper",
+    ],
+    imageEl: {
+      tag: ".single-article-img img",
+      tag1: "",
+      source: "src",
+      source1: "srcset",
+      alt: "",
+    },
+  },
+};
+
+
 // const siteNames = [dailypost, leadership, gistlover];
-const siteNames = [gistlover];
+const siteNames = [notJustOk];
 
 
 export default siteNames;
