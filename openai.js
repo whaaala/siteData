@@ -11,25 +11,46 @@ const openAIClient = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY // Use your environment variable for security
 });
 
-// Function to convert content using OpenAI's GPT model
-// This function takes content as input and returns the converted content
-export async function contentConverter(content) {
+/**
+ * Rewrites a title using OpenAI GPT.
+ * @param {string} title - The original title.
+ * @returns {Promise<string>} - The rewritten title.
+ */
+export async function rewriteTitle(title) {  
   const completion = await openAIClient.chat.completions.create({
-    model: "gpt-4o-mini",
+    model: "gpt-4.1",
     messages: [
       {
         role: "system",
-        content: "You are a helpful assistant."
+        content: "You are a helpful assistant. When rewriting, only return the rewritten title itself. Do not include any explanations, comments, or introductions."
       },
       {
         role: "user",
-        content: `Rewrite the content: ${content}`
+        content: `Rewrite the title in a short, concise way. Only return the rewritten title itself:\n${title}`
       }
     ]
-   
   });
+  return completion.choices[0].message.content.trim();
+}
 
-  // Return the converted content from the OpenAI response
-  // Ensure to handle cases where the response might not contain the expected structure
-  return completion.choices[0].message.content;
+/**
+ * Rewrites text content using OpenAI GPT.
+ * @param {string} content - The original content.
+ * @returns {Promise<string>} - The rewritten content.
+ */
+export async function rewriteContent(content) {
+  const completion = await openAIClient.chat.completions.create({
+    model: "gpt-4.1",
+    messages: [
+      {
+        role: "system",
+        content: "You are a helpful assistant that rewrites blog post content to be clear, engaging, and original. Preserve any HTML tags and structure."
+      },
+      {
+        role: "user",
+        content: `Rewrite the following blog post content. Keep all HTML tags and structure:\n${content}`
+      }
+    ]
+  });
+  return completion.choices[0].message.content.trim();
 }

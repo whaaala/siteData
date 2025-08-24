@@ -1,7 +1,8 @@
 const dailypost = {
   siteUrl: [
-    "https://dailypost.ng/hot-news/",
-    "https://dailypost.ng/politics/",
+    "https://dailypost.ng/",
+    // "https://dailypost.ng/hot-news/",
+    // "https://dailypost.ng/politics/",
     "https://dailypost.ng/metro/",
     "https://dailypost.ng/entertainment/",
     "https://dailypost.ng/sport-news/",
@@ -49,14 +50,16 @@ const dailypost = {
 
 const leadership = {
   siteUrl: [
-    "https://leadership.ng/nigeria-news/",
+    "https://leadership.ng/opinion/columns/",
+    // "https://leadership.ng/nigeria-news/",
     "https://leadership.ng/politics/",
-    "https://leadership.ng/nigeria-news/business-news/",
+    // "https://leadership.ng/nigeria-news/business-news/",
+    // "https://leadership.ng/nigeria-news/entertainment-news/"
   ],
   listings: {
     mainContainerEl: ".jeg_inner_content",
     postHeadLineContainerEl: "",
-    postContainerEl: ".jeg_posts",
+    postContainerEl: ".jeg_post",
   },
   titleEl: {
     tag: ".jeg_post_title a",
@@ -96,9 +99,11 @@ const leadership = {
 
 const gistlover  = {
   siteUrl: [
-    "https://www.gistlover.com/category/news",
+    "https://www.gistlover.com/category/religion/",
+    // "https://www.gistlover.com/category/news",
     "https://www.gistlover.com/category/entertainment",
-    "https://www.gistlover.com/category/extra",
+    // "https://www.gistlover.com/category/extra",
+    // "https://www.gistlover.com/category/daily-travel-and-scholarships-tips/z",
   ],
   listings: {
     mainContainerEl: ".mh-content",
@@ -128,7 +133,6 @@ const gistlover  = {
       ".code-block",
       ".quads-location",
       "ul",
-       ".wp-block-image",
       ".mh-social-bottom",
     ],
     imageEl: {
@@ -141,7 +145,8 @@ const gistlover  = {
   },
 };
 
-const siteNames = [dailypost, leadership, gistlover];
+// const siteNames = [dailypost, leadership, gistlover];
+const siteNames = [gistlover];
 
 
 export default siteNames;

@@ -1,8 +1,15 @@
 import * as cheerio from 'cheerio'
 import {getContent, getAttribute} from "./functions.js";
 import * as converter from "./openai.js";
-import {isMoreThan24HoursFromNow} from "./timeConverter.js";
+import { Post } from './db.js';
+import { uploadImageToWordpress, postToWordpress } from './wordpress.js';
+import { wpCategoryMap, getRandomAuthorId } from './categoryMap.js';
+import { normalizeCategory } from './normalizeCategory.js';
+import { getExcerpt, siteNamePatterns, replaceSiteNamesOutsideTags, replaceSiteNamesInPostDetails, saveNewPostToDb, normalizeString } from './utils.js';
+import { replaceSocialLinksWithEmbeds } from './embedUtils.js';
 
+// Array to store post data
+const featuredCountPerCategory = {};
 
 export default async function getPostCotent(postListings, page, postEls) {
   // Loop through each postListing to get the content
@@ -24,19 +31,20 @@ export default async function getPostCotent(postListings, page, postEls) {
     //Get the date, author, category and image link of the post
     const timePosted = getContent($, postEls.post.datePostedEl);
    
-    // Check if the post is more than 24 hours old
-    // If it is, skip this post and continue to the next one
-    if (isMoreThan24HoursFromNow(timePosted)) {
-      console.log(`Skipping post "${postListings[listing].title}" from "${postListings[listing].website}" it was posted at ${timePosted} and it is more than 20 hours old.`);
-      return; // Skip this post if it's older than 24 hours
-    }
+    // Get the author and category, normalize category
+    // Use getContent to extract text from the specified element
     const author = getContent($, postEls.post.authorEl);
-    const category = getContent($, postEls.post.categoryEl);
+    let category = getContent($, postEls.post.categoryEl);
+    category = normalizeCategory(category);
     const imageLink = getAttribute($,postEls.post.imageEl.tag, postEls.post.imageEl.source);
+
+     // Map to WordPress category ID
+    const wpCategoryId = wpCategoryMap[category] ? [wpCategoryMap[category]] : [];
+    const wpAuthorId = getRandomAuthorId(category);
 
     //Get the post content
     //Find the main container element that holds the post content
-    const postDetails = $(postEls.post.mainContainerEl)
+    let postDetails = $(postEls.post.mainContainerEl)
       .find(postEls.post.contentEl)
       .map((_, el) => {
         //Remove the element content from the DOM that is not needed
@@ -51,18 +59,127 @@ export default async function getPostCotent(postListings, page, postEls) {
       })
       .get();
 
-    //Add the post details to the postListings array
-    postListings[listing].author = author;
-    postListings[listing].timePosted = timePosted;
-    postListings[listing].category = category;
-    postListings[listing].imageLink = imageLink;
-    postListings[listing].postDetails = postDetails;
+      postDetails = replaceSiteNamesInPostDetails(postDetails);
+      postDetails = postDetails.map(htmlContent => replaceSiteNamesOutsideTags(htmlContent));
+      
 
-    // Convert the post title and content using the contentConverter function
-    // postListings[listing].title = await converter.contentConverter(postListings[listing].title);
-    // postListings[listing].postDetails = await converter.contentConverter(postDetails);
+    const myXProfile = process.env.MY_X_PROFILE;
+    const myFacebookProfile = process.env.MY_FACEBOOK_PROFILE;
+    const myInstagramProfile = process.env.MY_INSTAGRAM_PROFILE;
+    const myTiktokProfile = process.env.MY_TIKTOK_PROFILE;
+    
+    const profiles = { myXProfile, myFacebookProfile, myInstagramProfile, myTiktokProfile };
+    // postDetails = embedSocialLinks(postDetails, profiles);
 
-    // Log the postListings for debugging
-     console.log(postListings[listing]);
+    const originalTitle = postListings[listing].title;
+    const originalDetails = Array.isArray(postDetails) ? postDetails.join('\n') : postDetails;
+
+    // Use ChatGPT to rewrite the title and content
+    const rewrittenTitle = await converter.rewriteTitle(postListings[listing].title);
+    let safeTitle = Array.isArray(rewrittenTitle) ? rewrittenTitle[0] : rewrittenTitle;
+    const rewrittenDetailsArr = await Promise.all(
+      postDetails.map(async htmlContent => {
+        // Remove all spaces from content before sending to ChatGPT
+        const noSpaces = htmlContent.replace(/\s+/g, ' ');
+        return await converter.rewriteContent(noSpaces);
+      })
+    );
+    let rewrittenDetails = rewrittenDetailsArr.join('\n');
+
+    if (imageLink) {
+      const $ = cheerio.load(rewrittenDetails);
+      $(`img[src="${imageLink}"]`).remove();
+      rewrittenDetails = $.html();
+    }
+
+    let processedContent = await replaceSocialLinksWithEmbeds(rewrittenDetails);
+ 
+
+     // Remove only the first <img> tag in the content (keep the rest)
+     rewrittenDetails = rewrittenDetails.replace(/<img[^>]*>/i, '');
+
+    // Remove featured image from post content if it matches the main image
+    // if (imageLink) {
+    //   rewrittenDetails = rewrittenDetails.replace(
+    //     new RegExp(`<img[^>]+src=["']${imageLink.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["'][^>]*>`, 'gi'),
+    //     ''
+    //   );
+    // }
+    // Normalize the title and details
+    const urlToCheck = normalizeString(postListings[listing].url);
+    const titleToCheck = normalizeString(postListings[listing].title);
+
+    // Check if post exists in MongoDB by URL or title
+   const existing = await Post.findOne({
+    $or: [
+      { url: urlToCheck },
+      { title: titleToCheck }
+    ]
+  });
+  
+  if (existing) {
+    console.log(`Post "${postListings[listing].title}" already exists in MongoDB. Skipping.`);
+    continue;
+  }
+    const excerpt = getExcerpt(rewrittenDetails, 40); // Get first 40 words as excerpt
+    
+    // Save to MongoDB
+    const postDoc = await saveNewPostToDb(Post, {
+      url: urlToCheck,
+      title: safeTitle,
+      originalTitle: originalTitle,
+      rewrittenTitle: rewrittenTitle,
+      website: postListings[listing].website,
+      dateRetrieved: postListings[listing].dateRetrieved,
+      author: wpAuthorId,
+      timePosted,
+      category,
+      imageLink,
+      postDetails: originalDetails,
+      rewrittenDetails: rewrittenDetails,
+      excerpt
+    });
+      
+    await postDoc.save();
+    console.log('Saved to MongoDB:', postDoc.title);
+
+    // Upload image and get media ID
+    const wordpressUrl = process.env.WORDPRESS_URL;
+    const username = process.env.WORDPRESS_USERNAME;
+    const password = process.env.WORDPRESS_PASSWORD;
+    let featuredMediaId = null;
+
+    if (imageLink) {
+      featuredMediaId = await uploadImageToWordpress(imageLink, wordpressUrl, username, password);
+    }
+    
+    if (!featuredCountPerCategory[category]) featuredCountPerCategory[category] = 0;
+    let is_featured = false;
+    if (featuredCountPerCategory[category] < 2) {
+      is_featured = true;
+      featuredCountPerCategory[category]++;
+    }
+    
+    const wpResult = await postToWordpress({
+      title: safeTitle, // Only the rewritten title is used
+      postDetails: processedContent,
+      categories: wpCategoryId,
+      excerpt, // <-- add this for WordPress listing
+      author: wpAuthorId,
+      is_featured
+    }, featuredMediaId, wordpressUrl, username, password);
+
+    // If posting to WordPress was successful, update the post document with WordPress info
+    // This will store the WordPress post ID, URL, and featured media ID in Mongo
+    if (wpResult) {
+      // Update MongoDB with WordPress info
+      postDoc.wpPostId = wpResult.id;
+      postDoc.wpPostUrl = wpResult.link;
+      postDoc.wpFeaturedMediaId = featuredMediaId;
+      await postDoc.save();
+      console.log(`Posted to WordPress: ${wpResult.link}`);
+    } else {
+      console.log(`Failed to post "${postListings[listing].title}" to WordPress.`);
+    }
   }
 }

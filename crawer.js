@@ -14,6 +14,9 @@ async function main() {
       // Call the postListing function with the page, siteNames, siteName, and url
       const postListings = await postListing(page, siteNames, siteName, url);
 
+      // console.log(postListings);
+      
+
       // Process the post listings to get the content
       const postContent = await getPostCotent(postListings, page, siteNames[siteName]);
     }

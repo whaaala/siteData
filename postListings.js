@@ -4,21 +4,36 @@ import * as cheerio from 'cheerio'
 import {isMoreThan24HoursAgo} from "./timeConverter.js";
 import fs from 'fs';
 
-
-// Helper function to write array to file as JSON
-function writeArrayToFile(array, filename) {
-  fs.writeFileSync(filename, JSON.stringify(array, null, 2), 'utf-8');
-}
-
 // Array to store post data
 // This will hold the post listings with their details
-const postData = [];
+let postData = [];
+
+// File to store post objects
+const postDataFile = 'postData.json';
+
+// Load existing data from file if it exists
+if (fs.existsSync(postDataFile)) {
+  try {
+    const fileContent = fs.readFileSync(postDataFile, 'utf-8');
+    const loaded = JSON.parse(fileContent);
+    if (Array.isArray(loaded)) {
+      postData = loaded;
+    }
+  } catch (e) {
+    postData = [];
+  }
+}
 
 // Remove objects from postData if their 'time' property is more than 24 hours ago
 for (let i = postData.length - 1; i >= 0; i--) {
   if (postData[i].dateRetrieved && isMoreThan24HoursAgo(postData[i].dateRetrieved)) {
     postData.splice(i, 1);
   }
+}
+
+// Helper function to write array to file as JSON
+function writeArrayToFile(array, filename) {
+  fs.writeFileSync(filename, JSON.stringify(array, null, 2), 'utf-8');
 }
 
 // Function to fetch post listings from a site
@@ -60,8 +75,13 @@ for (let i = postData.length - 1; i >= 0; i--) {
       
       // Add the post data to the postData array
       // This will store the URL, title, website name, and date retrieved for each post
-      postData.push({ url, title, website, dateRetrieved });
+      // postData.push({ url, title, website, dateRetrieved });
+      const postObj = { url, title, website, dateRetrieved };
+      postData.push(postObj);
 
+      // Write updated postData array to file after every addition
+      // writeArrayToFile(postData, postDataFile);
+      
       // Return the post data object
       // This will be used to create the post listings
       return { url, title, website, dateRetrieved };
@@ -69,6 +89,9 @@ for (let i = postData.length - 1; i >= 0; i--) {
     })
     .get();
     
+     //Write updated postData array to file after every addition
+      // writeArrayToFile(postData, postDataFile);
+
     //return the result array containing post listings
     // This will be used in the main function to process each post listing
     return result;
