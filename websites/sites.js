@@ -101,8 +101,9 @@ const gistlover  = {
   siteUrl: [
     "https://www.gistlover.com/category/religion/",
     // "https://www.gistlover.com/category/news",
-    // "https://www.gistlover.com/category/entertainment",
-    "https://www.gistlover.com/category/extra",
+    "https://www.gistlover.com/category/entertainment",
+    // "https://www.gistlover.com/category/extra",
+    // "https://www.gistlover.com/category/daily-travel-and-scholarships-tips/z",
   ],
   listings: {
     mainContainerEl: ".mh-content",

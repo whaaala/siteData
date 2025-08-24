@@ -6,7 +6,7 @@ import { uploadImageToWordpress, postToWordpress } from './wordpress.js';
 import { wpCategoryMap, getRandomAuthorId } from './categoryMap.js';
 import { normalizeCategory } from './normalizeCategory.js';
 import { getExcerpt, siteNamePatterns, replaceSiteNamesOutsideTags, replaceSiteNamesInPostDetails, saveNewPostToDb, normalizeString } from './utils.js';
-import { embedSocialLinks } from './embedUtils.js';
+import { replaceSocialLinksWithEmbeds } from './embedUtils.js';
 
 // Array to store post data
 const featuredCountPerCategory = {};
@@ -69,7 +69,7 @@ export default async function getPostCotent(postListings, page, postEls) {
     const myTiktokProfile = process.env.MY_TIKTOK_PROFILE;
     
     const profiles = { myXProfile, myFacebookProfile, myInstagramProfile, myTiktokProfile };
-    postDetails = embedSocialLinks(postDetails, profiles);
+    // postDetails = embedSocialLinks(postDetails, profiles);
 
     const originalTitle = postListings[listing].title;
     const originalDetails = Array.isArray(postDetails) ? postDetails.join('\n') : postDetails;
@@ -86,16 +86,25 @@ export default async function getPostCotent(postListings, page, postEls) {
     );
     let rewrittenDetails = rewrittenDetailsArr.join('\n');
 
+    if (imageLink) {
+      const $ = cheerio.load(rewrittenDetails);
+      $(`img[src="${imageLink}"]`).remove();
+      rewrittenDetails = $.html();
+    }
+
+    let processedContent = await replaceSocialLinksWithEmbeds(rewrittenDetails);
+ 
+
      // Remove only the first <img> tag in the content (keep the rest)
      rewrittenDetails = rewrittenDetails.replace(/<img[^>]*>/i, '');
 
     // Remove featured image from post content if it matches the main image
-    if (imageLink) {
-      rewrittenDetails = rewrittenDetails.replace(
-        new RegExp(`<img[^>]+src=["']${imageLink.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["'][^>]*>`, 'gi'),
-        ''
-      );
-    }
+    // if (imageLink) {
+    //   rewrittenDetails = rewrittenDetails.replace(
+    //     new RegExp(`<img[^>]+src=["']${imageLink.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["'][^>]*>`, 'gi'),
+    //     ''
+    //   );
+    // }
     // Normalize the title and details
     const urlToCheck = normalizeString(postListings[listing].url);
     const titleToCheck = normalizeString(postListings[listing].title);
@@ -153,7 +162,7 @@ export default async function getPostCotent(postListings, page, postEls) {
     
     const wpResult = await postToWordpress({
       title: safeTitle, // Only the rewritten title is used
-      postDetails: rewrittenDetails,
+      postDetails: processedContent,
       categories: wpCategoryId,
       excerpt, // <-- add this for WordPress listing
       author: wpAuthorId,
