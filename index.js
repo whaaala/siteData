@@ -76,44 +76,44 @@ const dailypost = {
 
 const leadership = {
   siteUrl: [
-    "https://notjustok.com/news",
-    "https://notjustok.com/category/songs/",
+    "https://www.naijanews.com/news/",
+    // "https://www.naijanews.com/entertainment/",
     // "https://leadership.ng/nigeria-news/business-news/",
   ],
    listings: {
-    mainContainerEl: ".article-list-hot",
+    mainContainerEl: ".mvp-main-blog-body",
     postHeadLineContainerEl: "",
     postContainerEl: "ul",
   },
   titleEl: {
-    tag: ".list-title h3",
+    tag: ".mvp-blog-story-text h2",
     link: "",
   },
   titleLinkEl: {
-    tag: ".list-title",
+    tag: ".mvp-blog-story-wrap a",
     source: "href",
   },
   imageEl: {
-    tag: "img",
-    source: "src",
+    tag: "",
+    source: "",
     alt: "",
   },
-   categoryEl: ".article-list-heading h1",
+   categoryEl: "",
   post: {
-    categoryEl: "",
-    authorEl: ".single-article-author a",
-    datePostedEl: ".single-article-time",
-    mainContainerEl: ".single-article-content",
-    contentEl: "article",
+    categoryEl: ".mvp-post-cat-link .mvp-post-cat",
+    authorEl: ".author-name a",
+    datePostedEl: ".post-date",
+    mainContainerEl: "#mvp-post-content",
+    contentEl: "#mvp-content-main",
     elToReFromPostEl: [
+      "#mys-content",
       ".code-block",
-      ".jeg_postblock_21",
-      ".jnews_inline_related_post",
-      ".jeg_post_tags",
-      ".jnews_inline_related_post_wrapper",
+      ".ai-viewport-3",
+      ".ai-viewports",
+      ".copyright",
     ],
     imageEl: {
-      tag: ".single-article-img img",
+      tag: ".wp-post-image",
       tag1: "",
       source: "src",
       source1: "srcset",
@@ -300,7 +300,7 @@ async function main() {
 
       console.log(postListings);
 
-      // Process the post listings to get the content
+      //Process the post listings to get the content
       const postContent = await getPostCotent(
         postListings,
         page,

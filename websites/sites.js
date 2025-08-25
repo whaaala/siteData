@@ -145,7 +145,7 @@ const gistlover  = {
   },
 };
 
-const notJustOk   = {
+const notJustOk  = {
    siteUrl: [
     "https://notjustok.com/news",
     "https://notjustok.com/category/songs/",
@@ -194,9 +194,60 @@ const notJustOk   = {
   },
 };
 
+const naijanews = {
+   siteUrl: [
+    "https://www.naijanews.com/news/",
+    // "https://www.naijanews.com/politics/",
+    // "https://www.naijanews.com/entertainment/",
+    // "https://www.naijanews.com/business/",
+    // "https://www.naijanews.com/gist/",
+    // "https://www.naijanews.com/sports/",
+  ],
+   listings: {
+    mainContainerEl: ".mvp-main-blog-body",
+    postHeadLineContainerEl: "",
+    postContainerEl: "ul",
+  },
+  titleEl: {
+    tag: ".mvp-blog-story-text h2",
+    link: "",
+  },
+  titleLinkEl: {
+    tag: ".mvp-blog-story-wrap a",
+    source: "href",
+  },
+  imageEl: {
+    tag: "",
+    source: "",
+    alt: "",
+  },
+   categoryEl: "",
+  post: {
+    categoryEl: ".mvp-post-cat-link .mvp-post-cat",
+    authorEl: ".author-name a",
+    datePostedEl: ".post-date",
+    mainContainerEl: "#mvp-post-content",
+    contentEl: "#mvp-content-main",
+    elToReFromPostEl: [
+      "#mys-content",
+      ".code-block",
+      ".ai-viewport-3",
+      ".ai-viewports",
+      ".copyright",
+    ],
+    imageEl: {
+      tag: ".wp-post-image",
+      tag1: "",
+      source: "src",
+      source1: "data-src",
+      alt: "",
+    },
+  },
+};
 
-// const siteNames = [dailypost, leadership, gistlover];
-const siteNames = [notJustOk];
+
+// const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews];
+const siteNames = [naijanews];
 
 
 export default siteNames;

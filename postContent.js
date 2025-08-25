@@ -41,13 +41,12 @@ export default async function getPostCotent(postListings, page, postEls) {
     }
     // let category = getContent($, postEls.post.categoryEl);
     category = normalizeCategory(category);
-    const imageLink = getAttribute($,postEls.post.imageEl.tag, postEls.post.imageEl.source);
-    // If imageLink does not start with http, prepend the website domain
-    // if (imageLink && !/^https?:\/\//i.test(imageLink)) {
-    //     // Ensure website does not end with '/' and imageLink does not start with '/'
-    //     const website = postListings[listing].website.replace(/\/$/, '');
-    //     imageLink = website + (imageLink.startsWith('/') ? '' : '/') + imageLink;
-    // }
+    let imageLink = "";
+    if(postListings[listing].website.includes('naijanews') ){
+       imageLink = getAttribute($,postEls.post.imageEl.tag, postEls.post.imageEl.source1);
+    }else {
+      imageLink = getAttribute($,postEls.post.imageEl.tag, postEls.post.imageEl.source);
+    }
 
      // Map to WordPress category ID
     const wpCategoryId = wpCategoryMap[category] ? [wpCategoryMap[category]] : [];
@@ -70,6 +69,7 @@ export default async function getPostCotent(postListings, page, postEls) {
       })
       .get();
 
+
       postDetails = replaceSiteNamesInPostDetails(postDetails);
       postDetails = postDetails.map(htmlContent => replaceSiteNamesOutsideTags(htmlContent));
 
@@ -88,10 +88,13 @@ export default async function getPostCotent(postListings, page, postEls) {
     const myTiktokProfile = process.env.MY_TIKTOK_PROFILE;
     
     const profiles = { myXProfile, myFacebookProfile, myInstagramProfile, myTiktokProfile };
-    // postDetails = embedSocialLinks(postDetails, profiles);
 
     const originalTitle = postListings[listing].title;
     const originalDetails = Array.isArray(postDetails) ? postDetails.join('\n') : postDetails;
+
+    postDetails = postDetails.map(htmlContent =>
+      htmlContent.replace(/Naija News/gi, 'nowahalazone')
+    );
 
     // Use ChatGPT to rewrite the title and content
     const rewrittenTitle = await converter.rewriteTitle(postListings[listing].title);
@@ -153,14 +156,6 @@ export default async function getPostCotent(postListings, page, postEls) {
       password
     );
 
-
-    // Remove featured image from post content if it matches the main image
-    // if (imageLink) {
-    //   rewrittenDetails = rewrittenDetails.replace(
-    //     new RegExp(`<img[^>]+src=["']${imageLink.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["'][^>]*>`, 'gi'),
-    //     ''
-    //   );
-    // }
     // Normalize the title and details
     const urlToCheck = normalizeString(postListings[listing].url);
     const titleToCheck = normalizeString(postListings[listing].title);

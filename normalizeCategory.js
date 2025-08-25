@@ -13,6 +13,8 @@ export function normalizeCategory(rawCategory) {
     cat === 'metro' ||
     cat === 'nigeria-news' ||
     cat === 'business-news' ||
+    cat === 'nigeria news' ||
+    cat === 'dollar to naira exchange rates' ||
     cat === 'business'
   ) {
     return 'News';
@@ -22,6 +24,7 @@ export function normalizeCategory(rawCategory) {
     cat === 'bn tv' ||
     cat === 'songs' ||
     cat === 'lyrics' ||
+    cat === 'nigeria entertainment news' ||
     cat === 'events'
   ) {
     return 'Entertainment';
@@ -37,7 +40,7 @@ export function normalizeCategory(rawCategory) {
     cat === 'scoop'
   ) {
     return 'Lifestyle';
-  } else if (cat === 'extra' || cat === 'religion') {
+  } else if (cat === 'extra' || cat === 'religion' || cat === 'gist') {
     return 'Gists';
   }
   return '';
