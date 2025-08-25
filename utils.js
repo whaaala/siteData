@@ -86,3 +86,12 @@ export function removeLastSocialElementIfNotJustOk(htmlContent, websiteUrl) {
   }
   return $.html();
 }
+
+export function removeGistreelLinks(htmlContent) {
+  const $ = cheerio.load(htmlContent);
+  $('a[href*="https://www.gistreel.com/"]').each(function () {
+    // Replace the link with its text content
+    $(this).replaceWith($(this).text());
+  });
+  return $.html();
+}

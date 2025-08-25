@@ -25,6 +25,7 @@ export function normalizeCategory(rawCategory) {
     cat === 'songs' ||
     cat === 'lyrics' ||
     cat === 'nigeria entertainment news' ||
+    cat === 'entertainment news' ||
     cat === 'events'
   ) {
     return 'Entertainment';
@@ -40,7 +41,12 @@ export function normalizeCategory(rawCategory) {
     cat === 'scoop'
   ) {
     return 'Lifestyle';
-  } else if (cat === 'extra' || cat === 'religion' || cat === 'gist') {
+  } else if (
+    cat === 'extra' || 
+    cat === 'religion' || 
+    cat === 'gist' ||
+    cat === 'viral gist' 
+) {
     return 'Gists';
   }
   return '';

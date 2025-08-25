@@ -5,7 +5,7 @@ import { Post } from './db.js';
 import { uploadImageToWordpress, postToWordpress } from './wordpress.js';
 import { wpCategoryMap, getRandomAuthorId } from './categoryMap.js';
 import { normalizeCategory } from './normalizeCategory.js';
-import { getExcerpt, siteNamePatterns, replaceSiteNamesOutsideTags, replaceSiteNamesInPostDetails, saveNewPostToDb, normalizeString, removeSourceSiteLinks, removeLastSocialElementIfNotJustOk } from './utils.js';
+import { getExcerpt, siteNamePatterns, replaceSiteNamesOutsideTags, replaceSiteNamesInPostDetails, saveNewPostToDb, normalizeString, removeSourceSiteLinks, removeLastSocialElementIfNotJustOk, removeGistreelLinks } from './utils.js';
 import { replaceSocialLinksWithEmbeds } from './embedUtils.js';
 import { fixAndUploadBrokenImages } from './fixImages.js';
 
@@ -46,6 +46,14 @@ export default async function getPostCotent(postListings, page, postEls) {
        imageLink = getAttribute($,postEls.post.imageEl.tag, postEls.post.imageEl.source1);
     }else {
       imageLink = getAttribute($,postEls.post.imageEl.tag, postEls.post.imageEl.source);
+    }
+
+    // If imageLink is a data URI, try to get a better value from source1
+    if (imageLink && imageLink.startsWith('data:') && postEls.post.imageEl.source1) {
+      const altImageLink = getAttribute($, postEls.post.imageEl.tag, postEls.post.imageEl.source1);
+      if (altImageLink && !altImageLink.startsWith('data:')) {
+        imageLink = altImageLink;
+      }
     }
 
      // Map to WordPress category ID
@@ -92,9 +100,60 @@ export default async function getPostCotent(postListings, page, postEls) {
     const originalTitle = postListings[listing].title;
     const originalDetails = Array.isArray(postDetails) ? postDetails.join('\n') : postDetails;
 
+    // Replace img src with data-lazy-src if it exists, before rewriting
+    postDetails = postDetails.map(htmlContent => {
+      const $ = cheerio.load(htmlContent);
+      $('img').each((_, img) => {
+        const dataLazySrc = $(img).attr('data-lazy-src');
+        if (dataLazySrc) {
+          $(img).attr('src', dataLazySrc);
+        }
+      });
+      return $.html();
+    });
+
+    postDetails = postDetails.map(htmlContent => {
+  const $ = cheerio.load(htmlContent);
+
+  // Remove <figure> blocks with <figcaption> containing "AI-generated image"
+  $('figure').each((_, figure) => {
+    const figcaption = $(figure).find('figcaption').text().toLowerCase();
+    if (figcaption.includes('ai-generated image')) {
+      $(figure).remove();
+    }
+  });
+
+  // Also handle images with captions not wrapped in <figure>
+  $('img').each((_, img) => {
+    // Check if the next sibling is a caption with the text
+    const next = $(img).next();
+    if (
+      next.is('figcaption') &&
+      next.text().toLowerCase().includes('ai-generated image')
+    ) {
+      $(img).remove();
+      next.remove();
+    }
+  });
+  return $.html();
+});
+   
+
     postDetails = postDetails.map(htmlContent =>
       htmlContent.replace(/Naija News/gi, 'nowahalazone')
     );
+
+    // Remove Gistreel links before rewriting
+postDetails = postDetails.map(htmlContent => {
+  const $ = cheerio.load(htmlContent);
+  $('a').each(function () {
+    const href = ($(this).attr('href') || '').toLowerCase();
+    if (href.includes('gistreel.com')) {
+      $(this).replaceWith($(this).text());
+    }
+  });
+  return $.html();
+});
 
     // Use ChatGPT to rewrite the title and content
     const rewrittenTitle = await converter.rewriteTitle(postListings[listing].title);

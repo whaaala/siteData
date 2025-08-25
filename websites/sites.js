@@ -245,9 +245,58 @@ const naijanews = {
   },
 };
 
+const gistreel = {
+   siteUrl: [
+    // "https://www.gistreel.com/entertainment-news/",
+    // "https://www.gistreel.com/viral-news/",
+    // "https://www.gistreel.com/social-issues/",
+    // "https://www.gistreel.com/sport/",
+    "https://www.gistreel.com/politics/",
+    
+  ],
+  listings: {
+    mainContainerEl: ".main-content",
+    postHeadLineContainerEl: "",
+    postContainerEl: "ul",
+  },
+  titleEl: {
+    tag: ".post-title a",
+    link: "",
+  },
+  titleLinkEl: {
+    tag: ".post-title a",
+    source: "href",
+  },
+  imageEl: {
+    tag: "",
+    source: "",
+    alt: "",
+  },
+   categoryEl: "",
+  post: {
+    categoryEl: ".entry-header .post-cat-wrap a",
+    authorEl: ".meta-author a",
+    datePostedEl: ".date",
+    mainContainerEl: "article",
+    contentEl: ".entry-content",
+    elToReFromPostEl: [
+      ".code-block",
+      ".stream-item",
+      ".post-bottom-meta",
+    ],
+    imageEl: {
+      tag: ".single-featured-image img",
+      tag1: "",
+      source: "src",
+      source1: "data-lazy-src",
+      alt: "",
+    },
+  },
+};
 
-// const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews];
-const siteNames = [naijanews];
+
+// const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel];
+const siteNames = [gistreel];
 
 
 export default siteNames;
