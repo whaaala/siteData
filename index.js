@@ -76,23 +76,29 @@ const dailypost = {
 
 const leadership = {
   siteUrl: [
-     "https://www.gistreel.com/entertainment-news/",
-    // "https://www.gistreel.com/viral-news/",
-    // "https://www.gistreel.com/social-issues/",
-    // "https://www.gistreel.com/sport/",
-    // "https://www.gistreel.com/politics/",
+    //  "https://guardian.ng/category/news/",
+    // "https://guardian.ng/category/news/nigeria/metro/",
+    //  "https://guardian.ng/category/news/world/africa/",
+    // "https://guardian.ng/category/sport/",
+     "https://guardian.ng/category/life/music/",
+    //  "https://guardian.ng/category/life/film/",
+    //  "https://guardian.ng/category/life/beauty/",
+    //  "https://guardian.ng/category/opinion/",
+    //  "https://guardian.ng/category/technology/",
+    //  "https://guardian.ng/category/features/",
+    //  "https://guardian.ng/category/news/world/europe/",
   ],
    listings: {
-    mainContainerEl: ".main-content",
+    mainContainerEl: ".category-top-section",
     postHeadLineContainerEl: "",
-    postContainerEl: "ul",
+    postContainerEl: ".row",
   },
   titleEl: {
-    tag: ".post-title a",
+    tag: ".post-info h1 a",
     link: "",
   },
   titleLinkEl: {
-    tag: ".post-title a",
+    tag: ".post-info h1 a",
     source: "href",
   },
   imageEl: {
@@ -100,23 +106,23 @@ const leadership = {
     source: "",
     alt: "",
   },
-   categoryEl: "",
+   categoryEl: ".category-name h1",
   post: {
-    categoryEl: ".entry-header .post-cat-wrap a",
-    authorEl: ".meta-author a",
-    datePostedEl: ".date",
+    categoryEl: "",
+    authorEl: ".post-author",
+    datePostedEl: ".post-date",
     mainContainerEl: "article",
-    contentEl: ".entry-content",
+    contentEl: ".post-content",
     elToReFromPostEl: [
-      ".code-block",
-      ".stream-item",
+      ".ad-container",
+      ".related-articles",
       ".post-bottom-meta",
     ],
     imageEl: {
-      tag: ".single-featured-image img",
+      tag: ".post-image",
       tag1: "",
       source: "src",
-      source1: "srcset",
+      source1: "data-srcset",
       alt: "",
     },
   },
@@ -251,6 +257,18 @@ async function getPostCotent(postListings, page, postEls) {
       postEls.post.imageEl.source
     );
 
+if (imageLink && imageLink.includes('Guardian-grey.jpg')) {
+  // Try to get the image again, for example using source1 if available
+  if (postEls.post.imageEl.source1) {
+    let altImageLink = getAttribute($, postEls.post.imageEl.tag, postEls.post.imageEl.source1);
+    if (altImageLink && altImageLink !== "No attribute") {
+      // If there are multiple values separated by space, use the first one
+      altImageLink = altImageLink.split(' ')[0];
+      imageLink = altImageLink;
+    }
+  }
+  // If you want to try another fallback, add it here
+}
     // // If imageLink does not start with http, prepend the website domain
     // if (imageLink && !/^https?:\/\//i.test(imageLink)) {
     //     // Ensure website does not end with '/' and imageLink does not start with '/'
@@ -300,7 +318,7 @@ async function main() {
 
       console.log(postListings);
 
-    //   //Process the post listings to get the content
+      //Process the post listings to get the content
       const postContent = await getPostCotent(
         postListings,
         page,

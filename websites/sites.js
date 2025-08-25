@@ -294,9 +294,63 @@ const gistreel = {
   },
 };
 
+const guardian = {
+    siteUrl: [
+    //  "https://guardian.ng/category/news/",
+    // "https://guardian.ng/category/news/nigeria/metro/",
+    //  "https://guardian.ng/category/news/world/africa/",
+    // "https://guardian.ng/category/sport/",
+    //  "https://guardian.ng/category/life/music/",
+    //  "https://guardian.ng/category/life/film/",
+     "https://guardian.ng/category/life/beauty/",
+    //  "https://guardian.ng/category/opinion/",
+    //  "https://guardian.ng/category/technology/",
+    //  "https://guardian.ng/category/features/",
+    //  "https://guardian.ng/category/news/world/europe/",
+  ],
+   listings: {
+    mainContainerEl: ".category-top-section",
+    postHeadLineContainerEl: "",
+    postContainerEl: ".row",
+  },
+  titleEl: {
+    tag: ".post-info h1 a",
+    link: "",
+  },
+  titleLinkEl: {
+    tag: ".post-info h1 a",
+    source: "href",
+  },
+  imageEl: {
+    tag: "",
+    source: "",
+    alt: "",
+  },
+   categoryEl: ".category-name h1",
+  post: {
+    categoryEl: "",
+    authorEl: ".post-author",
+    datePostedEl: ".post-date",
+    mainContainerEl: "article",
+    contentEl: ".post-content",
+    elToReFromPostEl: [
+      ".ad-container",
+      ".related-articles",
+      ".post-bottom-meta",
+    ],
+    imageEl: {
+      tag: ".post-image",
+      tag1: "",
+      source: "src",
+      source1: "data-srcset",
+      alt: "",
+    },
+  },
+};
 
-// const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel];
-const siteNames = [gistreel];
+
+// const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian];
+const siteNames = [guardian];
 
 
 export default siteNames;

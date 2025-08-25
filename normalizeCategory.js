@@ -12,8 +12,11 @@ export function normalizeCategory(rawCategory) {
     cat === 'politics' ||
     cat === 'metro' ||
     cat === 'nigeria-news' ||
+    cat === 'africa' ||
     cat === 'business-news' ||
     cat === 'nigeria news' ||
+    cat === 'technology' ||
+    cat === 'europe' ||
     cat === 'dollar to naira exchange rates' ||
     cat === 'business'
   ) {
@@ -24,6 +27,9 @@ export function normalizeCategory(rawCategory) {
     cat === 'bn tv' ||
     cat === 'songs' ||
     cat === 'lyrics' ||
+    cat === 'music' ||
+    cat === 'film' ||
+    cat === 'opinion' ||
     cat === 'nigeria entertainment news' ||
     cat === 'entertainment news' ||
     cat === 'events'
@@ -45,9 +51,14 @@ export function normalizeCategory(rawCategory) {
     cat === 'extra' || 
     cat === 'religion' || 
     cat === 'gist' ||
+    cat === 'features' ||
     cat === 'viral gist' 
 ) {
     return 'Gists';
+  } else if (
+    cat === 'beauty' 
+) {
+    return 'HealthAndFitness';
   }
   return '';
 }
