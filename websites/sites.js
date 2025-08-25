@@ -302,11 +302,11 @@ const guardian = {
     // "https://guardian.ng/category/sport/",
     //  "https://guardian.ng/category/life/music/",
     //  "https://guardian.ng/category/life/film/",
-     "https://guardian.ng/category/life/beauty/",
+    //  "https://guardian.ng/category/life/beauty/",
     //  "https://guardian.ng/category/opinion/",
     //  "https://guardian.ng/category/technology/",
     //  "https://guardian.ng/category/features/",
-    //  "https://guardian.ng/category/news/world/europe/",
+     "https://guardian.ng/category/news/world/europe/",
   ],
    listings: {
     mainContainerEl: ".category-top-section",
