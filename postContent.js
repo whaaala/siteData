@@ -14,7 +14,6 @@ import {
   normalizeString,
   removeSourceSiteLinks,
   removeLastSocialElementIfNotJustOk,
-  removeGistreelLinks,
 } from './utils.js'
 import { replaceSocialLinksWithEmbeds } from './embedUtils.js'
 import { fixAndUploadBrokenImages } from './fixImages.js'
@@ -27,11 +26,11 @@ export default async function getPostCotent(postListings, page, postEls) {
   for (let listing = 0; listing < postListings.length; listing++) {
     // Check if the postListing has a URL, if not, skip to the next iteration
     // This is to avoid errors if the URL is undefined or null
-    if (postListings[listing].url === undefined) continue;
+    if (postListings[listing].url === undefined) continue
 
     // Normalize the title and details
-    const urlToCheck = normalizeString(postListings[listing].url);
-    const titleToCheck = normalizeString(postListings[listing].title);
+    const urlToCheck = normalizeString(postListings[listing].url)
+    const titleToCheck = normalizeString(postListings[listing].title)
 
     // Check if post exists in MongoDB by URL or title BEFORE rewriting
     const existing = await Post.findOne({
@@ -67,6 +66,36 @@ export default async function getPostCotent(postListings, page, postEls) {
 
     // Load the HTML into cheerio
     const $ = cheerio.load(html)
+
+    if (
+      postListings[listing].url &&
+      postListings[listing].url.includes('healthwise')
+    ) {
+      // Log the selector and how many <p> are found
+      const mainContent = $(postEls.post.mainContainerEl)
+      const firstP = mainContent.find('p').first()
+      firstP.remove()
+    }
+
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('healthwise')
+    ) {
+      // Remove <p> containing "Copyright PUNCH"
+      $('p')
+        .filter((_, el) => $(el).text().includes('Copyright PUNCH'))
+        .remove()
+      // Remove <p> starting with "All rights reserved"
+      $('p')
+        .filter((_, el) =>
+          $(el).text().trim().startsWith('All rights reserved')
+        )
+        .remove()
+      // Remove <p> containing "health_wise@punchng.com"
+      $('p')
+        .filter((_, el) => $(el).text().includes('health_wise@punchng.com'))
+        .remove()
+    }
 
     // Remove parent containing "Related News" and all its children
     $('*').each(function () {
@@ -121,6 +150,21 @@ export default async function getPostCotent(postListings, page, postEls) {
         altImageLink = altImageLink.split(' ')[0]
         imageLink = altImageLink
       }
+    }
+
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('healthwise')
+    ) {
+      // Use the imageLink from postListing
+      imageLink = postListings[listing].imageLink
+    } else {
+      // For other sites, extract as usual
+      imageLink = getAttribute(
+        $,
+        postEls.post.imageEl.tag,
+        postEls.post.imageEl.source
+      )
     }
 
     // If imageLink is a data URI, try to get a better value from source1
@@ -310,8 +354,6 @@ export default async function getPostCotent(postListings, page, postEls) {
       password
     )
 
-    
-
     {
       const $ = cheerio.load(processedContent)
       await Promise.all(
@@ -366,7 +408,7 @@ export default async function getPostCotent(postListings, page, postEls) {
 
       processedContent = $.html()
     }
-    
+
     // Create excerpt from the rewritten details
     const excerpt = getExcerpt(rewrittenDetails, 40) // Get first 40 words as excerpt
 

@@ -57,7 +57,14 @@ export function normalizeCategory(rawCategory) {
 ) {
     return 'Gists';
   } else if (
-    cat === 'beauty' 
+    cat === 'beauty' ||
+    cat === 'impact stories' ||
+    cat === 'maternal health' ||
+    cat === 'gender' ||
+    cat === 'sexual health' ||
+    cat === 'mental health' ||
+    cat === 'environment' ||
+    cat === 'general health'
 ) {
     return 'HealthAndFitness';
   }

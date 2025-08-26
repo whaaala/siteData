@@ -399,9 +399,55 @@ const punchng = {
   },
 };
 
+const healthwisePunchng = {
+    siteUrl: [
+      // 'https://healthwise.punchng.com/category/general-health/',
+      // 'https://healthwise.punchng.com/category/impact-stories/',
+      // 'https://healthwise.punchng.com/category/maternal-health/',
+      // 'https://healthwise.punchng.com/category/gender/',
+      // 'https://healthwise.punchng.com/category/sexual-health/',
+      // 'https://healthwise.punchng.com/category/mental-health/',
+       'https://healthwise.punchng.com/category/enviroment/',
+    ],
+  listings: {
+    mainContainerEl: '.td_block_wrap',
+    postHeadLineContainerEl: '',
+    postContainerEl: '.tdb-block-inner',
+  },
+  titleEl: {
+    tag: 'h3 a',
+    link: '',
+  },
+  titleLinkEl: {
+    tag: 'h3 a',
+    source: 'href',
+  },
+  imageEl: {
+    tag: '.td-image-wrap span',
+    source: 'style',
+    alt: '',
+  },
+  categoryEl: '',
+  post: {
+    categoryEl: '.tdb-entry-category',
+    authorEl: '.tdb-author-name',
+    datePostedEl: '.vc_column-inner .wpb_wrapper .tdb-block-inner .entry-date',
+    mainContainerEl: '.tdb_single_content',
+    contentEl: '.tdb-block-inner',
+    elToReFromPostEl: ["[dir^='auto']"],
+    imageEl: {
+      tag: '',
+      tag1: '',
+      source: '',
+      source1: '',
+      alt: '',
+    },
+  },
+};
 
-// const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng];
-const siteNames = [punchng];
+
+// const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng];
+const siteNames = [healthwisePunchng];
 
 
 export default siteNames;

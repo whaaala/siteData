@@ -95,3 +95,29 @@ export function removeGistreelLinks(htmlContent) {
   });
   return $.html();
 }
+
+export function extractImageUrlFromMultipleSelectors($, dynamicSelector, staticSelector) {
+  // Try dynamic selector first
+  const dynamicEl = $(`${dynamicSelector} .tdb-featured-image-bg`).first();
+  if (dynamicEl.length) {
+    const style = dynamicEl.attr('style');
+    if (style) {
+      const match = style.match(/background(?:-image)?:?\s*url\(['"]?(.*?\.(jpg|png))['"]?\)/i);
+      if (match && match[1]) {
+        return match[1];
+      }
+    }
+  }
+  // Fallback to static selector
+  const staticEl = $(staticSelector).first();
+  if (staticEl.length) {
+    const style = staticEl.attr('style');
+    if (style) {
+      const match = style.match(/background(?:-image)?:?\s*url\(['"]?(.*?\.(jpg|png))['"]?\)/i);
+      if (match && match[1]) {
+        return match[1];
+      }
+    }
+  }
+  return '';
+}
