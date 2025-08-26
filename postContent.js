@@ -27,7 +27,23 @@ export default async function getPostCotent(postListings, page, postEls) {
   for (let listing = 0; listing < postListings.length; listing++) {
     // Check if the postListing has a URL, if not, skip to the next iteration
     // This is to avoid errors if the URL is undefined or null
-    if (postListings[listing].url === undefined) return
+    if (postListings[listing].url === undefined) continue;
+
+    // Normalize the title and details
+    const urlToCheck = normalizeString(postListings[listing].url);
+    const titleToCheck = normalizeString(postListings[listing].title);
+
+    // Check if post exists in MongoDB by URL or title BEFORE rewriting
+    const existing = await Post.findOne({
+      $or: [{ url: urlToCheck }, { title: titleToCheck }],
+    })
+
+    if (existing) {
+      console.log(
+        `Post "${postListings[listing].title}" already exists in MongoDB. Skipping.`
+      )
+      continue
+    }
 
     //Go to the post URL
     await page.goto(postListings[listing].url)
@@ -52,6 +68,12 @@ export default async function getPostCotent(postListings, page, postEls) {
     // Load the HTML into cheerio
     const $ = cheerio.load(html)
 
+    // Remove parent containing "Related News" and all its children
+    $('*').each(function () {
+      if ($(this).clone().children().remove().end().text().trim() === '(NAN)') {
+        $(this).remove()
+      }
+    })
     //Get the date, author, category and image link of the post
     const timePosted = getContent($, postEls.post.datePostedEl)
 
@@ -288,9 +310,7 @@ export default async function getPostCotent(postListings, page, postEls) {
       password
     )
 
-    // Normalize the title and details
-    const urlToCheck = normalizeString(postListings[listing].url)
-    const titleToCheck = normalizeString(postListings[listing].title)
+    
 
     {
       const $ = cheerio.load(processedContent)
@@ -346,17 +366,8 @@ export default async function getPostCotent(postListings, page, postEls) {
 
       processedContent = $.html()
     }
-    // Check if post exists in MongoDB by URL or title
-    const existing = await Post.findOne({
-      $or: [{ url: urlToCheck }, { title: titleToCheck }],
-    })
-
-    if (existing) {
-      console.log(
-        `Post "${postListings[listing].title}" already exists in MongoDB. Skipping.`
-      )
-      continue
-    }
+    
+    // Create excerpt from the rewritten details
     const excerpt = getExcerpt(rewrittenDetails, 40) // Get first 40 words as excerpt
 
     // Save to MongoDB
@@ -398,6 +409,14 @@ export default async function getPostCotent(postListings, page, postEls) {
     if (featuredCountPerCategory[category] < 2) {
       is_featured = true
       featuredCountPerCategory[category]++
+    }
+
+    {
+      const $ = cheerio.load(processedContent)
+      $('p').each((_, p) => {
+        $(p).css('text-align', 'justify')
+      })
+      processedContent = $.html()
     }
 
     const wpResult = await postToWordpress(

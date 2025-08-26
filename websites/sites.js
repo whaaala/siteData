@@ -348,9 +348,60 @@ const guardian = {
   },
 };
 
+const punchng = {
+    siteUrl: [
+    //  "https://punchng.com/topics/news/",
+    //  "https://punchng.com/topics/metro-plus/",
+    //  "https://punchng.com/topics/business/",
+    //  "https://punchng.com/topics/sports/",
+     "https://punchng.com/topics/punch-lite/",
+  ],
+  listings: {
+    mainContainerEl: '.row',
+    postHeadLineContainerEl: '',
+    postContainerEl: '.mobile-only',
+  },
+  titleEl: {
+    tag: '.post-title a',
+    link: '',
+  },
+  titleLinkEl: {
+    tag: '.post-title a',
+    source: 'href',
+  },
+  imageEl: {
+    tag: '',
+    source: '',
+    alt: '',
+  },
+  categoryEl: 'header .section-title .header-title',
+  post: {
+    categoryEl: '',
+    authorEl: '.post-author a',
+    datePostedEl: '.post-date',
+    mainContainerEl: '.col-lg-8',
+    contentEl: '.post-content',
+    elToReFromPostEl: [
+      '.ad-container',
+      '#show360playvid',
+      "[dock^='#pv-dock-slot']",
+      "[style^='left']",
+      '.post-title',
+      '.read-also',
+    ],
+    imageEl: {
+      tag: '.post-image',
+      tag1: '',
+      source: 'src',
+      source1: '',
+      alt: '',
+    },
+  },
+};
 
-// const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian];
-const siteNames = [guardian];
+
+// const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng];
+const siteNames = [punchng];
 
 
 export default siteNames;

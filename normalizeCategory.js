@@ -15,6 +15,7 @@ export function normalizeCategory(rawCategory) {
     cat === 'africa' ||
     cat === 'business-news' ||
     cat === 'nigeria news' ||
+    cat === 'metro plus' ||
     cat === 'technology' ||
     cat === 'europe' ||
     cat === 'dollar to naira exchange rates' ||
@@ -51,7 +52,8 @@ export function normalizeCategory(rawCategory) {
     cat === 'gist' ||
     cat === 'opinion' ||
     cat === 'features' ||
-    cat === 'viral gist' 
+    cat === 'punch lite' ||
+    cat === 'viral gist'
 ) {
     return 'Gists';
   } else if (

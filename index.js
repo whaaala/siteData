@@ -76,57 +76,52 @@ const dailypost = {
 
 const leadership = {
   siteUrl: [
-    //  "https://guardian.ng/category/news/",
-    // "https://guardian.ng/category/news/nigeria/metro/",
-    //  "https://guardian.ng/category/news/world/africa/",
-    // "https://guardian.ng/category/sport/",
-     "https://guardian.ng/category/life/music/",
-    //  "https://guardian.ng/category/life/film/",
-    //  "https://guardian.ng/category/life/beauty/",
-    //  "https://guardian.ng/category/opinion/",
-    //  "https://guardian.ng/category/technology/",
-    //  "https://guardian.ng/category/features/",
-    //  "https://guardian.ng/category/news/world/europe/",
+    // 'https://healthwise.punchng.com/category/general-health/',
+    // 'https://punchng.com/topics/news/',
+    'https://punchng.com/topics/punch-lite/',
   ],
-   listings: {
-    mainContainerEl: ".category-top-section",
-    postHeadLineContainerEl: "",
-    postContainerEl: ".row",
+  listings: {
+    mainContainerEl: '.row',
+    postHeadLineContainerEl: '',
+    postContainerEl: '.mobile-only',
   },
   titleEl: {
-    tag: ".post-info h1 a",
-    link: "",
+    tag: '.post-title a',
+    link: '',
   },
   titleLinkEl: {
-    tag: ".post-info h1 a",
-    source: "href",
+    tag: '.post-title a',
+    source: 'href',
   },
   imageEl: {
-    tag: "",
-    source: "",
-    alt: "",
+    tag: '',
+    source: '',
+    alt: '',
   },
-   categoryEl: ".category-name h1",
+  categoryEl: 'header .section-title .header-title',
   post: {
-    categoryEl: "",
-    authorEl: ".post-author",
-    datePostedEl: ".post-date",
-    mainContainerEl: "article",
-    contentEl: ".post-content",
+    categoryEl: '',
+    authorEl: '.post-author a',
+    datePostedEl: '.post-date',
+    mainContainerEl: '.col-lg-8',
+    contentEl: '.post-content',
     elToReFromPostEl: [
-      ".ad-container",
-      ".related-articles",
-      ".post-bottom-meta",
+      '.ad-container',
+      '#show360playvid',
+      "[dock^='#pv-dock-slot']",
+      "[style^='left']",
+      '.post-title',
     ],
     imageEl: {
-      tag: ".post-image",
-      tag1: "",
-      source: "src",
-      source1: "data-srcset",
-      alt: "",
+      tag: '.post-image',
+      tag1: '',
+      source: 'src',
+      source1: '',
+      alt: '',
     },
   },
-};
+}
+
 
 // const siteNames = [dailypost];
 const siteNames = [leadership];
@@ -221,11 +216,12 @@ async function postListing(page, siteNames, siteName, url) {
 
 async function getPostCotent(postListings, page, postEls) {
   // Wait for the main container to load
-
+ 
+  
   for (let listing = 0; listing < postListings.length; listing++) {
-
+    
     if(postListings[listing].url === undefined){
-    return;
+    continue;
   }else {
     //Go to the URL the siteName is pointing to
     await page.goto(postListings[listing].url);
