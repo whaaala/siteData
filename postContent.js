@@ -67,6 +67,33 @@ export default async function getPostCotent(postListings, page, postEls) {
     // Load the HTML into cheerio
     const $ = cheerio.load(html)
 
+    // Remove all <strong> elements from the content
+    $(postEls.post.mainContainerEl).find('strong').remove()
+
+    // Remove any <p> element containing "Source: Legit.ng"
+    $('p')
+      .filter((_, el) => $(el).text().includes('Source: Legit.ng'))
+      .remove()
+
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('legit')
+    ) {
+      // Remove any element containing "Read more stories Read more:"
+      $('*')
+        .filter((_, el) =>
+          $(el).text().includes('Read more stories Read more:')
+        )
+        .remove()
+    }
+
+    // Remove any <a> tag with href containing www.legit.ng, anywhere in the loaded HTML
+   $(postEls.post.contentEl)
+  .find('a[href*="legit"]')
+  .each(function () {
+    $(this).replaceWith($(this).text());
+  });
+
     if (
       postListings[listing].url &&
       postListings[listing].url.includes('healthwise')
@@ -117,8 +144,25 @@ export default async function getPostCotent(postListings, page, postEls) {
     ) {
       category = getContent($, postEls.post.categoryEl)
     }
+
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('legit') &&
+      typeof category === 'string' &&
+      category.includes('\n')
+    ) {
+      // Split by \n, trim each part, and take the last non-empty one
+      const parts = category
+        .split('\n')
+        .map((s) => s.trim())
+        .filter(Boolean)
+      if (parts.length > 0) {
+        category = parts[parts.length - 1]
+      }
+    }
     // let category = getContent($, postEls.post.categoryEl);
     category = normalizeCategory(category)
+
     let imageLink = ''
     if (postListings[listing].website.includes('naijanews')) {
       imageLink = getAttribute(
@@ -181,6 +225,24 @@ export default async function getPostCotent(postListings, page, postEls) {
       if (altImageLink && !altImageLink.startsWith('data:')) {
         imageLink = altImageLink
       }
+    }
+
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('legit.ng') &&
+      imageLink
+    ) {
+      $(`img[src="${imageLink}"]`).each(function () {
+        // Remove <figcaption> in parent if present
+        $(this).parent().find('figcaption').remove()
+        // Remove closest <figure> ancestor if present, else remove parent
+        const figure = $(this).closest('figure')
+        if (figure.length) {
+          figure.remove()
+        } else {
+          $(this).parent().remove()
+        }
+      })
     }
 
     // Map to WordPress category ID

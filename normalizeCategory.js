@@ -16,8 +16,18 @@ export function normalizeCategory(rawCategory) {
     cat === 'business-news' ||
     cat === 'nigeria news' ||
     cat === 'metro plus' ||
+    cat === 'nigeria' ||
     cat === 'technology' ||
+    cat === 'maritime' ||
+    cat === 'world' ||
+    cat === 'us' ||
     cat === 'europe' ||
+    cat === 'industry' ||
+    cat === 'money' ||
+    cat === 'energy' ||
+    cat === 'capital market' ||
+    cat === 'economy' ||
+    cat === 'education' ||
     cat === 'dollar to naira exchange rates' ||
     cat === 'business'
   ) {
@@ -31,6 +41,10 @@ export function normalizeCategory(rawCategory) {
     cat === 'music' ||
     cat === 'film' ||
     cat === 'nigeria entertainment news' ||
+    cat === 'celebrities' ||
+    cat === 'movies' ||
+    cat === 'tv shows' ||
+    cat === 'nollywood' ||
     cat === 'entertainment news' ||
     cat === 'events'
   ) {
@@ -38,11 +52,17 @@ export function normalizeCategory(rawCategory) {
   } else if (
     cat === 'sports' ||
     cat === 'sport-news' ||
+    cat === 'football' ||
+    cat === 'boxing' ||
     cat === 'sport'
   ) {
     return 'Sports';
   } else if (
     cat === 'relationships' ||
+    cat === 'wedding' ||
+    cat === 'people' ||
+    cat === 'family and relationships' ||
+    cat === 'fashion' ||
     cat === 'scoop'
   ) {
     return 'Lifestyle';
@@ -53,6 +73,8 @@ export function normalizeCategory(rawCategory) {
     cat === 'opinion' ||
     cat === 'features' ||
     cat === 'punch lite' ||
+    cat === 'people' ||
+    cat === 'celebrity biographies' ||
     cat === 'viral gist'
 ) {
     return 'Gists';

@@ -87,37 +87,44 @@ const dailypost = {
 }
 
 const leadership = {
-  siteUrl: ['https://healthwise.punchng.com/category/impact-stories/'],
+  siteUrl: ['https://www.legit.ng/tags/rivers-state-news-today/'],
   listings: {
-    mainContainerEl: '.td_block_wrap',
+    mainContainerEl: '.l-taxonomy-page-hero',
     postHeadLineContainerEl: '',
-    postContainerEl: '.tdb-block-inner',
+    postContainerEl: '.js-articles',
   },
   titleEl: {
-    tag: 'h3 a',
+    tag: '.c-article-card-horizontal__headline span',
     link: '',
   },
   titleLinkEl: {
-    tag: 'h3 a',
+    tag: '.c-article-card-horizontal__headline',
     source: 'href',
   },
   imageEl: {
-    tag: '.td-image-wrap span',
-    source: 'style',
+    tag: '',
+    source: '',
     alt: '',
   },
   categoryEl: '',
   post: {
-    categoryEl: '.tdb-entry-category',
-    authorEl: '.tdb-author-name',
-    datePostedEl: '.vc_column-inner .wpb_wrapper .tdb-block-inner .entry-date',
-    mainContainerEl: '.tdb_single_content',
-    contentEl: '.tdb-block-inner',
-    elToReFromPostEl: ["[dir^='auto']"],
+    categoryEl: '.c-breadcrumbs:first-of-type',
+    authorEl: '.c-article-info__authors--capitalize span a',
+    datePostedEl: '.c-article-info__time',
+    mainContainerEl: 'article',
+    contentEl: '.post__content',
+    elToReFromPostEl: [
+      'ul',
+      '.call_to_action',
+      '.c-adv',
+      'i',
+      '.post__read-also',
+      "[dir^='auto']",
+    ],
     imageEl: {
-      tag: '',
+      tag: '.article-image__wrapper img',
       tag1: '',
-      source: '',
+      source: 'src',
       source1: '',
       alt: '',
     },
@@ -176,6 +183,8 @@ async function postListing(page, siteNames, siteName, url) {
       ) {
         category = getContent($, siteNames[siteName].categoryEl)
       }
+
+      
 
       let imageLink = ''
       if (website.includes('healthwise')) {
@@ -269,6 +278,21 @@ async function getPostCotent(postListings, page, postEls) {
     // Load the HTML into cheerio
     const $ = cheerio.load(html)
 
+    // Remove all <strong> elements from the content
+    $(postEls.post.mainContainerEl).find('strong').remove()
+
+    // Remove any <p> element containing "Source: Legit.ng"
+    $('p')
+      .filter((_, el) => $(el).text().includes('Source: Legit.ng'))
+      .remove()
+
+    // Remove any <a> tag with href containing www.legit.ng
+    $(postEls.post.mainContainerEl)
+      .find('a[href*="www.legit.ng"]')
+      .each(function () {
+        $(this).replaceWith($(this).text())
+      })
+
     // Find all elements with a class starting with 'tdi'
     $('[class*="tdi_"]').each(function () {
       const tdiClass = $(this)
@@ -310,7 +334,23 @@ async function getPostCotent(postListings, page, postEls) {
       postEls.post.categoryEl !== ''
     ) {
       category = getContent($, postEls.post.categoryEl)
+      console.log('Category from post page:', postEls.post.categoryEl);
+      console.log('Category from post page:', category);
+      
     }
+
+    if (
+  postListings[listing].website &&
+  postListings[listing].website.includes('legit') &&
+  typeof category === 'string' &&
+  category.includes('\n')
+) {
+  // Split by \n, trim each part, and take the last non-empty one
+  const parts = category.split('\n').map(s => s.trim()).filter(Boolean);
+  if (parts.length > 0) {
+    category = parts[parts.length - 1];
+  }
+}
     // const category = getContent($, postEls.post.categoryEl);
     let imageLink = getAttribute(
       $,
@@ -352,6 +392,24 @@ async function getPostCotent(postListings, page, postEls) {
         postEls.post.imageEl.tag,
         postEls.post.imageEl.source
       )
+    }
+
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('legit.ng') &&
+      imageLink
+    ) {
+      $(`img[src="${imageLink}"]`).each(function () {
+        // Remove <figcaption> in parent if present
+        $(this).parent().find('figcaption').remove()
+        // Remove closest <figure> ancestor if present, else remove parent
+        const figure = $(this).closest('figure')
+        if (figure.length) {
+          figure.remove()
+        } else {
+          $(this).parent().remove()
+        }
+      })
     }
     // ...rest of your code...
     // postListings[listing].imageLink = imageLink

@@ -445,9 +445,87 @@ const healthwisePunchng = {
   },
 };
 
+const legit = {
+     siteUrl: [
+      // 'https://www.legit.ng/nigeria/',
+      // 'https://www.legit.ng/tags/lagos-state-news-today/',
+      // 'https://www.legit.ng/tags/abuja-city-news-today/',
+      // 'https://www.legit.ng/tags/rivers-state-news-today/',
+      // 'https://www.legit.ng/tags/kano-news-today/',
+      // 'https://www.legit.ng/tags/oyo-state-news-today/',
+      // 'https://www.legit.ng/tags/anambra-state-news-today/',
+      // 'https://www.legit.ng/tags/kwara-state-news-today/',
+      // 'https://www.legit.ng/tags/adamawa-state-news-today/',
+      // 'https://www.legit.ng/politics/',
+      // 'https://www.legit.ng/world/',
+      // 'https://www.legit.ng/world/africa/',
+      // 'https://www.legit.ng/world/europe/',
+      // 'https://www.legit.ng/world/us/',
+      // 'https://www.legit.ng/business-economy/',
+      // 'https://www.legit.ng/business-economy/technology/',
+      // 'https://www.legit.ng/business-economy/energy/',
+      // 'https://www.legit.ng/business-economy/capital-market/',
+      // 'https://www.legit.ng/business-economy/industry/',
+      // 'https://www.legit.ng/business-economy/economy/',
+      // 'https://www.legit.ng/entertainment/',
+      // 'https://www.legit.ng/entertainment/celebrities/',
+      // 'https://www.legit.ng/entertainment/movies/',
+      // 'https://www.legit.ng/entertainment/music/',
+      // 'https://www.legit.ng/entertainment/tv-shows/',
+      // 'https://www.legit.ng/entertainment/nollywood/',
+      // 'https://www.legit.ng/entertainment/fashion/',
+      // 'https://www.legit.ng/people/',
+      // // 'https://www.legit.ng/people/wedding/',
+      // 'https://www.legit.ng/people/family-relationship/',
+      'https://www.legit.ng/education/',
+    ],
+  listings: {
+    mainContainerEl: '.l-taxonomy-page-hero',
+    postHeadLineContainerEl: '',
+    postContainerEl: '.js-articles',
+  },
+  titleEl: {
+    tag: '.c-article-card-horizontal__headline span',
+    link: '',
+  },
+  titleLinkEl: {
+    tag: '.c-article-card-horizontal__headline',
+    source: 'href',
+  },
+  imageEl: {
+    tag: '',
+    source: '',
+    alt: '',
+  },
+  categoryEl: '',
+  post: {
+    categoryEl: '.c-breadcrumbs:first-of-type',
+    authorEl: '.c-article-info__authors span a',
+    datePostedEl: '.c-article-info__time',
+    mainContainerEl: 'article',
+    contentEl: '.post__content',
+    elToReFromPostEl: [
+      'ul',
+      '.call_to_action',
+      '.c-adv',
+      'i',
+      '.post__read-also',
+      '.article-image__button',
+      "[dir^='auto']",
+    ],
+    imageEl: {
+      tag: '.article-image__wrapper img',
+      tag1: '',
+      source: 'src',
+      source1: '',
+      alt: '',
+    },
+  },
+};
 
-// const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng];
-const siteNames = [healthwisePunchng];
+
+// const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit];
+const siteNames = [legit];
 
 
 export default siteNames;
