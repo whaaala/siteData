@@ -76,7 +76,7 @@ export default async function postListing(page, siteNames, siteName, url) {
       }
 
       // Extract the image URL
-      const url = getElementAttributeValue(
+      let url = getElementAttributeValue(
         $,
         content,
         siteNames[siteName].titleLinkEl.tag,
@@ -84,6 +84,18 @@ export default async function postListing(page, siteNames, siteName, url) {
         siteNames[siteName].titleLinkEl.source
       )
 
+       // Ensure absolute URL for pulse.ng
+      if (website.includes('pulse.ng') && url && !/^https?:\/\//i.test(url)) {
+        // Ensure url starts with a slash
+        const path = url.startsWith('/') ? url : '/' + url
+        url = 'https://www.pulse.ng' + path
+      }else if (website.includes('pulse.com.gh') && url && !/^https?:\/\//i.test(url)) {
+        // Ensure url starts with a slash
+        const path = url.startsWith('/') ? url : '/' + url
+        url = 'https://www.pulse.com.gh' + path
+      }
+
+      // Extract the category if available  
       let category = ''
       if (
         siteNames[siteName].categoryEl &&

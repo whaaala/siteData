@@ -87,18 +87,18 @@ const dailypost = {
 }
 
 const leadership = {
-  siteUrl: ['https://www.legit.ng/tags/rivers-state-news-today/'],
+  siteUrl: ['https://www.pulsesports.ng/football'],
   listings: {
-    mainContainerEl: '.l-taxonomy-page-hero',
+    mainContainerEl: '.news-box-wrapper',
     postHeadLineContainerEl: '',
-    postContainerEl: '.js-articles',
+    postContainerEl: '.news-box',
   },
   titleEl: {
-    tag: '.c-article-card-horizontal__headline span',
+    tag: 'article h2 a',
     link: '',
   },
   titleLinkEl: {
-    tag: '.c-article-card-horizontal__headline',
+    tag: 'article .news-item-title a',
     source: 'href',
   },
   imageEl: {
@@ -106,23 +106,16 @@ const leadership = {
     source: '',
     alt: '',
   },
-  categoryEl: '',
+  categoryEl: '.CategoryTitle_details__UGJmB h1',
   post: {
     categoryEl: '.c-breadcrumbs:first-of-type',
-    authorEl: '.c-article-info__authors--capitalize span a',
-    datePostedEl: '.c-article-info__time',
-    mainContainerEl: 'article',
-    contentEl: '.post__content',
-    elToReFromPostEl: [
-      'ul',
-      '.call_to_action',
-      '.c-adv',
-      'i',
-      '.post__read-also',
-      "[dir^='auto']",
-    ],
+    authorEl: '[class*="FollowAuthorsCard_author__name"]',
+    datePostedEl: '[class*="Article_date"]',
+    mainContainerEl: '[class*="ArticleBody_content"]',
+    contentEl: '[class*="rich-text-wrapper"]',
+    elToReFromPostEl: ['.ad-wrapper', '.ad-wrapper__content'],
     imageEl: {
-      tag: '.article-image__wrapper img',
+      tag: '[class*="Article_hero-image"] img',
       tag1: '',
       source: 'src',
       source1: '',
@@ -169,13 +162,21 @@ async function postListing(page, siteNames, siteName, url) {
       }
 
       // Extract the image URL
-      const url = getElementAttributeValue(
+      let url = getElementAttributeValue(
         $,
         content,
         siteNames[siteName].titleLinkEl.tag,
         siteNames[siteName].titleLinkEl.tag,
         siteNames[siteName].titleLinkEl.source
       )
+
+      // Ensure absolute URL for pulse.ng
+      if (website.includes('pulse.ng') && url && !/^https?:\/\//i.test(url)) {
+        // Ensure url starts with a slash
+        const path = url.startsWith('/') ? url : '/' + url
+        url = 'https://www.pulse.ng' + path
+      }
+
       let category = ''
       if (
         siteNames[siteName].categoryEl &&
@@ -183,8 +184,6 @@ async function postListing(page, siteNames, siteName, url) {
       ) {
         category = getContent($, siteNames[siteName].categoryEl)
       }
-
-      
 
       let imageLink = ''
       if (website.includes('healthwise')) {
@@ -286,12 +285,29 @@ async function getPostCotent(postListings, page, postEls) {
       .filter((_, el) => $(el).text().includes('Source: Legit.ng'))
       .remove()
 
-    // Remove any <a> tag with href containing www.legit.ng
+    // Remove <a> tags with href containing www.legit.ng, except those inside <figure> if pulse
     $(postEls.post.mainContainerEl)
       .find('a[href*="www.legit.ng"]')
       .each(function () {
-        $(this).replaceWith($(this).text())
+        const isPulse =
+          postListings[listing].website &&
+          postListings[listing].website.includes('pulse')
+        const insideFigure = $(this).closest('figure').length > 0
+        if (!(isPulse && insideFigure)) {
+          $(this).replaceWith($(this).text())
+        }
       })
+
+    // Remove <a> tags with href containing pulse, except those inside <figure> if pulse
+    $('a[href*="pulse"]').each(function () {
+      const isPulse =
+        postListings[listing].website &&
+        postListings[listing].website.includes('pulse')
+      const insideFigure = $(this).closest('figure').length > 0
+      if (!(isPulse && insideFigure)) {
+        $(this).replaceWith($(this).text())
+      }
+    })
 
     // Find all elements with a class starting with 'tdi'
     $('[class*="tdi_"]').each(function () {
@@ -320,6 +336,18 @@ async function getPostCotent(postListings, page, postEls) {
       }
     })
 
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('pulse.ng')
+    ) {
+      // Unwrap all <section> elements, keeping their children
+      $(postEls.post.contentEl)
+        .find('section')
+        .each(function () {
+          $(this).replaceWith($(this).html())
+        })
+    }
+
     // console.log(siteNames[siteName].post);
 
     //  console.log(postEls.post.datePostedEl);
@@ -334,23 +362,25 @@ async function getPostCotent(postListings, page, postEls) {
       postEls.post.categoryEl !== ''
     ) {
       category = getContent($, postEls.post.categoryEl)
-      console.log('Category from post page:', postEls.post.categoryEl);
-      console.log('Category from post page:', category);
-      
+      console.log('Category from post page:', postEls.post.categoryEl)
+      console.log('Category from post page:', category)
     }
 
     if (
-  postListings[listing].website &&
-  postListings[listing].website.includes('legit') &&
-  typeof category === 'string' &&
-  category.includes('\n')
-) {
-  // Split by \n, trim each part, and take the last non-empty one
-  const parts = category.split('\n').map(s => s.trim()).filter(Boolean);
-  if (parts.length > 0) {
-    category = parts[parts.length - 1];
-  }
-}
+      postListings[listing].website &&
+      postListings[listing].website.includes('legit') &&
+      typeof category === 'string' &&
+      category.includes('\n')
+    ) {
+      // Split by \n, trim each part, and take the last non-empty one
+      const parts = category
+        .split('\n')
+        .map((s) => s.trim())
+        .filter(Boolean)
+      if (parts.length > 0) {
+        category = parts[parts.length - 1]
+      }
+    }
     // const category = getContent($, postEls.post.categoryEl);
     let imageLink = getAttribute(
       $,
@@ -433,7 +463,7 @@ async function getPostCotent(postListings, page, postEls) {
         }
 
         //Add the content to the postLising Arry for each object
-        return $(el).html()
+        return $.html(el)
       })
       .get()
 

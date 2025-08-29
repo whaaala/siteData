@@ -10,6 +10,7 @@ export function normalizeCategory(rawCategory) {
     cat === 'news' ||
     cat === 'hot-news' ||
     cat === 'politics' ||
+    cat === 'local' ||
     cat === 'metro' ||
     cat === 'nigeria-news' ||
     cat === 'africa' ||
@@ -27,6 +28,8 @@ export function normalizeCategory(rawCategory) {
     cat === 'energy' ||
     cat === 'capital market' ||
     cat === 'economy' ||
+    cat === 'domestic' ||
+    cat === 'international' ||
     cat === 'education' ||
     cat === 'dollar to naira exchange rates' ||
     cat === 'business'
@@ -53,6 +56,7 @@ export function normalizeCategory(rawCategory) {
     cat === 'sports' ||
     cat === 'sport-news' ||
     cat === 'football' ||
+    cat === 'ghana premier league' ||
     cat === 'boxing' ||
     cat === 'sport'
   ) {
@@ -62,6 +66,7 @@ export function normalizeCategory(rawCategory) {
     cat === 'wedding' ||
     cat === 'people' ||
     cat === 'family and relationships' ||
+    cat === 'relationships & weddings' ||
     cat === 'fashion' ||
     cat === 'scoop'
   ) {
@@ -86,6 +91,7 @@ export function normalizeCategory(rawCategory) {
     cat === 'sexual health' ||
     cat === 'mental health' ||
     cat === 'environment' ||
+    cat === 'beauty & health' ||
     cat === 'general health'
 ) {
     return 'HealthAndFitness';

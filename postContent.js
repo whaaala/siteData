@@ -1,7 +1,9 @@
 import * as cheerio from 'cheerio'
+import he from 'he'
 import { getContent, getAttribute } from './functions.js'
 import * as converter from './openai.js'
 import { Post } from './db.js'
+import fs from 'fs/promises'
 import { uploadImageToWordpress, postToWordpress } from './wordpress.js'
 import { wpCategoryMap, getRandomAuthorId } from './categoryMap.js'
 import { normalizeCategory } from './normalizeCategory.js'
@@ -16,7 +18,10 @@ import {
   removeLastSocialElementIfNotJustOk,
 } from './utils.js'
 import { replaceSocialLinksWithEmbeds } from './embedUtils.js'
-import { fixAndUploadBrokenImages } from './fixImages.js'
+import {
+  fixAndUploadBrokenImages,
+  downloadAndConvertToJpg,
+} from './fixImages.js'
 
 // Array to store post data
 const featuredCountPerCategory = {}
@@ -68,7 +73,14 @@ export default async function getPostCotent(postListings, page, postEls) {
     const $ = cheerio.load(html)
 
     // Remove all <strong> elements from the content
-    $(postEls.post.mainContainerEl).find('strong').remove()
+    const isPulse =
+      postListings[listing].website &&
+      postListings[listing].website.includes('pulse')
+
+    if (!isPulse) {
+      // Remove all <strong> elements from the content for non-pulse sites
+      $(postEls.post.mainContainerEl).find('strong').remove()
+    }
 
     // Remove any <p> element containing "Source: Legit.ng"
     $('p')
@@ -87,12 +99,49 @@ export default async function getPostCotent(postListings, page, postEls) {
         .remove()
     }
 
-    // Remove any <a> tag with href containing www.legit.ng, anywhere in the loaded HTML
-   $(postEls.post.contentEl)
-  .find('a[href*="legit"]')
-  .each(function () {
-    $(this).replaceWith($(this).text());
-  });
+    // Remove <a> tags with href containing www.legit.ng, except those inside <figure> if pulse
+    $(postEls.post.mainContainerEl)
+      .find('a[href*="www.legit.ng"]')
+      .each(function () {
+        const isPulse =
+          postListings[listing].website &&
+          postListings[listing].website.includes('pulse')
+        const insideFigure = $(this).closest('figure').length > 0
+        if (!(isPulse && insideFigure)) {
+          $(this).replaceWith($(this).text())
+        }
+      })
+
+    // Remove <a> tags with href containing pulse, except those inside <figure> if pulse
+    $('a[href*="pulse"]').each(function () {
+      const isPulse =
+        postListings[listing].website &&
+        postListings[listing].website.includes('pulse')
+      const insideFigure = $(this).closest('figure').length > 0
+      if (!(isPulse && insideFigure)) {
+        $(this).replaceWith($(this).text())
+      }
+    })
+
+    // // Preserve social embeds for pulse
+    // if (
+    //   postListings[listing].website &&
+    //   postListings[listing].website.includes('pulse')
+    // ) {
+    //   // List of common social embed selectors
+    //   const socialSelectors = [
+    //     'iframe[class*="instagram-media"]',
+    //     'iframe[class*="twitter-tweet"]',
+    //     'iframe[src*="facebook.com"]',
+    //     'iframe[src*="youtube.com"]',
+    //     // Add more as needed
+    //   ]
+
+    //   // Mark social embeds so they are not removed by later cleaning
+    //   socialSelectors.forEach((selector) => {
+    //     $(selector).addClass('keep-social-embed')
+    //   })
+    // }
 
     if (
       postListings[listing].url &&
@@ -124,12 +173,53 @@ export default async function getPostCotent(postListings, page, postEls) {
         .remove()
     }
 
+    // Special handling for pulse to remove "Read also" paragraphs
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('pulse')
+    ) {
+      $(postEls.post.mainContainerEl)
+        .find('*')
+        .filter((_, el) =>
+          /also read|read also|read more|related|#featuredpost/i.test(
+            $(el).text()
+          )
+        )
+        .remove()
+    }
+
     // Remove parent containing "Related News" and all its children
     $('*').each(function () {
       if ($(this).clone().children().remove().end().text().trim() === '(NAN)') {
         $(this).remove()
       }
     })
+
+    // Special handling for pulse.ng to unwrap <section> elements
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('pulse.ng')
+    ) {
+      // Unwrap all <section> elements, keeping their children
+      $(postEls.post.mainContainerEl)
+        .find('section')
+        .each(function () {
+          $(this).replaceWith($(this).html())
+        })
+    }
+
+    // Special handling for pulse.com.gh to add <br> after each <section>
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('pulse')
+    ) {
+      $(postEls.post.mainContainerEl)
+        .find('section')
+        .each(function () {
+          $(this).after('<br>')
+        })
+    }
+
     //Get the date, author, category and image link of the post
     const timePosted = getContent($, postEls.post.datePostedEl)
 
@@ -145,6 +235,7 @@ export default async function getPostCotent(postListings, page, postEls) {
       category = getContent($, postEls.post.categoryEl)
     }
 
+    // Special handling for legit.ng categories with \n
     if (
       postListings[listing].website &&
       postListings[listing].website.includes('legit') &&
@@ -160,9 +251,12 @@ export default async function getPostCotent(postListings, page, postEls) {
         category = parts[parts.length - 1]
       }
     }
+
     // let category = getContent($, postEls.post.categoryEl);
     category = normalizeCategory(category)
 
+    // Extract the image link
+    // First try source, then source1 if source fails or is a data URI
     let imageLink = ''
     if (postListings[listing].website.includes('naijanews')) {
       imageLink = getAttribute(
@@ -196,6 +290,7 @@ export default async function getPostCotent(postListings, page, postEls) {
       }
     }
 
+    // Special handling for healthwise to get imageLink from postListing
     if (
       postListings[listing].website &&
       postListings[listing].website.includes('healthwise')
@@ -227,6 +322,7 @@ export default async function getPostCotent(postListings, page, postEls) {
       }
     }
 
+    // Special handling for legit.ng to remove image and caption containing the same imageLink
     if (
       postListings[listing].website &&
       postListings[listing].website.includes('legit.ng') &&
@@ -244,6 +340,15 @@ export default async function getPostCotent(postListings, page, postEls) {
         }
       })
     }
+
+    // // Special handling for pulse to remove all <figure> and <figcaption> elements
+    // if (
+    //   postListings[listing].website &&
+    //   postListings[listing].website.includes('pulse')
+    // ) {
+    //   $(postEls.post.mainContainerEl).find('figure').remove()
+    //   $(postEls.post.mainContainerEl).find('figcaption').remove()
+    // }
 
     // Map to WordPress category ID
     const wpCategoryId = wpCategoryMap[category]
@@ -264,7 +369,8 @@ export default async function getPostCotent(postListings, page, postEls) {
         }
 
         //Add the content to the postLising Arry for each object
-        return $(el).html()
+        // return $(el).html()
+        return $.html(el)
       })
       .get()
 
@@ -356,9 +462,26 @@ export default async function getPostCotent(postListings, page, postEls) {
     const rewrittenTitle = await converter.rewriteTitle(
       postListings[listing].title
     )
+
+    // Ensure rewrittenTitle is a string, not an array
     let safeTitle = Array.isArray(rewrittenTitle)
       ? rewrittenTitle[0]
       : rewrittenTitle
+
+  
+    const rawCategory = category // before normalization
+
+    // Prepend category to title if not already present
+    // Add "Ghana -" prefix for pulse.com.gh articles, except if category contains "health" or "lifestyle"
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('pulse.com.gh') &&
+      !/health|lifestyle/i.test(rawCategory)
+    ) {
+      safeTitle = `Ghana - ${safeTitle}`
+    }
+
+    // Rewrite each part of postDetails array in parallel
     const rewrittenDetailsArr = await Promise.all(
       postDetails.map(async (htmlContent) => {
         // Remove all spaces from content before sending to ChatGPT
@@ -416,6 +539,7 @@ export default async function getPostCotent(postListings, page, postEls) {
       password
     )
 
+    // Upload all images to WordPress and replace URLs in the content
     {
       const $ = cheerio.load(processedContent)
       await Promise.all(
@@ -443,13 +567,30 @@ export default async function getPostCotent(postListings, page, postEls) {
       processedContent = $.html()
     }
 
+    // Style images and their parents for responsiveness
     {
       const $ = cheerio.load(processedContent)
+
+      // Add a <style> tag for responsive image CSS if not already present
+      const styleTag = `
+    <style>
+      @media (min-width: 900px) {
+        img.responsive-img {
+          max-width: 80% !important;
+        }
+      }
+    </style>
+  `
+
+      // Prepend the style tag to the body (if not already present)
+      if ($('style').text().indexOf('img.responsive-img') === -1) {
+        $('body').prepend(styleTag)
+      }
 
       $('img').each((_, img) => {
         let parent = $(img).parent()
         let count = 0
-        // Set height for up to two parents
+        // Set width for up to two parents
         while (parent.length && parent[0].tagName !== 'body' && count < 2) {
           parent.css({
             width: '50vw',
@@ -462,11 +603,85 @@ export default async function getPostCotent(postListings, page, postEls) {
           .addClass('responsive-img')
           .attr(
             'style',
-            'max-width:100%;height:30vw;display:block;margin:auto;object-fit:contain;'
+            'max-width:100%;display:block;margin:auto;object-fit:contain;'
           )
           .removeAttr('width')
           .removeAttr('height')
       })
+
+      processedContent = $.html()
+    }
+
+    // Special handling for pulse to remove first two <p> and first <section>
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('pulse')
+    ) {
+      const $ = cheerio.load(processedContent)
+
+      // Remove the first and second <p> elements
+      $('p').eq(0).remove()
+      $('p').eq(0).remove() // After removing the first, the second becomes the first
+
+      // // Remove the first <section> element
+      // $('section').eq(0).remove()
+
+      processedContent = $.html()
+    }
+
+    // Special handling for pulse to convert <figure><a><img></a></figure> to just <img> after uploading
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('pulse')
+    ) {
+      const $ = cheerio.load(processedContent)
+
+      const figureLinks = $('figure a')
+      await Promise.all(
+        figureLinks
+          .map(async (_, a) => {
+            const href = $(a).attr('href')
+            if (href) {
+              // Download and convert if needed
+              const result = await downloadAndConvertToJpg(href)
+              if (result) {
+                // Save to a temp file for upload
+                const tempPath = `./temp_upload_${Date.now()}${result.ext}`
+                await fs.writeFile(tempPath, result.buffer)
+
+                try {
+                  // Upload using your uploadImageToWordpress that accepts a file path
+                  const newUrl = await uploadImageToWordpress(
+                    tempPath,
+                    wordpressUrl,
+                    username,
+                    password
+                  )
+                  if (newUrl) {
+                    $(a).replaceWith(`<img src="${newUrl}" alt="" />`)
+                  }
+                } catch (e) {
+                  // console.warn(
+                  //   `Failed to upload image from <a> in <figure>: ${href}`
+                  // )
+                } finally {
+                  try {
+                    await fs.unlink(tempPath)
+                  } catch (e) {
+                    if (e.code !== 'ENOENT') {
+                      console.warn(
+                        `Failed to delete temp file: ${tempPath}`,
+                        e.message
+                      )
+                    }
+                    // If ENOENT, ignore (file already deleted or never created)
+                  }
+                }
+              }
+            }
+          })
+          .get()
+      )
 
       processedContent = $.html()
     }
@@ -523,6 +738,59 @@ export default async function getPostCotent(postListings, page, postEls) {
       processedContent = $.html()
     }
 
+    if (!featuredMediaId) {
+      console.log(
+        `Skipping post "${postListings[listing].title}" because the feature image was not uploaded to WordPress.`
+      )
+      continue // Skip this post and do not upload to WordPress
+    }
+
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('pulse')
+    ) {
+      const $ = cheerio.load(processedContent)
+
+      // Replace <section data-html="..."> with the actual decoded HTML content
+      $('section[data-html]').each(function () {
+        const html = $(this).attr('data-html')
+        if (html) {
+          // Decode HTML entities
+          const decodedHtml = he.decode(html)
+          // Insert the decoded HTML after the section, wrapped in a Custom HTML block
+          $(this).after(`<div class="wp-block-html">${decodedHtml}</div>`)
+          // Remove the original section
+          $(this).remove()
+        }
+      })
+
+      // Wrap direct social embeds in a Custom HTML block for WordPress
+      const socialSelectors = [
+        'iframe[src*="twitter.com"]',
+        'iframe[src*="instagram.com"]',
+        'iframe[src*="facebook.com"]',
+        'iframe[src*="youtube.com"]',
+        'blockquote.twitter-tweet',
+        'blockquote.instagram-media',
+        'div.fb-post',
+        'div.fb-video',
+        'iframe[src*="tiktok.com"]',
+        'blockquote.tiktok-embed',
+        // Add more as needed
+      ]
+
+      socialSelectors.forEach((selector) => {
+        $(selector).each(function () {
+          if (!$(this).parent().hasClass('wp-block-html')) {
+            $(this).wrap('<div class="wp-block-html"></div>')
+          }
+        })
+      })
+
+      processedContent = $.html()
+    }
+
+    // Post to WordPress
     const wpResult = await postToWordpress(
       {
         title: safeTitle, // Only the rewritten title is used

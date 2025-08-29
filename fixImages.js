@@ -1,3 +1,6 @@
+import axios from 'axios';
+import sharp from 'sharp';
+import path from 'path';
 import fetch from 'node-fetch';
 import * as cheerio from 'cheerio';
 import { uploadImageToWordpress } from './wordpress.js';
@@ -42,4 +45,23 @@ export async function fixAndUploadBrokenImages(htmlContent, wordpressUrl, userna
   }
 
   return $.html();
+}
+
+// Helper function to download and convert image to JPG if needed
+export async function downloadAndConvertToJpg(url) {
+  try {
+    const response = await axios.get(url, { responseType: 'arraybuffer' });
+    let buffer = Buffer.from(response.data);
+    let ext = path.extname(url).toLowerCase();
+
+    if (['.jpg', '.jpeg', '.png', '.gif'].includes(ext)) {
+      return { buffer, ext };
+    }
+
+    const convertedBuffer = await sharp(buffer).jpeg().toBuffer();
+    return { buffer: convertedBuffer, ext: '.jpg' };
+  } catch (e) {
+    console.warn('Failed to download or convert image:', url, e.message);
+    return null;
+  }
 }
