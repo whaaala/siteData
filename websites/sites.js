@@ -587,9 +587,132 @@ const pulse = {
   },
 };
 
+const thenewsguru = {
+   siteUrl: [
+    // 'https://thenewsguru.com/category/news/',
+    // 'https://thenewsguru.ng/category/politics/',
+    // 'https://thenewsguru.ng/category/entertainment/',
+    // 'https://thenewsguru.ng/category/sports/',
+    // 'https://thenewsguru.ng/category/business/',
+  ],
+  listings: {
+    mainContainerEl: '.row ',
+    postHeadLineContainerEl: '',
+    postContainerEl: '.col-md-4',
+  },
+  titleEl: {
+    tag: '.entry__title a',
+    link: '',
+  },
+  titleLinkEl: {
+    tag: '.entry__title a',
+    source: 'href',
+  },
+  imageEl: {
+    tag: '',
+    source: '',
+    alt: '',
+  },
+  categoryEl: '',
+  post: {
+    categoryEl: '.entry__meta-category a:first-of-type',
+    authorEl: '.entry__meta-author a:first-of-type',
+    datePostedEl: '.entry__meta-date',
+    mainContainerEl: '.entry__article-wrap',
+    contentEl: '.entry__article',
+    elToReFromPostEl: ['.g'],
+    imageEl: {
+      tag: '.blog__content img',
+      tag1: '',
+      source: 'src',
+      source1: '',
+      alt: '',
+    },
+  },
+};
 
-// const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse];
-const siteNames = [pulse];
+const brila  = {
+   siteUrl: ['https://www.brila.net/football/'],
+  listings: {
+    mainContainerEl: '.elementor-loop-container',
+    postHeadLineContainerEl: '',
+    postContainerEl: '.elementor',
+  },
+  titleEl: {
+    tag: '.elementor-widget-container h2',
+    link: '',
+  },
+  titleLinkEl: {
+    tag: '.elementor-widget-container a',
+    source: 'href',
+  },
+  imageEl: {
+    tag: '',
+    source: '',
+    alt: '',
+  },
+  categoryEl: '',
+  post: {
+    categoryEl: '.meta-item .category',
+    authorEl: '.entry__meta-author a',
+    datePostedEl: '.date .post-date',
+    mainContainerEl: '.post-content-wrap',
+    contentEl: '.post-content',
+    elToReFromPostEl: [''],
+    imageEl: {
+      tag: '.featured img',
+      tag1: '',
+      source: 'src',
+      source1: '',
+      alt: '',
+    },
+  },
+};
+const brilaOther  = {
+   siteUrl: [
+    // 'https://brila.net/niche/boxing/',
+    // 'https://brila.net/niche/basketball/',
+    'https://brila.net/niche/womens-basketball/',
+  ],
+  listings: {
+    mainContainerEl: '.block-content',
+    postHeadLineContainerEl: '',
+    postContainerEl: 'article',
+  },
+  titleEl: {
+    tag: '.post-title a',
+    link: '',
+  },
+  titleLinkEl: {
+    tag: '.post-title a',
+    source: 'href',
+  },
+  imageEl: {
+    tag: '',
+    source: '',
+    alt: '',
+  },
+  categoryEl: '',
+  post: {
+    categoryEl: '.meta-item .category',
+    authorEl: '.entry__meta-author a',
+    datePostedEl: '.date .post-date',
+    mainContainerEl: '.post-content-wrap',
+    contentEl: '.post-content',
+    elToReFromPostEl: [''],
+    imageEl: {
+      tag: '.featured img',
+      tag1: '',
+      source: 'src',
+      source1: '',
+      alt: '',
+    },
+  },
+};
+
+
+// const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, brila, brilaOther];
+const siteNames = [brilaOther];
 
 
 export default siteNames;

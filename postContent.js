@@ -72,13 +72,16 @@ export default async function getPostCotent(postListings, page, postEls) {
     // Load the HTML into cheerio
     const $ = cheerio.load(html)
 
-    // Remove all <strong> elements from the content
+    // Determine if the site is pulse or brila for special handling
     const isPulse =
       postListings[listing].website &&
       postListings[listing].website.includes('pulse')
+    const isBrila =
+      postListings[listing].website &&
+      postListings[listing].website.includes('brila')
 
-    if (!isPulse) {
-      // Remove all <strong> elements from the content for non-pulse sites
+    if (!isPulse && !isBrila) {
+      // Remove all <strong> elements from the content for non-pulse and non-brila sites
       $(postEls.post.mainContainerEl).find('strong').remove()
     }
 
@@ -194,6 +197,17 @@ export default async function getPostCotent(postListings, page, postEls) {
         $(this).remove()
       }
     })
+
+    // Special handling for thenewsguru to remove elements with text 'NAN'
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('thenewsguru')
+    ) {
+      $(postEls.post.mainContainerEl)
+        .find('*')
+        .filter((_, el) => $(el).text().trim() === 'NAN')
+        .remove()
+    }
 
     // Special handling for pulse.ng to unwrap <section> elements
     if (
@@ -468,7 +482,6 @@ export default async function getPostCotent(postListings, page, postEls) {
       ? rewrittenTitle[0]
       : rewrittenTitle
 
-  
     const rawCategory = category // before normalization
 
     // Prepend category to title if not already present
@@ -682,6 +695,30 @@ export default async function getPostCotent(postListings, page, postEls) {
           })
           .get()
       )
+
+      processedContent = $.html()
+    }
+
+    // Special handling for brila to adjust .entry-content and remove inline styles
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('brila')
+    ) {
+      const $ = cheerio.load(processedContent)
+
+      // For .post-content: remove any inline width, add margin-top: -3rem (preserve other styles)
+      $('.post-content').attr('style', function (i, s) {
+        s = s || ''
+        // Remove any width property
+        s = s.replace(/width\s*:\s*[^;]+;?/gi, '')
+        // Remove any existing margin-top to avoid duplicates
+        s = s.replace(/margin-top\s*:\s*[^;]+;?/i, '')
+        // Add margin-top: -3rem at the start
+        return `margin-top: -3rem;${s}`
+      })
+
+      // Remove all inline styles from elements with class "wp-caption"
+      $('.wp-caption').removeAttr('style')
 
       processedContent = $.html()
     }

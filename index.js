@@ -87,18 +87,18 @@ const dailypost = {
 }
 
 const leadership = {
-  siteUrl: ['https://www.pulsesports.ng/football'],
+  siteUrl: ['https://brila.net/niche/womens-sports/'],
   listings: {
-    mainContainerEl: '.news-box-wrapper',
+    mainContainerEl: '.block-content',
     postHeadLineContainerEl: '',
-    postContainerEl: '.news-box',
+    postContainerEl: 'article',
   },
   titleEl: {
-    tag: 'article h2 a',
+    tag: '.post-title a',
     link: '',
   },
   titleLinkEl: {
-    tag: 'article .news-item-title a',
+    tag: '.post-title a',
     source: 'href',
   },
   imageEl: {
@@ -106,16 +106,16 @@ const leadership = {
     source: '',
     alt: '',
   },
-  categoryEl: '.CategoryTitle_details__UGJmB h1',
+  categoryEl: '',
   post: {
-    categoryEl: '.c-breadcrumbs:first-of-type',
-    authorEl: '[class*="FollowAuthorsCard_author__name"]',
-    datePostedEl: '[class*="Article_date"]',
-    mainContainerEl: '[class*="ArticleBody_content"]',
-    contentEl: '[class*="rich-text-wrapper"]',
-    elToReFromPostEl: ['.ad-wrapper', '.ad-wrapper__content'],
+    categoryEl: '.meta-item .category',
+    authorEl: '.entry__meta-author a',
+    datePostedEl: '.date .post-date',
+    mainContainerEl: '.post-content-wrap',
+    contentEl: '.post-content',
+    elToReFromPostEl: [''],
     imageEl: {
-      tag: '[class*="Article_hero-image"] img',
+      tag: '.featured img',
       tag1: '',
       source: 'src',
       source1: '',

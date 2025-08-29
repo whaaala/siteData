@@ -57,6 +57,12 @@ export function normalizeCategory(rawCategory) {
     cat === 'sport-news' ||
     cat === 'football' ||
     cat === 'ghana premier league' ||
+    cat === 'nigerian football' ||
+    cat === 'basketball' ||
+    cat === "women's sports" ||
+    cat === "super falcons" ||
+    cat === "international football" ||
+    cat === "other sports" ||
     cat === 'boxing' ||
     cat === 'sport'
   ) {
