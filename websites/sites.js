@@ -668,6 +668,7 @@ const brila  = {
     },
   },
 };
+
 const brilaOther  = {
    siteUrl: [
     // 'https://brila.net/niche/boxing/',
@@ -710,9 +711,53 @@ const brilaOther  = {
   },
 };
 
+const womenshealth = {
+  siteUrl: [
+    // 'https://womenshealthsa.co.za/food-and-nutrition/',
+    // 'https://womenshealthsa.co.za/health/',
+    // 'https://womenshealthsa.co.za/fitness/',
+    // 'https://womenshealthsa.co.za/style-beauty/',
+    'https://womenshealthsa.co.za/life/',
+  ],
+  listings: {
+    mainContainerEl: '.et_pb_blog_grid',
+    postHeadLineContainerEl: '',
+    postContainerEl: 'article',
+  },
+  titleEl: {
+    tag: '.entry-title a',
+    link: '',
+  },
+  titleLinkEl: {
+    tag: '.entry-title a',
+    source: 'href',
+  },
+  imageEl: {
+    tag: '',
+    source: '',
+    alt: '',
+  },
+  categoryEl: '',
+  post: {
+    categoryEl: '.et_pb_title_meta_container [rel="category tag"]:first-of-type',
+    authorEl: '.et_pb_title_meta_container .author a',
+    datePostedEl: '.et_pb_title_meta_container .published',
+    mainContainerEl: '.et_pb_column',
+    contentEl: '.et_pb_post_content',
+    elToReFromPostEl: [''],
+    imageEl: {
+      tag: '.et_pb_title_featured_container .et_pb_image_wrap img',
+      tag1: '',
+      source: 'src',
+      source1: '',
+      alt: '',
+    },
+  },
+};
 
-// const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, brila, brilaOther];
-const siteNames = [brilaOther];
+
+// const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, brila, brilaOther, womenshealthFood];
+const siteNames = [womenshealth];
 
 
 export default siteNames;

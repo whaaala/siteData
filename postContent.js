@@ -79,6 +79,9 @@ export default async function getPostCotent(postListings, page, postEls) {
     const isBrila =
       postListings[listing].website &&
       postListings[listing].website.includes('brila')
+    const isHealthsa =
+      postListings[listing].website &&
+      postListings[listing].website.includes('healthsa.co.za')
 
     if (!isPulse && !isBrila) {
       // Remove all <strong> elements from the content for non-pulse and non-brila sites
@@ -233,6 +236,47 @@ export default async function getPostCotent(postListings, page, postEls) {
           $(this).after('<br>')
         })
     }
+
+    // Special handling for healthsa.co.za to remove "**WH Partnership"
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('healthsa.co.za')
+    ) {
+      $(postEls.post.mainContainerEl)
+        .find('p')
+        .filter((_, el) => {
+          const text = $(el).text().trim()
+          return (
+            text.includes('**WH Partnership') ||
+            /affiliate programs|participates|earn a commission/i.test(text) ||
+            text.includes('Women’s Health')
+          )
+        })
+        .remove()
+    }
+
+    // Special handling for healthsa.co.za to adjust video wrapper styles
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('healthsa.co.za')
+    ) {
+      // Remove inline style from elements with class "fluid-width-video-wrapper"
+      $('.fluid-width-video-wrapper').removeAttr('style')
+
+      // Add inline style to iframe inside .fluid-width-video-wrapper
+      $('.fluid-width-video-wrapper iframe').attr(
+        'style',
+        'width: 60rem; height: 30rem;'
+      )
+    }
+    // // Special handling for healthsa.co.za to adjust post content styles
+    // if (
+    //   postListings[listing].website &&
+    //   postListings[listing].website.includes('healthsa.co.za')
+    // ) {
+    //   // Remove inline style from elements with class "et_pb_post_content"
+    //   $('.et_pb_post_content').removeAttr('style')
+    // }
 
     //Get the date, author, category and image link of the post
     const timePosted = getContent($, postEls.post.datePostedEl)
@@ -552,34 +596,6 @@ export default async function getPostCotent(postListings, page, postEls) {
       password
     )
 
-    // Upload all images to WordPress and replace URLs in the content
-    {
-      const $ = cheerio.load(processedContent)
-      await Promise.all(
-        $('img')
-          .map(async (_, img) => {
-            const src = $(img).attr('src')
-            if (src && !src.startsWith('data:')) {
-              try {
-                const newUrl = await uploadImageToWordpress(
-                  src,
-                  wordpressUrl,
-                  username,
-                  password
-                )
-                if (newUrl) {
-                  $(img).attr('src', newUrl)
-                }
-              } catch (e) {
-                console.warn(`Failed to upload image: ${src}`)
-              }
-            }
-          })
-          .get()
-      )
-      processedContent = $.html()
-    }
-
     // Style images and their parents for responsiveness
     {
       const $ = cheerio.load(processedContent)
@@ -723,6 +739,29 @@ export default async function getPostCotent(postListings, page, postEls) {
       processedContent = $.html()
     }
 
+    // Special handling for healthsa.co.za to remove inline styles from .wp-block-image
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('healthsa.co.za')
+    ) {
+      const $ = cheerio.load(processedContent)
+
+      // Remove all inline styles from elements with class "wp-block-image"
+      $('.wp-block-image').removeAttr('style')
+
+      processedContent = $.html()
+    }
+
+    // Special handling for healthsa.co.za to remove inline styles from .et_pb_post_content
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('healthsa.co.za')
+    ) {
+      const $ = cheerio.load(processedContent)
+      $('.et_pb_post_content').removeAttr('style')
+      processedContent = $.html()
+    }
+
     // Create excerpt from the rewritten details
     const excerpt = getExcerpt(rewrittenDetails, 40) // Get first 40 words as excerpt
 
@@ -824,6 +863,33 @@ export default async function getPostCotent(postListings, page, postEls) {
         })
       })
 
+      processedContent = $.html()
+    }
+
+    {
+      const $ = cheerio.load(processedContent)
+      await Promise.all(
+        $('img')
+          .map(async (_, img) => {
+            const src = $(img).attr('src')
+            if (src && !src.startsWith('data:')) {
+              try {
+                const newUrl = await uploadImageToWordpress(
+                  src,
+                  wordpressUrl,
+                  username,
+                  password
+                )
+                if (newUrl) {
+                  $(img).attr('src', newUrl)
+                }
+              } catch (e) {
+                console.warn(`Failed to upload image: ${src}`)
+              }
+            }
+          })
+          .get()
+      )
       processedContent = $.html()
     }
 

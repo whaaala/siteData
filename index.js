@@ -87,18 +87,18 @@ const dailypost = {
 }
 
 const leadership = {
-  siteUrl: ['https://brila.net/niche/womens-sports/'],
+  siteUrl: ['https://womenshealthsa.co.za/food-and-nutrition/'],
   listings: {
-    mainContainerEl: '.block-content',
+    mainContainerEl: '.et_pb_blog_grid',
     postHeadLineContainerEl: '',
     postContainerEl: 'article',
   },
   titleEl: {
-    tag: '.post-title a',
+    tag: '.entry-title a',
     link: '',
   },
   titleLinkEl: {
-    tag: '.post-title a',
+    tag: '.entry-title a',
     source: 'href',
   },
   imageEl: {
@@ -108,14 +108,14 @@ const leadership = {
   },
   categoryEl: '',
   post: {
-    categoryEl: '.meta-item .category',
-    authorEl: '.entry__meta-author a',
-    datePostedEl: '.date .post-date',
-    mainContainerEl: '.post-content-wrap',
-    contentEl: '.post-content',
+    categoryEl: '.et_pb_title_meta_container [rel="category tag"]:first-of-type',
+    authorEl: '.et_pb_title_meta_container .author a',
+    datePostedEl: '.et_pb_title_meta_container .published',
+    mainContainerEl: '.et_pb_column',
+    contentEl: '.et_pb_post_content',
     elToReFromPostEl: [''],
     imageEl: {
-      tag: '.featured img',
+      tag: '.et_pb_title_featured_container .et_pb_image_wrap img',
       tag1: '',
       source: 'src',
       source1: '',

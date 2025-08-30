@@ -73,6 +73,18 @@ export function normalizeCategory(rawCategory) {
     cat === 'people' ||
     cat === 'family and relationships' ||
     cat === 'relationships & weddings' ||
+    cat === 'skincare' ||
+    cat === 'style' ||
+    cat === 'fragrance' ||
+    cat === 'partnerships' ||
+    cat === 'cover star' ||
+    cat === 'hair' ||
+    cat === 'make-up' ||
+    cat === 'nails' ||
+    cat === 'career & money' ||
+    cat === 'motoring' ||
+    cat === 'travel' ||
+    cat === 'gifts' ||
     cat === 'fashion' ||
     cat === 'scoop'
   ) {
@@ -98,9 +110,24 @@ export function normalizeCategory(rawCategory) {
     cat === 'mental health' ||
     cat === 'environment' ||
     cat === 'beauty & health' ||
+    cat === 'nutrition' ||
+    cat === 'physical health' ||
+    cat === 'fitmama' ||
+    cat === 'mental health' ||
+    cat === 'wellness' ||
+    cat === 'workouts' ||
+    cat === 'partnerships' ||
+    cat === 'fitness' ||
+    cat === 'weight loss' ||
+    cat === 'tech & gear' ||
     cat === 'general health'
 ) {
     return 'HealthAndFitness';
+  } else if (
+    cat === 'recipes' ||
+    cat === 'drinks' 
+) {
+    return 'FoodAndDrink';
   }
   return '';
 }
