@@ -82,9 +82,12 @@ export function normalizeCategory(rawCategory) {
     cat === 'make-up' ||
     cat === 'nails' ||
     cat === 'career & money' ||
+    cat === 'gear-tech' ||
     cat === 'motoring' ||
     cat === 'travel' ||
     cat === 'gifts' ||
+    cat === 'life' ||
+    cat === 'grooming' ||
     cat === 'fashion' ||
     cat === 'scoop'
   ) {
@@ -118,6 +121,7 @@ export function normalizeCategory(rawCategory) {
     cat === 'workouts' ||
     cat === 'partnerships' ||
     cat === 'fitness' ||
+    cat === 'health' ||
     cat === 'weight loss' ||
     cat === 'tech & gear' ||
     cat === 'general health'
@@ -125,7 +129,8 @@ export function normalizeCategory(rawCategory) {
     return 'HealthAndFitness';
   } else if (
     cat === 'recipes' ||
-    cat === 'drinks' 
+    cat === 'food & nutrition' ||
+    cat === 'drinks'
 ) {
     return 'FoodAndDrink';
   }

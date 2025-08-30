@@ -711,13 +711,18 @@ const brilaOther  = {
   },
 };
 
-const womenshealth = {
+const healthza = {
   siteUrl: [
     // 'https://womenshealthsa.co.za/food-and-nutrition/',
     // 'https://womenshealthsa.co.za/health/',
     // 'https://womenshealthsa.co.za/fitness/',
     // 'https://womenshealthsa.co.za/style-beauty/',
-    'https://womenshealthsa.co.za/life/',
+    // 'https://womenshealthsa.co.za/life/',
+    // 'https://mh.co.za/fitness/',
+    // 'https://mh.co.za/food-nutrition-2/',
+    // 'https://mh.co.za/style/',
+    // 'https://mh.co.za/health/',
+    'https://mh.co.za/life/',
   ],
   listings: {
     mainContainerEl: '.et_pb_blog_grid',
@@ -756,8 +761,8 @@ const womenshealth = {
 };
 
 
-// const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, brila, brilaOther, womenshealthFood];
-const siteNames = [womenshealth];
+// const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, brila, brilaOther, healthza];
+const siteNames = [healthza];
 
 
 export default siteNames;

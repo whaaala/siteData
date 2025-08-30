@@ -87,7 +87,7 @@ const dailypost = {
 }
 
 const leadership = {
-  siteUrl: ['https://womenshealthsa.co.za/food-and-nutrition/'],
+  siteUrl: ['https://mh.co.za/fitness/'],
   listings: {
     mainContainerEl: '.et_pb_blog_grid',
     postHeadLineContainerEl: '',

@@ -762,6 +762,112 @@ export default async function getPostCotent(postListings, page, postEls) {
       processedContent = $.html()
     }
 
+    // Special handling for mh.co.za to remove certain elements and styles
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('mh.co.za')
+    ) {
+      const $ = cheerio.load(processedContent)
+
+      // Remove inline style from elements with class "et_pb_post_content"
+      $('.et_pb_post_content').removeAttr('style')
+
+      $('.wp-block-image').removeAttr('style')
+
+      $('.wp-block-column').removeAttr('style')
+
+      // Remove "display: flex" from inline style of elements with class "wp-block-columns"
+      $('.wp-block-columns').each(function () {
+        let style = $(this).attr('style') || ''
+        style = style.replace(/display\s*:\s*flex\s*;?/i, '')
+        $(this).attr('style', style.trim())
+      })
+
+      // Remove "display: flex" from inline style of elements with class "wp-block-column"
+      $('.wp-block-column').each(function () {
+        let style = $(this).attr('style') || ''
+        style = style.replace(/display\s*:\s*flex\s*;?/i, '')
+        $(this).attr('style', style.trim())
+      })
+
+      // Remove "display: flex" from inline style of elements with class "wp-block-column"
+      $('.wp-block-columns:not(.is-not-stacked-on-mobile)>.wp-block-column').each(function () {
+        let style = $(this).attr('style') || ''
+        style = style.replace(/flex-basis\s*:\s*0\s*;?/i, '')
+        $(this).attr('style', style.trim())
+      })
+
+      // Remove any element that contains a hyperlink with text "menshealth.com.au"
+      $('p').each(function () {
+        if ($(this).text().includes('menshealth.com.au')) {
+          $(this).closest('*').remove()
+        }
+      })
+
+      // Remove any element that contains a hyperlink with text "menshealth.com.au"
+      $('p').each(function () {
+        if ($(this).text().includes('MH')) {
+          $(this).closest('*').remove()
+        }
+      })
+
+      // Remove any element that contains a hyperlink with text "menshealth.com.au"
+      $('p').each(function () {
+        if ($(this).text().includes('Partnership')) {
+          $(this).closest('*').remove()
+        }
+      })
+
+      // Remove any element that contains a hyperlink with text "menshealth.com/au"
+      $('p').each(function () {
+        if ($(this).text().includes('menshealth.com/au')) {
+          $(this).closest('*').remove()
+        }
+      })
+      // Remove any element that contains a hyperlink with text "menshealth.com/au"
+      $('p').each(function () {
+        if ($(this).text().includes('Men’s Health US')) {
+          $(this).closest('*').remove()
+        }
+      })
+
+      // Remove any element that contains a hyperlink with text "article"
+      $('a').each(function () {
+        if ($(this).text().toLowerCase().includes('article')) {
+          $(this).closest('*').remove()
+        }
+      })
+
+      // Inject a style tag to ensure proper flex layout and prevent overlay
+      const overrideStyle = `
+    <style>
+      .wp-block-columns {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: flex-start;
+        gap: 1.5rem;
+      }
+      .wp-block-column {
+        min-width: 250px;
+        flex: 1 1 300px;
+        box-sizing: border-box;
+      }
+      img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+      }
+    </style>
+  `
+      if ($('body').length) {
+        $('body').prepend(overrideStyle)
+      } else {
+        $.root().prepend(overrideStyle)
+      }
+
+      processedContent = $.html()
+    }
+
     // Create excerpt from the rewritten details
     const excerpt = getExcerpt(rewrittenDetails, 40) // Get first 40 words as excerpt
 
