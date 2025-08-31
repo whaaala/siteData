@@ -85,7 +85,16 @@ export default async function getPostCotent(postListings, page, postEls) {
     const isTheguardian =
       postListings[listing].website &&
       postListings[listing].website.includes('theguardian.com')
-    if (!isPulse && !isBrila && !isHealthsa && !isTheguardian) {
+    const isMotorverso =
+      postListings[listing].website &&
+      postListings[listing].website.includes('motorverso.com')
+    if (
+      !isPulse &&
+      !isBrila &&
+      !isHealthsa &&
+      !isTheguardian &&
+      !isMotorverso
+    ) {
       // Remove all <strong> elements from the content for non-pulse and non-brila sites
       $(postEls.post.mainContainerEl).find('strong').remove()
     }
@@ -316,6 +325,11 @@ export default async function getPostCotent(postListings, page, postEls) {
     // Special handling for theguardian to set category to "Recipes"
     if (postListings[listing].website.includes('theguardian')) {
       category = 'Recipes'
+    }
+
+    // Special handling for motorverso to set category to "Cars"
+    if (postListings[listing].website.includes('motorverso')) {
+      category = 'Cars'
     }
 
     // let category = getContent($, postEls.post.categoryEl);
@@ -913,6 +927,108 @@ export default async function getPostCotent(postListings, page, postEls) {
         if (hasChildWithText) {
           $(this).remove()
         }
+      })
+
+      processedContent = $.html()
+    }
+
+    // Special handling for motorverso to remove width styles from .entry-content
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('motorverso')
+    ) {
+      const $ = cheerio.load(processedContent)
+
+      // Remove the CSS width from any element with class "entry-content"
+      $('.entry-content').each(function () {
+        let style = $(this).attr('style') || ''
+        // Remove any width property from the style attribute
+        style = style.replace(/width\s*:\s*[^;]+;?/gi, '')
+        $(this).attr('style', style.trim())
+      })
+
+      processedContent = $.html()
+    }
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('motorverso')
+    ) {
+      const $ = cheerio.load(processedContent)
+
+      // Remove the CSS width from any element with class "entry-content"
+      $('p').each(function () {
+        let style = $(this).attr('style') || ''
+        // Remove any width property from the style attribute
+        style = style.replace(/width\s*:\s*[^;]+;?/gi, '')
+        $(this).attr('style', style.trim())
+      })
+
+      processedContent = $.html()
+    }
+
+    // Special handling for motorverso to set specific size for images with sizes="auto" or sizes starting with "auto,"
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('motorverso')
+    ) {
+      const $ = cheerio.load(processedContent)
+
+      // Inject a style tag to override external CSS for the target selector
+      const overrideStyle = `
+    <style>
+      img:is([sizes="auto" i], [sizes^="auto," i]) {
+        contain-intrinsic-size: unset !important;
+        width: 50rem !important;
+        height: 20rem !important;
+      }
+    </style>
+  `
+
+      if ($('body').length) {
+        $('body').prepend(overrideStyle)
+      } else {
+        $.root().prepend(overrideStyle)
+      }
+
+      processedContent = $.html()
+    }
+
+    // Special handling for motorverso to remove inline styles from .fluid-width-video-wrapper
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('motorverso')
+    ) {
+      const $ = cheerio.load(processedContent)
+
+      // Remove inline style from elements with class "fluid-width-video-wrapper"
+      $('.fluid-width-video-wrapper').removeAttr('style')
+
+      processedContent = $.html()
+    }
+
+    // Special handling for motorverso to set specific size for iframes
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('motorverso')
+    ) {
+      const $ = cheerio.load(processedContent)
+
+      // Add inline style to all iframe elements
+      $('iframe').attr('style', 'width:50rem; height:30rem;')
+
+      processedContent = $.html()
+    }
+
+    // Special handling for motorverso to remove elements containing "paypal" links
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('motorverso')
+    ) {
+      const $ = cheerio.load(processedContent)
+
+      // Remove any element that contains a hyperlink with "paypal" in the href, including its children
+      $('a[href*="paypal"]').each(function () {
+        $(this).closest('*').remove()
       })
 
       processedContent = $.html()

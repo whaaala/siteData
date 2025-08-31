@@ -87,18 +87,18 @@ const dailypost = {
 }
 
 const leadership = {
-  siteUrl: ['https://www.theguardian.com/tone/recipes/all'],
+  siteUrl: ['https://www.motorverso.com/posts/'],
   listings: {
-    mainContainerEl: 'div[id*="container-"]',
+    mainContainerEl: '#content',
     postHeadLineContainerEl: '',
-    postContainerEl: '[data-format-theme="4"] div',
+    postContainerEl: '.entry-wrapper',
   },
   titleEl: {
-    tag: 'h3 span',
+    tag: '.entry-title a',
     link: '',
   },
   titleLinkEl: {
-    tag: 'a',
+    tag: '.entry-title a',
     source: 'href',
   },
   imageEl: {
@@ -109,18 +109,16 @@ const leadership = {
   categoryEl: '',
   post: {
     categoryEl: '',
-    authorEl: '',
-    datePostedEl: '',
-    mainContainerEl: '#maincontent',
-    contentEl: '.article-body-commercial-selector',
+    authorEl: '.author-info .author-name',
+    datePostedEl: '.meta-post-details span:last-child',
+    mainContainerEl: 'article',
+    contentEl: '.entry-content',
     elToReFromPostEl: [
-      '.ad-slot-container',
-      '#slot-body-end',
-      'svg',
-      '[data-print-layout="hide"]',
+      '.related-posts',
+      '.clear',
     ],
     imageEl: {
-      tag: '#img-1 .dcr-evn1e9 img',
+      tag: '.entry-thumb img',
       tag1: '',
       source: 'src',
       source1: '',

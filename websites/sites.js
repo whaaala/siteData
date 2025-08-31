@@ -803,9 +803,58 @@ const theguardian = {
   },
 };
 
+const motorverso = {
+  siteUrl: [
+    // 'https://www.motorverso.com/posts/',
+    'https://www.motorverso.com/category/maintenance-diy/'
+  ],
+  listings: {
+    mainContainerEl: '#content',
+    postHeadLineContainerEl: '',
+    postContainerEl: '.entry-wrapper',
+  },
+  titleEl: {
+    tag: '.entry-title a',
+    link: '',
+  },
+  titleLinkEl: {
+    tag: '.entry-title a',
+    source: 'href',
+  },
+  imageEl: {
+    tag: '',
+    source: '',
+    alt: '',
+  },
+  categoryEl: '',
+  post: {
+    categoryEl: '',
+    authorEl: '.author-info .author-name',
+    datePostedEl: '.meta-post-details span:last-child',
+    mainContainerEl: 'article',
+    contentEl: '.entry-content',
+    elToReFromPostEl: [
+      '.related-posts',
+      '.clear',
+      '.ad',
+      '.ezoic-ad',
+      '.adtester-container',
+      '[id*="ezoic-pub-ad-"]',
+      '.entry-meta',
+    ],
+    imageEl: {
+      tag: '.entry-thumb img',
+      tag1: '',
+      source: 'src',
+      source1: '',
+      alt: '',
+    },
+  },
+};
 
-// const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, brila, brilaOther, healthza, theguardian];
-const siteNames = [theguardian];
+
+// const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, brila, brilaOther, healthza, theguardian, motorverso];
+const siteNames = [motorverso];
 
 
 export default siteNames;

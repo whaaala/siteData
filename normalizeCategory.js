@@ -89,6 +89,7 @@ export function normalizeCategory(rawCategory) {
     cat === 'life' ||
     cat === 'grooming' ||
     cat === 'fashion' ||
+    cat === 'cars' ||
     cat === 'scoop'
   ) {
     return 'Lifestyle';
