@@ -87,11 +87,11 @@ const dailypost = {
 }
 
 const leadership = {
-  siteUrl: ['https://www.motorverso.com/posts/'],
+  siteUrl: ['https://girlracer.co.uk/category/motoring/news/'],
   listings: {
-    mainContainerEl: '#content',
+    mainContainerEl: '#main',
     postHeadLineContainerEl: '',
-    postContainerEl: '.entry-wrapper',
+    postContainerEl: 'article',
   },
   titleEl: {
     tag: '.entry-title a',
@@ -109,16 +109,16 @@ const leadership = {
   categoryEl: '',
   post: {
     categoryEl: '',
-    authorEl: '.author-info .author-name',
-    datePostedEl: '.meta-post-details span:last-child',
-    mainContainerEl: 'article',
+    authorEl: '.author a',
+    datePostedEl: '.entry-date',
+    mainContainerEl: '.entry-content-wrapper',
     contentEl: '.entry-content',
     elToReFromPostEl: [
       '.related-posts',
       '.clear',
     ],
     imageEl: {
-      tag: '.entry-thumb img',
+      tag: '.wp-post-image',
       tag1: '',
       source: 'src',
       source1: '',

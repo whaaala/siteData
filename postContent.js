@@ -88,12 +88,16 @@ export default async function getPostCotent(postListings, page, postEls) {
     const isMotorverso =
       postListings[listing].website &&
       postListings[listing].website.includes('motorverso.com')
+    const isGirlracer =
+      postListings[listing].website &&
+      postListings[listing].website.includes('girlracer.co.uk')
     if (
       !isPulse &&
       !isBrila &&
       !isHealthsa &&
       !isTheguardian &&
-      !isMotorverso
+      !isMotorverso &&
+      !isGirlracer
     ) {
       // Remove all <strong> elements from the content for non-pulse and non-brila sites
       $(postEls.post.mainContainerEl).find('strong').remove()
@@ -328,7 +332,10 @@ export default async function getPostCotent(postListings, page, postEls) {
     }
 
     // Special handling for motorverso to set category to "Cars"
-    if (postListings[listing].website.includes('motorverso')) {
+    if (
+      postListings[listing].website.includes('motorverso') ||
+      postListings[listing].website.includes('girlracer')
+    ) {
       category = 'Cars'
     }
 
@@ -891,6 +898,55 @@ export default async function getPostCotent(postListings, page, postEls) {
 
       processedContent = $.html()
     }
+
+    // Special handling for mh.co.za to adjust video wrapper styles
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('mh.co.za')
+    ) {
+      const $ = cheerio.load(processedContent)
+
+      // Remove inline style from elements with class "fluid-width-video-wrapper"
+      $('.fluid-width-video-wrapper').removeAttr('style')
+
+      // Add inline style to all iframe elements within .fluid-width-video-wrapper
+      $('.fluid-width-video-wrapper iframe').attr(
+        'style',
+        'width:50rem; height:30rem;'
+      )
+
+      processedContent = $.html()
+    }
+
+    // Special handling for womenshealthsa.co.za to adjust video wrapper styles
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('womenshealthsa.co.za')
+    ) {
+      const $ = cheerio.load(processedContent)
+
+      // Remove inline style from elements with class "fluid-width-video-wrapper"
+      $('.fluid-width-video-wrapper').removeAttr('style')
+
+      // Add inline style to all iframe elements within .fluid-width-video-wrapper
+      $('.fluid-width-video-wrapper iframe').attr(
+        'style',
+        'width:50rem; height:30rem;'
+      )
+
+      processedContent = $.html()
+
+      // Remove inline style from elements with class "fluid-width-video-wrapper"
+      $('.fluid-width-video-wrapper').removeAttr('style')
+
+      // Add inline style to all iframe elements within .fluid-width-video-wrapper
+      $('.fluid-width-video-wrapper iframe').attr(
+        'style',
+        'width:50rem; height:30rem;'
+      )
+
+      processedContent = $.html()
+    }
     // Special handling for theguardian to remove width styles from ids containing "img"
     if (
       postListings[listing].website &&
@@ -1162,6 +1218,44 @@ export default async function getPostCotent(postListings, page, postEls) {
           })
           .get()
       )
+      processedContent = $.html()
+    }
+
+    // Special handling for girlracer to remove all links to girlracer, keep the text content
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('girlracer')
+    ) {
+      const $ = cheerio.load(processedContent)
+
+      // Remove all <a> tags with href or text containing "girlracer", keep the text content
+      $('a').each(function () {
+        const href = ($(this).attr('href') || '').toLowerCase()
+        const linkText = $(this).text().toLowerCase()
+        if (href.includes('girlracer') || linkText.includes('girlracer')) {
+          $(this).replaceWith($(this).text())
+        }
+      })
+
+      processedContent = $.html()
+    }
+
+    // Special handling to remove width: 50vw from inline styles
+    {
+      const $ = cheerio.load(processedContent)
+
+      // Remove any inline style that contains "width: 50vw"
+      $('[style*="width: 50vw"]').each(function () {
+        let style = $(this).attr('style') || ''
+        // Remove the width: 50vw rule from the style attribute
+        style = style.replace(/width\s*:\s*50vw\s*;?/gi, '')
+        $(this).attr('style', style.trim())
+        // If style is now empty, remove the attribute
+        if (!$(this).attr('style')) {
+          $(this).removeAttr('style')
+        }
+      })
+
       processedContent = $.html()
     }
 

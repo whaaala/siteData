@@ -1,8 +1,8 @@
 const dailypost = {
   siteUrl: [
     "https://dailypost.ng/",
-    // "https://dailypost.ng/hot-news/",
-    // "https://dailypost.ng/politics/",
+    "https://dailypost.ng/hot-news/",
+    "https://dailypost.ng/politics/",
     "https://dailypost.ng/metro/",
     "https://dailypost.ng/entertainment/",
     "https://dailypost.ng/sport-news/",
@@ -51,10 +51,10 @@ const dailypost = {
 const leadership = {
   siteUrl: [
     "https://leadership.ng/opinion/columns/",
-    // "https://leadership.ng/nigeria-news/",
+    "https://leadership.ng/nigeria-news/",
     "https://leadership.ng/politics/",
-    // "https://leadership.ng/nigeria-news/business-news/",
-    // "https://leadership.ng/nigeria-news/entertainment-news/"
+    "https://leadership.ng/nigeria-news/business-news/",
+    "https://leadership.ng/nigeria-news/entertainment-news/"
   ],
   listings: {
     mainContainerEl: ".jeg_inner_content",
@@ -100,10 +100,10 @@ const leadership = {
 const gistlover  = {
   siteUrl: [
     "https://www.gistlover.com/category/religion/",
-    // "https://www.gistlover.com/category/news",
+    "https://www.gistlover.com/category/news",
     "https://www.gistlover.com/category/entertainment",
-    // "https://www.gistlover.com/category/extra",
-    // "https://www.gistlover.com/category/daily-travel-and-scholarships-tips/z",
+    "https://www.gistlover.com/category/extra",
+    "https://www.gistlover.com/category/daily-travel-and-scholarships-tips/z",
   ],
   listings: {
     mainContainerEl: ".mh-content",
@@ -197,11 +197,11 @@ const notJustOk  = {
 const naijanews = {
    siteUrl: [
     "https://www.naijanews.com/news/",
-    // "https://www.naijanews.com/politics/",
-    // "https://www.naijanews.com/entertainment/",
-    // "https://www.naijanews.com/business/",
-    // "https://www.naijanews.com/gist/",
-    // "https://www.naijanews.com/sports/",
+    "https://www.naijanews.com/politics/",
+    "https://www.naijanews.com/entertainment/",
+    "https://www.naijanews.com/business/",
+    "https://www.naijanews.com/gist/",
+    "https://www.naijanews.com/sports/",
   ],
    listings: {
     mainContainerEl: ".mvp-main-blog-body",
@@ -247,10 +247,10 @@ const naijanews = {
 
 const gistreel = {
    siteUrl: [
-    // "https://www.gistreel.com/entertainment-news/",
-    // "https://www.gistreel.com/viral-news/",
-    // "https://www.gistreel.com/social-issues/",
-    // "https://www.gistreel.com/sport/",
+    "https://www.gistreel.com/entertainment-news/",
+    "https://www.gistreel.com/viral-news/",
+    "https://www.gistreel.com/social-issues/",
+    "https://www.gistreel.com/sport/",
     "https://www.gistreel.com/politics/",
     
   ],
@@ -296,16 +296,16 @@ const gistreel = {
 
 const guardian = {
     siteUrl: [
-    //  "https://guardian.ng/category/news/",
-    // "https://guardian.ng/category/news/nigeria/metro/",
-    //  "https://guardian.ng/category/news/world/africa/",
-    // "https://guardian.ng/category/sport/",
-    //  "https://guardian.ng/category/life/music/",
-    //  "https://guardian.ng/category/life/film/",
-    //  "https://guardian.ng/category/life/beauty/",
-    //  "https://guardian.ng/category/opinion/",
-    //  "https://guardian.ng/category/technology/",
-    //  "https://guardian.ng/category/features/",
+     "https://guardian.ng/category/news/",
+    "https://guardian.ng/category/news/nigeria/metro/",
+     "https://guardian.ng/category/news/world/africa/",
+    "https://guardian.ng/category/sport/",
+     "https://guardian.ng/category/life/music/",
+     "https://guardian.ng/category/life/film/",
+     "https://guardian.ng/category/life/beauty/",
+     "https://guardian.ng/category/opinion/",
+     "https://guardian.ng/category/technology/",
+     "https://guardian.ng/category/features/",
      "https://guardian.ng/category/news/world/europe/",
   ],
    listings: {
@@ -350,10 +350,10 @@ const guardian = {
 
 const punchng = {
     siteUrl: [
-    //  "https://punchng.com/topics/news/",
-    //  "https://punchng.com/topics/metro-plus/",
-    //  "https://punchng.com/topics/business/",
-    //  "https://punchng.com/topics/sports/",
+     "https://punchng.com/topics/news/",
+     "https://punchng.com/topics/metro-plus/",
+     "https://punchng.com/topics/business/",
+     "https://punchng.com/topics/sports/",
      "https://punchng.com/topics/punch-lite/",
   ],
   listings: {
@@ -401,12 +401,12 @@ const punchng = {
 
 const healthwisePunchng = {
     siteUrl: [
-      // 'https://healthwise.punchng.com/category/general-health/',
-      // 'https://healthwise.punchng.com/category/impact-stories/',
-      // 'https://healthwise.punchng.com/category/maternal-health/',
-      // 'https://healthwise.punchng.com/category/gender/',
-      // 'https://healthwise.punchng.com/category/sexual-health/',
-      // 'https://healthwise.punchng.com/category/mental-health/',
+      'https://healthwise.punchng.com/category/general-health/',
+      'https://healthwise.punchng.com/category/impact-stories/',
+      'https://healthwise.punchng.com/category/maternal-health/',
+      'https://healthwise.punchng.com/category/gender/',
+      'https://healthwise.punchng.com/category/sexual-health/',
+      'https://healthwise.punchng.com/category/mental-health/',
        'https://healthwise.punchng.com/category/enviroment/',
     ],
   listings: {
@@ -447,36 +447,36 @@ const healthwisePunchng = {
 
 const legit = {
      siteUrl: [
-      // 'https://www.legit.ng/nigeria/',
-      // 'https://www.legit.ng/tags/lagos-state-news-today/',
-      // 'https://www.legit.ng/tags/abuja-city-news-today/',
-      // 'https://www.legit.ng/tags/rivers-state-news-today/',
-      // 'https://www.legit.ng/tags/kano-news-today/',
-      // 'https://www.legit.ng/tags/oyo-state-news-today/',
-      // 'https://www.legit.ng/tags/anambra-state-news-today/',
-      // 'https://www.legit.ng/tags/kwara-state-news-today/',
-      // 'https://www.legit.ng/tags/adamawa-state-news-today/',
-      // 'https://www.legit.ng/politics/',
-      // 'https://www.legit.ng/world/',
-      // 'https://www.legit.ng/world/africa/',
-      // 'https://www.legit.ng/world/europe/',
-      // 'https://www.legit.ng/world/us/',
-      // 'https://www.legit.ng/business-economy/',
-      // 'https://www.legit.ng/business-economy/technology/',
-      // 'https://www.legit.ng/business-economy/energy/',
-      // 'https://www.legit.ng/business-economy/capital-market/',
-      // 'https://www.legit.ng/business-economy/industry/',
-      // 'https://www.legit.ng/business-economy/economy/',
-      // 'https://www.legit.ng/entertainment/',
-      // 'https://www.legit.ng/entertainment/celebrities/',
-      // 'https://www.legit.ng/entertainment/movies/',
-      // 'https://www.legit.ng/entertainment/music/',
-      // 'https://www.legit.ng/entertainment/tv-shows/',
-      // 'https://www.legit.ng/entertainment/nollywood/',
-      // 'https://www.legit.ng/entertainment/fashion/',
-      // 'https://www.legit.ng/people/',
-      // // 'https://www.legit.ng/people/wedding/',
-      // 'https://www.legit.ng/people/family-relationship/',
+      'https://www.legit.ng/nigeria/',
+      'https://www.legit.ng/tags/lagos-state-news-today/',
+      'https://www.legit.ng/tags/abuja-city-news-today/',
+      'https://www.legit.ng/tags/rivers-state-news-today/',
+      'https://www.legit.ng/tags/kano-news-today/',
+      'https://www.legit.ng/tags/oyo-state-news-today/',
+      'https://www.legit.ng/tags/anambra-state-news-today/',
+      'https://www.legit.ng/tags/kwara-state-news-today/',
+      'https://www.legit.ng/tags/adamawa-state-news-today/',
+      'https://www.legit.ng/politics/',
+      'https://www.legit.ng/world/',
+      'https://www.legit.ng/world/africa/',
+      'https://www.legit.ng/world/europe/',
+      'https://www.legit.ng/world/us/',
+      'https://www.legit.ng/business-economy/',
+      'https://www.legit.ng/business-economy/technology/',
+      'https://www.legit.ng/business-economy/energy/',
+      'https://www.legit.ng/business-economy/capital-market/',
+      'https://www.legit.ng/business-economy/industry/',
+      'https://www.legit.ng/business-economy/economy/',
+      'https://www.legit.ng/entertainment/',
+      'https://www.legit.ng/entertainment/celebrities/',
+      'https://www.legit.ng/entertainment/movies/',
+      'https://www.legit.ng/entertainment/music/',
+      'https://www.legit.ng/entertainment/tv-shows/',
+      'https://www.legit.ng/entertainment/nollywood/',
+      'https://www.legit.ng/entertainment/fashion/',
+      'https://www.legit.ng/people/',
+      'https://www.legit.ng/people/wedding/',
+      'https://www.legit.ng/people/family-relationship/',
       'https://www.legit.ng/education/',
     ],
   listings: {
@@ -525,28 +525,28 @@ const legit = {
 
 const pulse = {
     siteUrl: [
-      // 'https://www.pulse.ng/news/politics',
-      // 'https://www.pulse.ng/news/local',
-      // 'https://www.pulse.ng/news/metro',
-      // 'https://www.pulse.ng/news/world',
-      // 'https://www.pulse.com.gh/news/politics',
-      // 'https://www.pulse.com.gh/news/local',
-      // 'https://www.pulse.ng/entertainment/celebrities',
-      // 'https://www.pulse.ng/entertainment/music',
-      // 'https://www.pulse.ng/entertainment/movies',
-      // 'https://www.pulse.ng/lifestyle/fashion',
-      // 'https://www.pulse.ng/lifestyle/beauty-and-health',
-      // 'https://www.pulse.ng/lifestyle/relationships-and-weddings',
-      // 'https://www.pulse.ng/business/domestic',
-      // 'https://www.pulse.com.gh/entertainment',
-      // 'https://www.pulse.com.gh/entertainment/celebrities',
-      // 'https://www.pulse.com.gh/entertainment/music',
-      // 'https://www.pulse.com.gh/entertainment/movies',
-      // 'https://www.pulse.com.gh/lifestyle/fashion',
-      // 'https://www.pulse.com.gh/lifestyle/beauty-and-health',
-      // 'https://www.pulse.com.gh/lifestyle/relationships-and-weddings',
-      // 'https://www.pulse.com.gh/business/domestic',
-      // 'https://www.pulse.com.gh/sports/football/ghana-premier-league',
+      'https://www.pulse.ng/news/politics',
+      'https://www.pulse.ng/news/local',
+      'https://www.pulse.ng/news/metro',
+      'https://www.pulse.ng/news/world',
+      'https://www.pulse.com.gh/news/politics',
+      'https://www.pulse.com.gh/news/local',
+      'https://www.pulse.ng/entertainment/celebrities',
+      'https://www.pulse.ng/entertainment/music',
+      'https://www.pulse.ng/entertainment/movies',
+      'https://www.pulse.ng/lifestyle/fashion',
+      'https://www.pulse.ng/lifestyle/beauty-and-health',
+      'https://www.pulse.ng/lifestyle/relationships-and-weddings',
+      'https://www.pulse.ng/business/domestic',
+      'https://www.pulse.com.gh/entertainment',
+      'https://www.pulse.com.gh/entertainment/celebrities',
+      'https://www.pulse.com.gh/entertainment/music',
+      'https://www.pulse.com.gh/entertainment/movies',
+      'https://www.pulse.com.gh/lifestyle/fashion',
+      'https://www.pulse.com.gh/lifestyle/beauty-and-health',
+      'https://www.pulse.com.gh/lifestyle/relationships-and-weddings',
+      'https://www.pulse.com.gh/business/domestic',
+      'https://www.pulse.com.gh/sports/football/ghana-premier-league',
     ],
   listings: {
     mainContainerEl: '.SectionLayout_wrapper__k_YDa',
@@ -589,11 +589,11 @@ const pulse = {
 
 const thenewsguru = {
    siteUrl: [
-    // 'https://thenewsguru.com/category/news/',
-    // 'https://thenewsguru.ng/category/politics/',
-    // 'https://thenewsguru.ng/category/entertainment/',
-    // 'https://thenewsguru.ng/category/sports/',
-    // 'https://thenewsguru.ng/category/business/',
+    'https://thenewsguru.com/category/news/',
+    'https://thenewsguru.ng/category/politics/',
+    'https://thenewsguru.ng/category/entertainment/',
+    'https://thenewsguru.ng/category/sports/',
+    'https://thenewsguru.ng/category/business/',
   ],
   listings: {
     mainContainerEl: '.row ',
@@ -671,8 +671,8 @@ const brila  = {
 
 const brilaOther  = {
    siteUrl: [
-    // 'https://brila.net/niche/boxing/',
-    // 'https://brila.net/niche/basketball/',
+    'https://brila.net/niche/boxing/',
+    'https://brila.net/niche/basketball/',
     'https://brila.net/niche/womens-basketball/',
   ],
   listings: {
@@ -713,15 +713,15 @@ const brilaOther  = {
 
 const healthza = {
   siteUrl: [
-    // 'https://womenshealthsa.co.za/food-and-nutrition/',
-    // 'https://womenshealthsa.co.za/health/',
-    // 'https://womenshealthsa.co.za/fitness/',
-    // 'https://womenshealthsa.co.za/style-beauty/',
-    // 'https://womenshealthsa.co.za/life/',
-    // 'https://mh.co.za/fitness/',
-    // 'https://mh.co.za/food-nutrition-2/',
-    // 'https://mh.co.za/style/',
-    // 'https://mh.co.za/health/',
+    'https://womenshealthsa.co.za/food-and-nutrition/',
+    'https://womenshealthsa.co.za/health/',
+    'https://womenshealthsa.co.za/fitness/',
+    'https://womenshealthsa.co.za/style-beauty/',
+    'https://womenshealthsa.co.za/life/',
+    'https://mh.co.za/fitness/',
+    'https://mh.co.za/food-nutrition-2/',
+    'https://mh.co.za/style/',
+    'https://mh.co.za/health/',
     'https://mh.co.za/life/',
   ],
   listings: {
@@ -805,7 +805,7 @@ const theguardian = {
 
 const motorverso = {
   siteUrl: [
-    // 'https://www.motorverso.com/posts/',
+    'https://www.motorverso.com/posts/',
     'https://www.motorverso.com/category/maintenance-diy/'
   ],
   listings: {
@@ -852,9 +852,53 @@ const motorverso = {
   },
 };
 
+const girlracer = {
+  siteUrl: [
+    'https://girlracer.co.uk/category/motoring/news/',
+    'https://girlracer.co.uk/category/motoring/road-test/',
+  ],
+  listings: {
+    mainContainerEl: '#main',
+    postHeadLineContainerEl: '',
+    postContainerEl: 'article',
+  },
+  titleEl: {
+    tag: '.entry-title a',
+    link: '',
+  },
+  titleLinkEl: {
+    tag: '.entry-title a',
+    source: 'href',
+  },
+  imageEl: {
+    tag: '',
+    source: '',
+    alt: '',
+  },
+  categoryEl: '',
+  post: {
+    categoryEl: '',
+    authorEl: '.author a',
+    datePostedEl: '.entry-date',
+    mainContainerEl: '.entry-content-wrapper',
+    contentEl: '.entry-content',
+    elToReFromPostEl: [
+      '.related-posts',
+      '.clear',
+    ],
+    imageEl: {
+      tag: '.wp-post-image',
+      tag1: '',
+      source: 'src',
+      source1: '',
+      alt: '',
+    },
+  },
+};
 
-// const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, brila, brilaOther, healthza, theguardian, motorverso];
-const siteNames = [motorverso];
+
+const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, brila, brilaOther, healthza, theguardian, motorverso, girlracer];
+// const siteNames = [girlracer];
 
 
 export default siteNames;
