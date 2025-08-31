@@ -93,6 +93,11 @@ export default async function postListing(page, siteNames, siteName, url) {
         // Ensure url starts with a slash
         const path = url.startsWith('/') ? url : '/' + url
         url = 'https://www.pulse.com.gh' + path
+      }  // Ensure absolute URL for theguardian
+      else if (website.includes('theguardian') && url && !/^https?:\/\//i.test(url)) {
+        // Ensure url starts with a slash
+        const path = url.startsWith('/') ? url : '/' + url
+        url = 'https://www.theguardian.com' + path
       }
 
       // Extract the category if available  

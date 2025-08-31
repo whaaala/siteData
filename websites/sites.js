@@ -760,9 +760,52 @@ const healthza = {
   },
 };
 
+const theguardian = {
+  siteUrl: ['https://www.theguardian.com/tone/recipes/all'],
+  listings: {
+    mainContainerEl: 'div[id*="container-"]',
+    postHeadLineContainerEl: '',
+    postContainerEl: '[data-format-theme="4"] div',
+  },
+  titleEl: {
+    tag: 'h3 span',
+    link: '',
+  },
+  titleLinkEl: {
+    tag: 'a',
+    source: 'href',
+  },
+  imageEl: {
+    tag: '',
+    source: '',
+    alt: '',
+  },
+  categoryEl: '',
+  post: {
+    categoryEl: '',
+    authorEl: '',
+    datePostedEl: '',
+    mainContainerEl: '#maincontent',
+    contentEl: '.article-body-commercial-selector',
+    elToReFromPostEl: [
+      '.ad-slot-container',
+      '#slot-body-end',
+      'svg',
+      '[data-print-layout="hide"]',
+    ],
+    imageEl: {
+      tag: '#img-1 .dcr-evn1e9 img',
+      tag1: '',
+      source: 'src',
+      source1: '',
+      alt: '',
+    },
+  },
+};
 
-// const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, brila, brilaOther, healthza];
-const siteNames = [healthza];
+
+// const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, brila, brilaOther, healthza, theguardian];
+const siteNames = [theguardian];
 
 
 export default siteNames;

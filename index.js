@@ -87,18 +87,18 @@ const dailypost = {
 }
 
 const leadership = {
-  siteUrl: ['https://mh.co.za/fitness/'],
+  siteUrl: ['https://www.theguardian.com/tone/recipes/all'],
   listings: {
-    mainContainerEl: '.et_pb_blog_grid',
+    mainContainerEl: 'div[id*="container-"]',
     postHeadLineContainerEl: '',
-    postContainerEl: 'article',
+    postContainerEl: '[data-format-theme="4"] div',
   },
   titleEl: {
-    tag: '.entry-title a',
+    tag: 'h3 span',
     link: '',
   },
   titleLinkEl: {
-    tag: '.entry-title a',
+    tag: 'a',
     source: 'href',
   },
   imageEl: {
@@ -108,14 +108,19 @@ const leadership = {
   },
   categoryEl: '',
   post: {
-    categoryEl: '.et_pb_title_meta_container [rel="category tag"]:first-of-type',
-    authorEl: '.et_pb_title_meta_container .author a',
-    datePostedEl: '.et_pb_title_meta_container .published',
-    mainContainerEl: '.et_pb_column',
-    contentEl: '.et_pb_post_content',
-    elToReFromPostEl: [''],
+    categoryEl: '',
+    authorEl: '',
+    datePostedEl: '',
+    mainContainerEl: '#maincontent',
+    contentEl: '.article-body-commercial-selector',
+    elToReFromPostEl: [
+      '.ad-slot-container',
+      '#slot-body-end',
+      'svg',
+      '[data-print-layout="hide"]',
+    ],
     imageEl: {
-      tag: '.et_pb_title_featured_container .et_pb_image_wrap img',
+      tag: '#img-1 .dcr-evn1e9 img',
       tag1: '',
       source: 'src',
       source1: '',
@@ -148,6 +153,8 @@ async function postListing(page, siteNames, siteName, url) {
     .find(siteNames[siteName].listings.postContainerEl)
     .children()
     .map((index, content) => {
+
+      
       // Extract the title
       const title = getElementContent(
         $,
@@ -176,6 +183,12 @@ async function postListing(page, siteNames, siteName, url) {
         const path = url.startsWith('/') ? url : '/' + url
         url = 'https://www.pulse.ng' + path
       }
+      // Ensure absolute URL for theguardian
+      if (website.includes('theguardian') && url && !/^https?:\/\//i.test(url)) {
+        // Ensure url starts with a slash
+        const path = url.startsWith('/') ? url : '/' + url
+        url = 'https://www.theguardian.com' + path
+      }
 
       let category = ''
       if (
@@ -184,7 +197,7 @@ async function postListing(page, siteNames, siteName, url) {
       ) {
         category = getContent($, siteNames[siteName].categoryEl)
       }
-
+  
       let imageLink = ''
       if (website.includes('healthwise')) {
         imageLink = getElementAttributeValue(
@@ -381,6 +394,10 @@ async function getPostCotent(postListings, page, postEls) {
         category = parts[parts.length - 1]
       }
     }
+
+     if (postListings[listing].website.includes('theguardian')) {
+      category = 'Recipes'
+     }
     // const category = getContent($, postEls.post.categoryEl);
     let imageLink = getAttribute(
       $,

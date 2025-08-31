@@ -82,8 +82,10 @@ export default async function getPostCotent(postListings, page, postEls) {
     const isHealthsa =
       postListings[listing].website &&
       postListings[listing].website.includes('healthsa.co.za')
-
-    if (!isPulse && !isBrila) {
+    const isTheguardian =
+      postListings[listing].website &&
+      postListings[listing].website.includes('theguardian.com')
+    if (!isPulse && !isBrila && !isHealthsa && !isTheguardian) {
       // Remove all <strong> elements from the content for non-pulse and non-brila sites
       $(postEls.post.mainContainerEl).find('strong').remove()
     }
@@ -284,7 +286,9 @@ export default async function getPostCotent(postListings, page, postEls) {
     // Get the author and category, normalize category
     // Use getContent to extract text from the specified element
     const author = getContent($, postEls.post.authorEl)
+
     let category = postListings[listing].category
+
     if (
       (!category || category === '' || category === 'No content') &&
       postEls.post.categoryEl &&
@@ -292,7 +296,6 @@ export default async function getPostCotent(postListings, page, postEls) {
     ) {
       category = getContent($, postEls.post.categoryEl)
     }
-
     // Special handling for legit.ng categories with \n
     if (
       postListings[listing].website &&
@@ -308,6 +311,11 @@ export default async function getPostCotent(postListings, page, postEls) {
       if (parts.length > 0) {
         category = parts[parts.length - 1]
       }
+    }
+
+    // Special handling for theguardian to set category to "Recipes"
+    if (postListings[listing].website.includes('theguardian')) {
+      category = 'Recipes'
     }
 
     // let category = getContent($, postEls.post.categoryEl);
@@ -791,7 +799,9 @@ export default async function getPostCotent(postListings, page, postEls) {
       })
 
       // Remove "display: flex" from inline style of elements with class "wp-block-column"
-      $('.wp-block-columns:not(.is-not-stacked-on-mobile)>.wp-block-column').each(function () {
+      $(
+        '.wp-block-columns:not(.is-not-stacked-on-mobile)>.wp-block-column'
+      ).each(function () {
         let style = $(this).attr('style') || ''
         style = style.replace(/flex-basis\s*:\s*0\s*;?/i, '')
         $(this).attr('style', style.trim())
@@ -864,6 +874,46 @@ export default async function getPostCotent(postListings, page, postEls) {
       } else {
         $.root().prepend(overrideStyle)
       }
+
+      processedContent = $.html()
+    }
+    // Special handling for theguardian to remove width styles from ids containing "img"
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('theguardian')
+    ) {
+      const $ = cheerio.load(processedContent)
+
+      // Remove the CSS width from any element whose id contains "img"
+      $('[id*="img"]').each(function () {
+        let style = $(this).attr('style') || ''
+        // Remove any width property from the style attribute
+        style = style.replace(/width\s*:\s*[^;]+;?/gi, '')
+        $(this).attr('style', style.trim())
+      })
+
+      processedContent = $.html()
+    }
+
+    //Special handling for theguardian to remove parent of "View image in fullscreen"
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('theguardian')
+    ) {
+      const $ = cheerio.load(processedContent)
+
+      // Remove any parent element whose child contains the text "View image in fullscreen"
+      $('button').each(function () {
+        const hasChildWithText = $(this)
+          .children()
+          .toArray()
+          .some((child) =>
+            $(child).text().toLowerCase().includes('view image in fullscreen')
+          )
+        if (hasChildWithText) {
+          $(this).remove()
+        }
+      })
 
       processedContent = $.html()
     }
