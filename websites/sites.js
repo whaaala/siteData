@@ -898,7 +898,7 @@ const girlracer = {
 
 
 const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, brila, brilaOther, healthza, theguardian, motorverso, girlracer];
-// const siteNames = [girlracer];
+// const siteNames = [guardian];
 
 
 export default siteNames;

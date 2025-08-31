@@ -768,6 +768,25 @@ export default async function getPostCotent(postListings, page, postEls) {
       processedContent = $.html()
     }
 
+    // Special handling for legit.ng to remove all <a> tags with href or text containing "legit.ng"
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('legit.ng')
+    ) {
+      const $ = cheerio.load(processedContent)
+
+      // Remove all <a> tags with href or text containing "legit.ng", keep the text content
+      $('a').each(function () {
+        const href = ($(this).attr('href') || '').toLowerCase()
+        const linkText = $(this).text().toLowerCase()
+        if (href.includes('legit.ng') || linkText.includes('legit.ng')) {
+          $(this).replaceWith($(this).text())
+        }
+      })
+
+      processedContent = $.html()
+    }
+
     // Special handling for healthsa.co.za to remove inline styles from .wp-block-image
     if (
       postListings[listing].website &&
@@ -1048,6 +1067,33 @@ export default async function getPostCotent(postListings, page, postEls) {
 
       processedContent = $.html()
     }
+    // Special handling for motorverso to set specific size for images with sizes="auto" or sizes starting with "auto,"
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('guardian.ng')
+    ) {
+      const $ = cheerio.load(processedContent)
+
+      // Inject a style tag to override external CSS for the target selector
+      const overrideStyle = `
+    <style>
+      img:is([sizes="auto" i], [sizes^="auto," i]) {
+        contain-intrinsic-size: unset !important;
+      }
+    </style>
+  `
+
+      if ($('body').length) {
+        $('body').prepend(overrideStyle)
+      } else {
+        $.root().prepend(overrideStyle)
+      }
+
+      // Add CSS inline style "width:50rem; height:30rem" for any img within the element
+      $('img').attr('style', 'width:50rem; height:30rem;')
+
+      processedContent = $.html()
+    }
 
     // Special handling for motorverso to remove inline styles from .fluid-width-video-wrapper
     if (
@@ -1254,6 +1300,23 @@ export default async function getPostCotent(postListings, page, postEls) {
         if (!$(this).attr('style')) {
           $(this).removeAttr('style')
         }
+      })
+
+      processedContent = $.html()
+    }
+
+    // Special handling for girlracer to add margin-top:-2rem to .entry-content
+    {
+      const $ = cheerio.load(processedContent)
+
+      // Add CSS "margin-top:-2rem" to elements with the class "entry-content"
+      $('.entry-content').each(function () {
+        let style = $(this).attr('style') || ''
+        // Remove any existing margin-top to avoid duplicates
+        style = style.replace(/margin-top\s*:\s*[^;]+;?/i, '')
+        // Add margin-top:-2rem at the start
+        style = `margin-top:-2rem;${style}`
+        $(this).attr('style', style.trim())
       })
 
       processedContent = $.html()
