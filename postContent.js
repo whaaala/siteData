@@ -529,6 +529,54 @@ export default async function getPostCotent(postListings, page, postEls) {
       return $.html()
     })
 
+    // Before rewriting the content, keep only the <iframe>, <embed>, and <object> elements and their src/data attributes for all iframes/embeds/objects if the website contains "gistreel"
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('gistreel')
+    ) {
+      postDetails = postDetails.map((htmlContent) => {
+        const $ = cheerio.load(htmlContent)
+
+        // Handle <iframe>
+        $('iframe').each(function () {
+          const src = $(this).attr('src')
+          Object.keys(this.attribs).forEach((attr) => {
+            $(this).removeAttr(attr)
+          })
+          if (src) {
+            $(this).attr('src', src)
+          }
+          $(this).empty()
+        })
+
+        // Handle <embed>
+        $('embed').each(function () {
+          const src = $(this).attr('src')
+          Object.keys(this.attribs).forEach((attr) => {
+            $(this).removeAttr(attr)
+          })
+          if (src) {
+            $(this).attr('src', src)
+          }
+          $(this).empty()
+        })
+
+        // Handle <object>
+        $('object').each(function () {
+          const data = $(this).attr('data')
+          Object.keys(this.attribs).forEach((attr) => {
+            $(this).removeAttr(attr)
+          })
+          if (data) {
+            $(this).attr('data', data)
+          }
+          $(this).empty()
+        })
+
+        return $.html()
+      })
+    }
+
     postDetails = postDetails.map((htmlContent) =>
       htmlContent.replace(/Naija News/gi, 'nowahalazone')
     )
@@ -1305,18 +1353,51 @@ export default async function getPostCotent(postListings, page, postEls) {
       processedContent = $.html()
     }
 
-    // Special handling for girlracer to add margin-top:-2rem to .entry-content
     {
       const $ = cheerio.load(processedContent)
 
-      // Add CSS "margin-top:-2rem" to elements with the class "entry-content"
+      // Add CSS "margin-top: -2rem;" to elements with the class "entry-content"
       $('.entry-content').each(function () {
         let style = $(this).attr('style') || ''
         // Remove any existing margin-top to avoid duplicates
         style = style.replace(/margin-top\s*:\s*[^;]+;?/i, '')
-        // Add margin-top:-2rem at the start
-        style = `margin-top:-2rem;${style}`
+        // Add margin-top: -2rem at the start
+        style = `margin-top: -2rem;${style}`
         $(this).attr('style', style.trim())
+      })
+
+      processedContent = $.html()
+    }
+
+    // Special handling for leadership.ng to remove elements containing "ADVERTISEMENT"
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('leadership.ng')
+    ) {
+      const $ = cheerio.load(processedContent)
+
+      // Remove any element that contains the text "ADVERTISEMENT"
+      $('.ads-text').each(function () {
+        if ($(this).text().toUpperCase().includes('ADVERTISEMENT')) {
+          $(this).remove()
+        }
+      })
+
+      processedContent = $.html()
+    }
+
+    // Special handling for leadership.ng to remove <p> elements containing "RELATED"
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('leadership.ng')
+    ) {
+      const $ = cheerio.load(processedContent)
+
+      // Remove any <p> element that contains the text "RELATED" (case-insensitive)
+      $('p').each(function () {
+        if ($(this).text().toUpperCase().includes('RELATED')) {
+          $(this).remove()
+        }
       })
 
       processedContent = $.html()
@@ -1352,5 +1433,12 @@ export default async function getPostCotent(postListings, page, postEls) {
         `Failed to post "${postListings[listing].title}" to WordPress.`
       )
     }
+  }
+
+  // Place this after the for-loop:
+  if (postListings.length > 0 && postListings[0].website) {
+    console.log(`✅ Completed scraping for: ${postListings[0].website}`)
+  } else {
+    console.log('✅ Completed scraping for this website.')
   }
 }

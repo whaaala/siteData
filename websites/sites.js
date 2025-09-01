@@ -50,7 +50,6 @@ const dailypost = {
 
 const leadership = {
   siteUrl: [
-    "https://leadership.ng/opinion/columns/",
     "https://leadership.ng/nigeria-news/",
     "https://leadership.ng/politics/",
     "https://leadership.ng/nigeria-news/business-news/",
@@ -898,7 +897,7 @@ const girlracer = {
 
 
 const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, brila, brilaOther, healthza, theguardian, motorverso, girlracer];
-// const siteNames = [guardian];
+//const siteNames = [girlracer];
 
 
 export default siteNames;
