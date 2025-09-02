@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import 'dotenv/config'; 
 
 // --- Mongoose Setup ---
-const mongoUri = process.env.MONGO_URI; // Change to your MongoDB URI
+const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/sitedata'; // Change to your MongoDB URI
 mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true });
 
 // Define the schema for storing posts
