@@ -4,8 +4,8 @@
   "type": "module",
   "main": "crawer.js",
   "scripts": {
-    "start": "node crawer.js",
-  "postinstall": "npx playwright install"
+    "start": "npx playwright install && node crawer.js",
+    "postinstall": "npx playwright install"
   },
   "keywords": [],
   "author": "",
