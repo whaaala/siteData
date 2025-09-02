@@ -2,7 +2,9 @@ import puppeteer from "puppeteer";
 
  export default async function preparePuppeteer() {
   const browser = await puppeteer.launch({
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    headless: true,
+    args: ["javascript:close()"],
+    protocolTimeout: 1000000,
   });
   // Create a new page
   // This will be used to navigate to the URLs and perform actions on the page
