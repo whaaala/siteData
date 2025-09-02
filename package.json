@@ -4,7 +4,8 @@
   "type": "module",
   "main": "crawer.js",
   "scripts": {
-    "start": "node crawer.js"
+    "start": "node crawer.js",
+    "heroku-postbuild": "npx puppeteer browsers install chrome"
   },
   "keywords": [],
   "author": "",
