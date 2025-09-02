@@ -4,7 +4,7 @@
   "type": "module",
   "main": "crawer.js",
   "scripts": {
-     "start": "node crawer.js"
+    "start": "node crawer.js"
   },
   "keywords": [],
   "author": "",
@@ -19,7 +19,7 @@
     "node-cron": "^4.2.1",
     "node-fetch": "^3.3.2",
     "openai": "^5.10.2",
-    "puppeteer": "^24.14.0",
+    "puppeteer": "^24.18.0",
     "sharp": "^0.34.3"
   }
 }
