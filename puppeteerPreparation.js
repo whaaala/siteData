@@ -3,7 +3,7 @@ import puppeteer from "puppeteer";
  export default async function preparePuppeteer() {
   const browser = await puppeteer.launch({
     headless: true,
-    args: ["javascript:close()"],
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
     protocolTimeout: 1000000,
   });
   // Create a new page
