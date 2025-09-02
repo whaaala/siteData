@@ -1,7 +1,7 @@
-import puppeteer from "puppeteer"; 
+import { chromium } from 'playwright'
 
  export default async function preparePuppeteer() {
-  const browser = await puppeteer.launch({
+  const browser =await chromium.launch({
     headless: true,
     args: ["javascript:close()"],
     protocolTimeout: 1000000,
@@ -13,7 +13,7 @@ import puppeteer from "puppeteer";
   // Add the below 1 line of code
   // This will disable the timeout for navigation, allowing the page to load without timing out
   // This is useful for pages that take longer to load or have dynamic content
-  page.setDefaultNavigationTimeout(0);
+  // page.setDefaultNavigationTimeout(0);
 
   // Set a custom user agent to mimic a real browser
   // This helps in avoiding detection as a bot and improves compatibility with some websites
