@@ -2,7 +2,7 @@ import puppeteer from "puppeteer";
 
  export default async function preparePuppeteer() {
   const browser = await puppeteer.launch({
-    headless: false,
+    headless: true,
     args: ["javascript:close()"],
     protocolTimeout: 1000000,
   });
