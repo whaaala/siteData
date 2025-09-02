@@ -2,7 +2,6 @@ import { chromium } from 'playwright'
 
  export default async function preparePuppeteer() {
   const browser =await chromium.launch({
-    headless: true,
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox'
