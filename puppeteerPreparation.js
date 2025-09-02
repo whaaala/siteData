@@ -31,5 +31,5 @@ export default async function preparePuppeteer() {
 
   //return the page instance
   // This will be used to navigate to the URLs and perform actions on the page
-  return page
+  return { browser, page };
 }
