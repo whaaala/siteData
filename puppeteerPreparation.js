@@ -13,7 +13,7 @@ import { chromium } from 'playwright'
   // Add the below 1 line of code
   // This will disable the timeout for navigation, allowing the page to load without timing out
   // This is useful for pages that take longer to load or have dynamic content
-  // page.setDefaultNavigationTimeout(0);
+  page.setDefaultNavigationTimeout(0);
 
   // Set a custom user agent to mimic a real browser
   // This helps in avoiding detection as a bot and improves compatibility with some websites
