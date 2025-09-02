@@ -8,3 +8,5 @@ libxfixes3
 libxrandr2
 libgbm1
 libasound2t64
+libxcursor1
+libgtk-3-0t64
