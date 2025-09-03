@@ -1446,6 +1446,8 @@ export default async function getPostCotent(postListings, page, postEls) {
     }
   }
 
+  await page.close();
+
   // Place this after the for-loop:
   if (postListings.length > 0 && postListings[0].website) {
     console.log(`✅ Completed scraping for: ${postListings[0].website}`)

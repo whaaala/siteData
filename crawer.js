@@ -10,7 +10,8 @@ async function main() {
     // Get a random site variable and two random URLs
     const { siteVar, selectedUrls } = await runRandomUrls();
 
-    for (const url of selectedUrls) {
+    // Only process the first 3 URL per run to reduce memory usage
+    for (const url of selectedUrls.slice(0, 3)) {
       // Log memory usage before scrape
       console.log('Memory usage before scrape:', process.memoryUsage());
 
