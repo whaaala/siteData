@@ -1,4 +1,6 @@
+import sharp from 'sharp';
 import fetch from 'node-fetch';
+import path from 'path';
 
 /**
  * Download an image from a URL and upload it to WordPress media library.
@@ -11,9 +13,16 @@ export async function uploadImageToWordpress(imageUrl, wordpressUrl, username, p
     console.error(`Failed to download image: ${imageResponse.statusText}`);
     return null;
   }
-  const imageBuffer = await imageResponse.buffer();
-  const fileName = imageUrl.split('/').pop().split('?')[0] || 'image.jpg';
-  const contentType = imageResponse.headers.get('content-type') || 'image/jpeg';
+  let imageBuffer = await imageResponse.buffer();
+  let fileName = imageUrl.split('/').pop().split('?')[0] || 'image.jpg';
+  let contentType = imageResponse.headers.get('content-type') || 'image/jpeg';
+
+  // Convert unsupported types to jpeg
+  if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(contentType)) {
+    imageBuffer = await sharp(imageBuffer).jpeg().toBuffer();
+    fileName = path.parse(fileName).name + '.jpg';
+    contentType = 'image/jpeg';
+  }
 
   // Upload to WordPress
   const mediaResponse = await fetch(`${wordpressUrl}/wp-json/wp/v2/media`, {
