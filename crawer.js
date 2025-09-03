@@ -5,12 +5,15 @@ import getPostCotent from "./postContent.js";
 import runRandomUrls from "./randomRunner.js"; // Import your random logic
 
 async function main() {
-  // Sequentially process sites to reduce memory usage
-  for (let i = 0; i < 10; i++) {
+  // Reduce number of scrapes per run to help avoid memory issues
+  for (let i = 0; i < 5; i++) {
     // Get a random site variable and two random URLs
     const { siteVar, selectedUrls } = await runRandomUrls();
 
     for (const url of selectedUrls) {
+      // Log memory usage before scrape
+      console.log('Memory usage before scrape:', process.memoryUsage());
+
       // Prepare browser and page
       const { browser, page } = await preparePuppeteer(); // Update preparePuppeteer to return both
 
@@ -22,6 +25,9 @@ async function main() {
       } finally {
         // Always close browser after scraping
         await browser.close();
+
+        // Log memory usage after scrape
+        console.log('Memory usage after scrape:', process.memoryUsage());
       }
     }
   }
