@@ -1403,6 +1403,17 @@ export default async function getPostCotent(postListings, page, postEls) {
       processedContent = $.html()
     }
 
+     // Remove <p> elements containing "Recommended read" (case-insensitive)
+    {
+      const $ = cheerio.load(processedContent);
+      $('p').each(function () {
+        if ($(this).text().toLowerCase().includes('recommended read')) {
+          $(this).remove();
+        }
+      });
+      processedContent = $.html();
+    }
+
     // Post to WordPress
     const wpResult = await postToWordpress(
       {
