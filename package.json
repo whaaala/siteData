@@ -6,7 +6,7 @@
   "scripts": {
     "start": "npx playwright install && node crawer.js",
     "postinstall": "npx playwright install",
-     "heroku-postbuild": "npx playwright install"
+    "heroku-postbuild": "npx playwright install"
   },
   "keywords": [],
   "author": "",
