@@ -10,13 +10,14 @@ async function main() {
   for (const siteKey of limitedSiteKeys) {
     const site = siteNames[siteKey];
     // Limit to two URLs per site
-    for (const url of site.siteUrl.slice(0, 2)) {
+    for (let urlIdx = 0; urlIdx < Math.min(2, site.siteUrl.length); urlIdx++) {
+      const url = site.siteUrl[urlIdx];
       console.log('Memory usage before scrape:', process.memoryUsage());
 
       const { browser, page } = await preparePuppeteer();
 
       try {
-        const postListings = await postListing(page, siteNames, siteKey, url);
+        const postListings = await postListing(page, siteNames, siteKey, urlIdx);
         await getPostCotent(postListings, page, site);
       } catch (err) {
         console.error(`Error scraping ${url}:`, err);
