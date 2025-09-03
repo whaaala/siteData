@@ -1,33 +1,26 @@
-import preparePuppeteer from "./puppeteerPreparation.js";
-import siteNames from "./websites/sites.js";
-import postListing from "./postListings.js";
-import getPostCotent from "./postContent.js";
-import runRandomUrls from "./randomRunner.js"; // Import your random logic
+import siteNames from './websites/sites.js';
+import preparePuppeteer from './puppeteerPreparation.js';
+import postListing from './postListings.js';
+import getPostCotent from './postContent.js';
 
 async function main() {
-  // Reduce number of scrapes per run to help avoid memory issues
-  for (let i = 0; i < 5; i++) {
-    // Get a random site variable and two random URLs
-    const { siteVar, selectedUrls } = await runRandomUrls();
+  // Limit to first 3 sites
+  const limitedSites = siteNames.slice(0, 3);
 
-    // Only process the first 3 URL per run to reduce memory usage
-    for (const url of selectedUrls.slice(0, 3)) {
-      // Log memory usage before scrape
+  for (const site of limitedSites) {
+    // Limit to two URL per site
+    for (const url of site.siteUrl.slice(0, 2)) {
       console.log('Memory usage before scrape:', process.memoryUsage());
 
-      // Prepare browser and page
-      const { browser, page } = await preparePuppeteer(); // Update preparePuppeteer to return both
+      const { browser, page } = await preparePuppeteer();
 
       try {
-        const postListings = await postListing(page, siteNames, siteVar, url);
-        await getPostCotent(postListings, page, siteNames[siteVar]);
+        const postListings = await postListing(page, site, url);
+        await getPostCotent(postListings, page, site);
       } catch (err) {
         console.error(`Error scraping ${url}:`, err);
       } finally {
-        // Always close browser after scraping
         await browser.close();
-
-        // Log memory usage after scrape
         console.log('Memory usage after scrape:', process.memoryUsage());
       }
     }
