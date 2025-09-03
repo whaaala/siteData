@@ -38,6 +38,8 @@ export default async function getPostCotent(postListings, page, postEls) {
     const titleToCheck = normalizeString(postListings[listing].title)
 
     // Check if post exists in MongoDB by URL or title BEFORE rewriting
+    // Check for existing post by normalized URL
+    console.log('Checking for existing post:', urlToCheck)
     const existing = await Post.findOne({
       $or: [{ url: urlToCheck }, { title: titleToCheck }],
     })
