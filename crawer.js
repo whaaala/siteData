@@ -1,65 +1,56 @@
-// import siteNames from './websites/sites.js';
-// import preparePuppeteer from './puppeteerPreparation.js';
-// import postListing from './postListings.js';
-// import getPostCotent from './postContent.js';
-
-// async function main() {
-//   // Get the keys of siteNames and limit to first 2
-//   const limitedSiteKeys = Object.keys(siteNames).slice(0, 2);
-
-//   for (const siteKey of limitedSiteKeys) {
-//     const site = siteNames[siteKey];
-//     // Limit to one URL per site
-//     for (let urlIdx = 0; urlIdx < Math.min(2, site.siteUrl.length); urlIdx++) {
-//       const url = site.siteUrl[urlIdx];
-//       console.log('Memory usage before scrape:', process.memoryUsage());
-
-//       const { browser, page } = await preparePuppeteer();
-
-//       try {
-//         const postListings = await postListing(page, siteNames, siteKey, urlIdx);
-//         await getPostCotent(postListings, page, site);
-//       } catch (err) {
-//         console.error(`Error scraping ${url}:`, err);
-//       } finally {
-//         await browser.close();
-//         console.log('Memory usage after scrape:', process.memoryUsage());
-//       }
-//     }
-//   }
-// }
-
-// main();
-
-
 import preparePuppeteer from "./puppeteerPreparation.js";
 import siteNames from "./websites/sites.js";
 import postListing from "./postListings.js";
 import getPostCotent from "./postContent.js";
-import runRandomUrls from "./randomRunner.js";
+import ScrapeStatus from "./scrapeStatus.js";
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+dotenv.config();
 
 async function main() {
-  // Example: run the random selection 10 times
-  for (let i = 0; i < 10; i++) {
-    // Get a random site variable and two random URLs
-    const { siteVar, selectedUrls } = await runRandomUrls();
+  // Connect to MongoDB
+  await mongoose.connect(process.env.MONGO_URI);
 
-    // For each selected URL, run your scraping logic
-    for (let urlIdx = 0; urlIdx < selectedUrls.length; urlIdx++) {
-      const url = selectedUrls[urlIdx];
-      const { browser, page } = await preparePuppeteer();
+  let allScraped = false;
 
-      try {
-        // Pass urlIdx to postListing, as your logic expects an index
-        const postListings = await postListing(page, siteNames, siteVar, urlIdx);
-        await getPostCotent(postListings, page, siteNames[siteVar]);
-      } catch (err) {
-        console.error(`Error scraping ${url}:`, err);
-      } finally {
-        await browser.close();
+  while (!allScraped) {
+    allScraped = true; // Assume all are scraped unless we find one not scraped
+
+    const siteKeys = Object.keys(siteNames);
+    for (const siteVar of siteKeys) {
+      const site = siteNames[siteVar];
+      for (let urlIdx = 0; urlIdx < site.siteUrl.length; urlIdx++) {
+        const url = site.siteUrl[urlIdx];
+
+        // Check if already scraped
+        const alreadyScraped = await ScrapeStatus.findOne({ url });
+        if (alreadyScraped) continue;
+
+        allScraped = false; // Found at least one not scraped
+
+        const { browser, page } = await preparePuppeteer();
+
+        try {
+          const postListings = await postListing(page, siteNames, siteVar, urlIdx);
+          await getPostCotent(postListings, page, site);
+          // Mark as scraped
+          await ScrapeStatus.create({ url, siteVar });
+        } catch (err) {
+          console.error(`Error scraping ${url}:`, err);
+        } finally {
+          await browser.close();
+        }
       }
     }
+
+    // If allScraped is true, clear the ScrapeStatus collection to start over
+    if (allScraped) {
+      console.log("All sites and pages scraped. Starting over...");
+      await ScrapeStatus.deleteMany({});
+    }
   }
+
+  await mongoose.disconnect();
 }
 
 main();
