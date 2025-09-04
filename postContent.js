@@ -8,6 +8,7 @@ import {
   uploadImageToWordpress,
   postToWordpress,
   wordpressPostExists,
+  areContentsSimilar,
 } from './wordpress.js'
 import { wpCategoryMap, getRandomAuthorId } from './categoryMap.js'
 import { normalizeCategory } from './normalizeCategory.js'
@@ -490,6 +491,27 @@ export default async function getPostCotent(postListings, page, postEls) {
       myFacebookProfile,
       myInstagramProfile,
       myTiktokProfile,
+    }
+
+    // Check for similar rewritten content in MongoDB before rewriting and posting
+    const existingPosts = await Post.find({
+      website: postListings[listing].website,
+    })
+    let isSimilarContent = false
+    for (const post of existingPosts) {
+      if (
+        post.rewrittenDetails &&
+        areContentsSimilar(originalDetails, post.rewrittenDetails)
+      ) {
+        isSimilarContent = true
+        break
+      }
+    }
+    if (isSimilarContent) {
+      console.log(
+        `Content is very similar to an existing post. Skipping rewrite and WordPress posting.`
+      )
+      continue
     }
 
     const originalTitle = postListings[listing].title
@@ -1191,7 +1213,7 @@ export default async function getPostCotent(postListings, page, postEls) {
     }
 
     // Create excerpt from the rewritten details
-    const excerpt = getExcerpt(rewrittenDetails, 40) // Get first 40 words as excerpt
+    const excerpt = getExcerpt(rewrittenDetails, 30) // Get first 30 words as excerpt
 
     // Save to MongoDB
     const postDoc = await saveNewPostToDb(Post, {
@@ -1483,7 +1505,13 @@ export default async function getPostCotent(postListings, page, postEls) {
 
     // ...inside your main loop, before posting to WordPress...
     if (
-      await wordpressPostExists(safeTitle, imageLink, process.env.WORDPRESS_URL, username, password)
+      await wordpressPostExists(
+        safeTitle,
+        imageLink,
+        process.env.WORDPRESS_URL,
+        username,
+        password
+      )
     ) {
       console.log(`Post "${safeTitle}" already exists on WordPress. Skipping.`)
       continue

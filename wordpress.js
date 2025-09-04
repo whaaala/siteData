@@ -3,6 +3,18 @@ import fetch from 'node-fetch';
 import path from 'path';
 import axios from 'axios';
 
+
+function slugify(text) {
+  return text
+    .toString()
+    .toLowerCase()
+    .replace(/\s+/g, '-')           // Replace spaces with -
+    .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
+    .replace(/\-\-+/g, '-')         // Replace multiple - with single -
+    .replace(/^-+/, '')             // Trim - from start of text
+    .replace(/-+$/, '');            // Trim - from end of text
+}
+
 /**
  * Download an image from a URL and upload it to WordPress media library.
  * Returns the WordPress media ID if successful, or null if failed.
@@ -89,12 +101,13 @@ export async function postToWordpress(post, featuredMediaId, wordpressUrl, usern
 
 
 export async function wordpressPostExists(title, imageUrl, wordpressUrl, username, password) {
-  // Check by title
-  const titleRes = await axios.get(
-    `${wordpressUrl}/wp-json/wp/v2/posts?search=${encodeURIComponent(title)}`,
+  // Check by slug (exact title match)
+  const slug = slugify(title);
+  const slugRes = await axios.get(
+    `${wordpressUrl}/wp-json/wp/v2/posts?slug=${encodeURIComponent(slug)}`,
     { auth: { username, password } }
   );
-  if (titleRes.data && titleRes.data.length > 0) return true;
+  if (slugRes.data && slugRes.data.length > 0) return true;
 
   // Check by image URL (featured media)
   const imgRes = await axios.get(
@@ -102,7 +115,6 @@ export async function wordpressPostExists(title, imageUrl, wordpressUrl, usernam
     { auth: { username, password } }
   );
   if (imgRes.data && imgRes.data.length > 0) {
-    // Optionally, check if any post uses this media as featured image
     for (const media of imgRes.data) {
       const postsRes = await axios.get(
         `${wordpressUrl}/wp-json/wp/v2/posts?featured_media=${media.id}`,
@@ -113,4 +125,39 @@ export async function wordpressPostExists(title, imageUrl, wordpressUrl, usernam
   }
 
   return false;
+}
+
+
+export async function areContentsSimilar(content1, content2) {
+  // Normalize: lowercase, remove punctuation and extra spaces
+  const clean = str => str.toLowerCase().replace(/[^\w\s]/gi, '').replace(/\s+/g, ' ').trim();
+  const c1 = clean(content1);
+  const c2 = clean(content2);
+
+  // Substring check
+  if (c1.includes(c2) || c2.includes(c1)) return true;
+
+  // Levenshtein distance (basic implementation)
+  function levenshtein(a, b) {
+    const matrix = Array.from({ length: b.length + 1 }, (_, i) => [i]);
+    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+    for (let i = 1; i <= b.length; i++) {
+      for (let j = 1; j <= a.length; j++) {
+        if (b.charAt(i - 1) === a.charAt(j - 1)) {
+          matrix[i][j] = matrix[i - 1][j - 1];
+        } else {
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j - 1] + 1,
+            matrix[i][j - 1] + 1,
+            matrix[i - 1][j] + 1
+          );
+        }
+      }
+    }
+    return matrix[b.length][a.length];
+  }
+
+  const distance = levenshtein(c1, c2);
+  const threshold = Math.floor(Math.max(c1.length, c2.length) * 0.2); // 20% difference allowed
+  return distance <= threshold;
 }
