@@ -493,13 +493,11 @@ export default async function getPostCotent(postListings, page, postEls) {
       myTiktokProfile,
     }
 
-
     const originalTitle = postListings[listing].title
     const originalDetails = Array.isArray(postDetails)
       ? postDetails.join('\n')
       : postDetails
 
-      
     // Check for similar rewritten content in MongoDB before rewriting and posting
     const existingPosts = await Post.find({
       website: postListings[listing].website,
@@ -520,7 +518,7 @@ export default async function getPostCotent(postListings, page, postEls) {
       )
       continue
     }
-    
+
     // Replace img src with data-lazy-src if it exists, before rewriting
     postDetails = postDetails.map((htmlContent) => {
       const $ = cheerio.load(htmlContent)
@@ -1549,6 +1547,13 @@ export default async function getPostCotent(postListings, page, postEls) {
         `Failed to post "${postListings[listing].title}" to WordPress.`
       )
     }
+
+    // Clean up large variables after each iteration
+    postDetails = null
+    rewrittenDetailsArr = null
+    rewrittenDetails = null
+    processedContent = null
+    existingPosts = null
   }
 
   await page.close()
