@@ -493,6 +493,13 @@ export default async function getPostCotent(postListings, page, postEls) {
       myTiktokProfile,
     }
 
+
+    const originalTitle = postListings[listing].title
+    const originalDetails = Array.isArray(postDetails)
+      ? postDetails.join('\n')
+      : postDetails
+
+      
     // Check for similar rewritten content in MongoDB before rewriting and posting
     const existingPosts = await Post.find({
       website: postListings[listing].website,
@@ -513,12 +520,7 @@ export default async function getPostCotent(postListings, page, postEls) {
       )
       continue
     }
-
-    const originalTitle = postListings[listing].title
-    const originalDetails = Array.isArray(postDetails)
-      ? postDetails.join('\n')
-      : postDetails
-
+    
     // Replace img src with data-lazy-src if it exists, before rewriting
     postDetails = postDetails.map((htmlContent) => {
       const $ = cheerio.load(htmlContent)
