@@ -46,9 +46,9 @@ async function main() {
 
     // For each selected URL, run your scraping logic
     for (const url of selectedUrls) {
-      const page = await preparePuppeteer();
-      const postListings = await postListing(page, siteNames, siteVar, url);
-      await getPostCotent(postListings, page, siteNames[siteVar]);
+     const { browser, page } = await preparePuppeteer();
+     const postListings = await postListing(page, siteNames, siteKey, urlIdx);
+     await getPostCotent(postListings, page, siteNames[siteVar]);
     }
   }
 }
