@@ -1451,6 +1451,32 @@ export default async function getPostCotent(postListings, page, postEls) {
       processedContent = $.html()
     }
 
+    // Replace social media <a> links with their URLs on their own line for WordPress oEmbed
+    {
+      const $ = cheerio.load(processedContent)
+
+      // List of social media domains to auto-embed
+      const socialDomains = [
+        'instagram.com',
+        'twitter.com',
+        'x.com',
+        'facebook.com',
+        'tiktok.com',
+        'youtube.com',
+        'youtu.be',
+      ]
+
+      $('a').each(function () {
+        const href = $(this).attr('href')
+        if (href && socialDomains.some((domain) => href.includes(domain))) {
+          // Replace the <a> tag with the URL on its own line
+          $(this).replaceWith('\n' + href + '\n')
+        }
+      })
+
+      processedContent = $.html()
+    }
+
     // Post to WordPress
     const wpResult = await postToWordpress(
       {
