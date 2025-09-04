@@ -41,11 +41,12 @@ async function main() {
   const { browser, page } = await preparePuppeteer()
 
   try {
-     console.log('Memory usage before scrape:', process.memoryUsage());
+    console.log('Memory usage before scrape:', process.memoryUsage())
 
     const postListings = await postListing(page, siteNames, siteVar, urlIdx)
-    for (let i = 0; i < postListings.length; i++) {
-      await getPostCotent([postListings[i]], page, site)
+    // Only process the first post in postListings
+    if (postListings.length > 0) {
+      await getPostCotent([postListings[0]], page, site)
       global.gc?.()
     }
     await ScrapeStatus.create({ url, siteVar })
@@ -53,7 +54,7 @@ async function main() {
     // Set large variables to null after use
     postListings = null
 
-    console.log('Memory usage after scrape:', process.memoryUsage());
+    console.log('Memory usage after scrape:', process.memoryUsage())
   } catch (err) {
     console.error(`Error scraping ${url}:`, err)
   } finally {
