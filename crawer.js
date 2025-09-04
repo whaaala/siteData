@@ -7,14 +7,17 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 dotenv.config();
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 async function main() {
-  // Connect to MongoDB
   await mongoose.connect(process.env.MONGO_URI);
 
   let allScraped = false;
 
   while (!allScraped) {
-    allScraped = true; // Assume all are scraped unless we find one not scraped
+    allScraped = true;
 
     const siteKeys = Object.keys(siteNames);
     for (const siteVar of siteKeys) {
@@ -22,29 +25,37 @@ async function main() {
       for (let urlIdx = 0; urlIdx < site.siteUrl.length; urlIdx++) {
         const url = site.siteUrl[urlIdx];
 
-        // Check if already scraped
         const alreadyScraped = await ScrapeStatus.findOne({ url });
         if (alreadyScraped) continue;
 
-        allScraped = false; // Found at least one not scraped
+        allScraped = false;
 
         const { browser, page } = await preparePuppeteer();
 
         try {
           const postListings = await postListing(page, siteNames, siteVar, urlIdx);
-          await getPostCotent(postListings, page, site);
-          // Mark as scraped
-          await ScrapeStatus.create({ url, siteVar });
+
+          // Visit each item in postListings array
+          for (let i = 0; i < postListings.length; i++) {
+            await getPostCotent([postListings[i]], page, site);
+            // Clean up memory for each item
+            global.gc?.();
+          }
         } catch (err) {
           console.error(`Error scraping ${url}:`, err);
         } finally {
           await page.close();
-          await browser.close(); 
+          await browser.close();
+          // Wait for 1 minute before moving to the next URL
+          await sleep(60000);
+          // Clean up memory after each URL
+          global.gc?.();
         }
+
+        await ScrapeStatus.create({ url, siteVar });
       }
     }
 
-    // If allScraped is true, clear the ScrapeStatus collection to start over
     if (allScraped) {
       console.log("All sites and pages scraped. Starting over...");
       await ScrapeStatus.deleteMany({});
