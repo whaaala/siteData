@@ -91,21 +91,21 @@ export async function postToWordpress(post, featuredMediaId, wordpressUrl, usern
 export async function wordpressPostExists(title, imageUrl, wordpressUrl, username, password) {
   // Check by title
   const titleRes = await axios.get(
-    `${wordpressUrl}/wp-json/wp/v2/posts?search=${encodeURIComponent(title)}`,
+    `${process.env.WORDPRESS_URL}/wp-json/wp/v2/posts?search=${encodeURIComponent(title)}`,
     { auth: { username, password } }
   );
   if (titleRes.data && titleRes.data.length > 0) return true;
 
   // Check by image URL (featured media)
   const imgRes = await axios.get(
-    `${wordpressUrl}/wp-json/wp/v2/media?search=${encodeURIComponent(imageUrl)}`,
+    `${process.env.WORDPRESS_URL}/wp-json/wp/v2/media?search=${encodeURIComponent(imageUrl)}`,
     { auth: { username, password } }
   );
   if (imgRes.data && imgRes.data.length > 0) {
     // Optionally, check if any post uses this media as featured image
     for (const media of imgRes.data) {
       const postsRes = await axios.get(
-        `${wordpressUrl}/wp-json/wp/v2/posts?featured_media=${media.id}`,
+        `${process.env.WORDPRESS_URL}/wp-json/wp/v2/posts?featured_media=${media.id}`,
         { auth: { username, password } }
       );
       if (postsRes.data && postsRes.data.length > 0) return true;
