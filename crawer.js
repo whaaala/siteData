@@ -38,7 +38,8 @@ async function main() {
         } catch (err) {
           console.error(`Error scraping ${url}:`, err);
         } finally {
-          await browser.close();
+          await page.close();
+          await browser.close(); 
         }
       }
     }
