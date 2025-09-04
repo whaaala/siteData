@@ -1405,15 +1405,30 @@ export default async function getPostCotent(postListings, page, postEls) {
       processedContent = $.html()
     }
 
-     // Remove <p> elements containing "Recommended read" (case-insensitive)
+    // Remove <p> elements containing "Recommended read" (case-insensitive)
     {
-      const $ = cheerio.load(processedContent);
+      const $ = cheerio.load(processedContent)
       $('p').each(function () {
         if ($(this).text().toLowerCase().includes('recommended read')) {
-          $(this).remove();
+          $(this).remove()
         }
-      });
-      processedContent = $.html();
+      })
+      processedContent = $.html()
+    }
+
+    // Remove <a> links that contain the source website domain
+    {
+      const $ = cheerio.load(processedContent)
+      const websiteDomain = (postListings[listing].website || '')
+        .replace(/^https?:\/\//, '')
+        .replace(/\/.*$/, '')
+      $('a').each(function () {
+        const href = ($(this).attr('href') || '').toLowerCase()
+        if (websiteDomain && href.includes(websiteDomain)) {
+          $(this).replaceWith($(this).text())
+        }
+      })
+      processedContent = $.html()
     }
 
     // Post to WordPress
@@ -1448,7 +1463,7 @@ export default async function getPostCotent(postListings, page, postEls) {
     }
   }
 
-  await page.close();
+  await page.close()
 
   // Place this after the for-loop:
   if (postListings.length > 0 && postListings[0].website) {
