@@ -1431,6 +1431,26 @@ export default async function getPostCotent(postListings, page, postEls) {
       processedContent = $.html()
     }
 
+    {
+      const $ = cheerio.load(processedContent)
+      $('img').each(function () {
+        const src = $(this).attr('src') || ''
+        const dataLazySrc = $(this).attr('data-lazy-src')
+        // If src is just a number or not a valid URL, but data-lazy-src exists, use it
+        if (
+          (!src.startsWith('http') && dataLazySrc) ||
+          (/^\d+$/.test(src) && dataLazySrc)
+        ) {
+          $(this).attr('src', dataLazySrc)
+        }
+        // Optionally, remove images with invalid src and no data-lazy-src
+        if (!src.startsWith('http') && !dataLazySrc) {
+          $(this).remove()
+        }
+      })
+      processedContent = $.html()
+    }
+
     // Post to WordPress
     const wpResult = await postToWordpress(
       {
