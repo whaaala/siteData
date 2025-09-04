@@ -1,6 +1,7 @@
 import sharp from 'sharp';
 import fetch from 'node-fetch';
 import path from 'path';
+import axios from 'axios';
 
 /**
  * Download an image from a URL and upload it to WordPress media library.
@@ -84,4 +85,19 @@ export async function postToWordpress(post, featuredMediaId, wordpressUrl, usern
   }
   const postData = await response.json();
   return postData;
+}
+
+import axios from 'axios';
+
+export async function wordpressPostExists(title, wordpressUrl, username, password) {
+  const response = await axios.get(
+    `${wordpressUrl}/wp-json/wp/v2/posts?search=${encodeURIComponent(title)}`,
+    {
+      auth: {
+        username,
+        password,
+      },
+    }
+  );
+  return response.data && response.data.length > 0;
 }

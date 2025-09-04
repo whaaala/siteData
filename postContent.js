@@ -4,7 +4,11 @@ import { getContent, getAttribute } from './functions.js'
 import * as converter from './openai.js'
 import { Post } from './db.js'
 import fs from 'fs/promises'
-import { uploadImageToWordpress, postToWordpress } from './wordpress.js'
+import {
+  uploadImageToWordpress,
+  postToWordpress,
+  wordpressPostExists,
+} from './wordpress.js'
 import { wpCategoryMap, getRandomAuthorId } from './categoryMap.js'
 import { normalizeCategory } from './normalizeCategory.js'
 import {
@@ -1475,6 +1479,14 @@ export default async function getPostCotent(postListings, page, postEls) {
       })
 
       processedContent = $.html()
+    }
+
+    // ...inside your main loop, before posting to WordPress...
+    if (
+      await wordpressPostExists(safeTitle, wordpressUrl, username, password)
+    ) {
+      console.log(`Post "${safeTitle}" already exists on WordPress. Skipping.`)
+      continue
     }
 
     // Post to WordPress
