@@ -36,7 +36,7 @@ import preparePuppeteer from "./puppeteerPreparation.js";
 import siteNames from "./websites/sites.js";
 import postListing from "./postListings.js";
 import getPostCotent from "./postContent.js";
-import runRandomUrls from "./randomRunner.js"; // Import your random logic
+import runRandomUrls from "./randomRunner.js";
 
 async function main() {
   // Example: run the random selection 10 times
@@ -45,10 +45,19 @@ async function main() {
     const { siteVar, selectedUrls } = await runRandomUrls();
 
     // For each selected URL, run your scraping logic
-    for (const url of selectedUrls) {
-     const { browser, page } = await preparePuppeteer();
-     const postListings = await postListing(page, siteNames, siteKey, urlIdx);
-     await getPostCotent(postListings, page, siteNames[siteVar]);
+    for (let urlIdx = 0; urlIdx < selectedUrls.length; urlIdx++) {
+      const url = selectedUrls[urlIdx];
+      const { browser, page } = await preparePuppeteer();
+
+      try {
+        // Pass urlIdx to postListing, as your logic expects an index
+        const postListings = await postListing(page, siteNames, siteVar, urlIdx);
+        await getPostCotent(postListings, page, siteNames[siteVar]);
+      } catch (err) {
+        console.error(`Error scraping ${url}:`, err);
+      } finally {
+        await browser.close();
+      }
     }
   }
 }
