@@ -1483,7 +1483,7 @@ export default async function getPostCotent(postListings, page, postEls) {
 
     // ...inside your main loop, before posting to WordPress...
     if (
-      await wordpressPostExists(safeTitle, process.env.WORDPRESS_URL, username, password)
+      await wordpressPostExists(safeTitle, imageLink, process.env.WORDPRESS_URL, username, password)
     ) {
       console.log(`Post "${safeTitle}" already exists on WordPress. Skipping.`)
       continue
