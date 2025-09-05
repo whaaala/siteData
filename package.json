@@ -2,9 +2,11 @@
   "name": "newscraping",
   "version": "1.0.0",
   "type": "module",
-  "main": "index.js",
+  "main": "crawer.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node bootstrap.js",
+    "postinstall": "npx playwright install",
+    "heroku-postbuild": "npx playwright install"
   },
   "keywords": [],
   "author": "",
@@ -19,7 +21,15 @@
     "node-cron": "^4.2.1",
     "node-fetch": "^3.3.2",
     "openai": "^5.10.2",
-    "puppeteer": "^24.14.0",
-    "sharp": "^0.34.3"
+    "playwright": "^1.55.0",
+    "sharp": "^0.34.3",
+    "undici": "^7.15.0"
+  },
+  "devDependencies": {
+    "cross-env": "^10.0.0"
+  },
+  "engines": {
+    "node": "20.x"
   }
 }
+
