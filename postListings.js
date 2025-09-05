@@ -158,10 +158,12 @@ export default async function postListing(page, siteNames, siteName, url) {
     })
     .get()
 
-  //Write updated postData array to file after every addition
-  // writeArrayToFile(postData, postDataFile);
+  // Filter out posts with invalid or missing URLs
+  const filteredResult = result.filter(
+    post => typeof post?.url === 'string' && post.url.trim() !== ''
+  )
 
   //return the result array containing post listings
   // This will be used in the main function to process each post listing
-  return result
+  return filteredResult
 }

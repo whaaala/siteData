@@ -4,7 +4,7 @@
   "type": "module",
   "main": "crawer.js",
   "scripts": {
-    "start": "npx playwright install && node crawer.js",
+    "start": "node bootstrap.js",
     "postinstall": "npx playwright install",
     "heroku-postbuild": "npx playwright install"
   },
@@ -22,7 +22,8 @@
     "node-fetch": "^3.3.2",
     "openai": "^5.10.2",
     "playwright": "^1.55.0",
-    "sharp": "^0.34.3"
+    "sharp": "^0.34.3",
+    "undici": "^7.15.0"
   },
   "devDependencies": {
     "cross-env": "^10.0.0"
@@ -31,3 +32,4 @@
     "node": "20.x"
   }
 }
+

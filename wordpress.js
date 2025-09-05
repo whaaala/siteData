@@ -20,43 +20,31 @@ function slugify(text) {
  * Returns the WordPress media ID if successful, or null if failed.
  */
 export async function uploadImageToWordpress(imageUrl, wordpressUrl, username, password) {
-  // Download the image
-  const imageResponse = await fetch(imageUrl);
-  if (!imageResponse.ok) {
-    console.error(`Failed to download image: ${imageResponse.statusText}`);
-    return null;
-  }
-  let imageBuffer = await imageResponse.buffer();
-  let fileName = imageUrl.split('/').pop().split('?')[0] || 'image.jpg';
-  let contentType = imageResponse.headers.get('content-type') || 'image/jpeg';
+  try {
+    // Download the image
+    const response = await fetch(imageUrl)
+    if (!response.ok) throw new Error('Failed to fetch image')
+    const buffer = await response.buffer()
+    const fileName = imageUrl.split('/').pop().split('?')[0] || 'image.jpg'
 
-  // Convert unsupported types to jpeg
-  if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(contentType)) {
-    imageBuffer = await sharp(imageBuffer).jpeg().toBuffer();
-    fileName = path.parse(fileName).name + '.jpg';
-    contentType = 'image/jpeg';
+    // Upload to WordPress
+    const uploadRes = await fetch(`${wordpressUrl}/wp-json/wp/v2/media`, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Basic ' + Buffer.from(username + ':' + password).toString('base64'),
+        'Content-Disposition': `attachment; filename="${fileName}"`,
+        'Content-Type': 'image/jpeg'
+      },
+      body: buffer
+    })
+    if (!uploadRes.ok) throw new Error('Failed to upload image to WordPress')
+    const data = await uploadRes.json()
+    return data.id // This is the media ID
+  } catch (err) {
+    console.error('[WordPress Image Upload] Error:', err)
+    return null
   }
-
-  // Upload to WordPress
-  const mediaResponse = await fetch(`${wordpressUrl}/wp-json/wp/v2/media`, {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64'),
-      'Content-Disposition': `attachment; filename="${fileName}"`,
-      'Content-Type': contentType
-    },
-    body: imageBuffer
-  });
-
-  if (!mediaResponse.ok) {
-    const errorText = await mediaResponse.text();
-    console.error(`Failed to upload image to WordPress: ${mediaResponse.statusText}\n${errorText}`);
-    return null;
-  }
-  const mediaData = await mediaResponse.json();
-  return mediaData.id;
 }
-
 /**
  * Post content to WordPress using the REST API.
  * Adds the main image at the top of the content if available.
