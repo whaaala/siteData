@@ -402,6 +402,9 @@ export async function scrapeAndSaveRaw(postListings, page, postEls) {
       .join('\n')
   )
 
+  console.log('[DEBUG] mainContainerEl:', postEls.post.mainContainerEl, 'Count:', $(postEls.post.mainContainerEl).length);
+console.log('[DEBUG] contentEl:', postEls.post.contentEl, 'Count:', $(postEls.post.mainContainerEl).find(postEls.post.contentEl).length);
+
   // After cleaning, but before saving postDetails:
   postDetails = postDetails.map((htmlContent) => {
     const $ = cheerio.load(htmlContent)

@@ -525,27 +525,27 @@ const legit = {
 const pulse = {
     siteUrl: [
       'https://www.pulse.ng/news/politics',
-      'https://www.pulse.ng/news/local',
-      'https://www.pulse.ng/news/metro',
-      'https://www.pulse.ng/news/world',
-      'https://www.pulse.com.gh/news/politics',
-      'https://www.pulse.com.gh/news/local',
-      'https://www.pulse.ng/entertainment/celebrities',
-      'https://www.pulse.ng/entertainment/music',
-      'https://www.pulse.ng/entertainment/movies',
-      'https://www.pulse.ng/lifestyle/fashion',
-      'https://www.pulse.ng/lifestyle/beauty-and-health',
-      'https://www.pulse.ng/lifestyle/relationships-and-weddings',
-      'https://www.pulse.ng/business/domestic',
-      'https://www.pulse.com.gh/entertainment',
-      'https://www.pulse.com.gh/entertainment/celebrities',
-      'https://www.pulse.com.gh/entertainment/music',
-      'https://www.pulse.com.gh/entertainment/movies',
-      'https://www.pulse.com.gh/lifestyle/fashion',
-      'https://www.pulse.com.gh/lifestyle/beauty-and-health',
-      'https://www.pulse.com.gh/lifestyle/relationships-and-weddings',
-      'https://www.pulse.com.gh/business/domestic',
-      'https://www.pulse.com.gh/sports/football/ghana-premier-league',
+      // 'https://www.pulse.ng/news/local',
+      // 'https://www.pulse.ng/news/metro',
+      // 'https://www.pulse.ng/news/world',
+      // 'https://www.pulse.com.gh/news/politics',
+      // 'https://www.pulse.com.gh/news/local',
+      // 'https://www.pulse.ng/entertainment/celebrities',
+      // 'https://www.pulse.ng/entertainment/music',
+      // 'https://www.pulse.ng/entertainment/movies',
+      // 'https://www.pulse.ng/lifestyle/fashion',
+      // 'https://www.pulse.ng/lifestyle/beauty-and-health',
+      // 'https://www.pulse.ng/lifestyle/relationships-and-weddings',
+      // 'https://www.pulse.ng/business/domestic',
+      // 'https://www.pulse.com.gh/entertainment',
+      // 'https://www.pulse.com.gh/entertainment/celebrities',
+      // 'https://www.pulse.com.gh/entertainment/music',
+      // 'https://www.pulse.com.gh/entertainment/movies',
+      // 'https://www.pulse.com.gh/lifestyle/fashion',
+      // 'https://www.pulse.com.gh/lifestyle/beauty-and-health',
+      // 'https://www.pulse.com.gh/lifestyle/relationships-and-weddings',
+      // 'https://www.pulse.com.gh/business/domestic',
+      // 'https://www.pulse.com.gh/sports/football/ghana-premier-league',
     ],
   listings: {
     mainContainerEl: '.SectionLayout_wrapper__k_YDa',
@@ -571,7 +571,7 @@ const pulse = {
     authorEl: '[class*="FollowAuthorsCard_author__name"]',
     datePostedEl: '[class*="Article_date"]',
     mainContainerEl: '[class*="ArticleBody_content"]',
-    contentEl: '[class*="rich-text-wrapper"]',
+    contentEl: '[class*="RichText_wrapper__"]',
     elToReFromPostEl: [
       '.ad-wrapper',
       '.ad-wrapper__content',
@@ -895,8 +895,8 @@ const girlracer = {
   },
 };
 
-const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, brila, brilaOther, healthza, theguardian, motorverso, girlracer];
-//const siteNames = [girlracer];
+//const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, brila, brilaOther, healthza, theguardian, motorverso, girlracer];
+const siteNames = [pulse];
 
 
 export default siteNames;
