@@ -18,7 +18,7 @@ const openAIClient = new OpenAI({
  */
 export async function rewriteTitle(title) {  
   const completion = await openAIClient.chat.completions.create({
-    model: "gpt-4.1",
+    model: "gpt-3.5-turbo",
     messages: [
       {
         role: "system",
@@ -40,7 +40,7 @@ export async function rewriteTitle(title) {
  */
 export async function rewriteContent(content) {
   const completion = await openAIClient.chat.completions.create({
-    model: "gpt-4.1",
+    model: "gpt-3.5-turbo",
     messages: [
       {
         role: "system",

@@ -28,7 +28,9 @@ export async function uploadImageToWordpress(imageUrl, wordpressUrl, username, p
     const fileName = imageUrl.split('/').pop().split('?')[0] || 'image.jpg'
 
     // Upload to WordPress
-    const uploadRes = await fetch(`${wordpressUrl}/wp-json/wp/v2/media`, {
+    const uploadUrl = `${wordpressUrl}/wp-json/wp/v2/media`;
+    console.log('[DEBUG] Uploading image to WordPress URL:', uploadUrl);
+       const uploadRes = await fetch(uploadUrl, {
       method: 'POST',
       headers: {
         'Authorization': 'Basic ' + Buffer.from(username + ':' + password).toString('base64'),
@@ -148,4 +150,20 @@ export async function areContentsSimilar(content1, content2) {
   const distance = levenshtein(c1, c2);
   const threshold = Math.floor(Math.max(c1.length, c2.length) * 0.2); // 20% difference allowed
   return distance <= threshold;
+}
+
+export async function uploadBufferToWordpress(buffer, filename, wordpressUrl, username, password) {
+  const uploadUrl = `${wordpressUrl}/wp-json/wp/v2/media`;
+  const uploadRes = await fetch(uploadUrl, {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Basic ' + Buffer.from(username + ':' + password).toString('base64'),
+      'Content-Disposition': `attachment; filename="${filename}"`,
+      'Content-Type': 'image/jpeg'
+    },
+    body: buffer
+  });
+  if (!uploadRes.ok) throw new Error('Failed to upload image to WordPress');
+  const data = await uploadRes.json();
+  return data.source_url; // or data.id if you want the media ID
 }

@@ -1,11 +1,16 @@
-import * as cheerio from 'cheerio';
-import fetch from 'node-fetch';
-import path from 'path';
+import * as cheerio from 'cheerio'
+import fetch from 'node-fetch'
+import path from 'path'
+import sharp from 'sharp'
+import { uploadImageToWordpress, uploadBufferToWordpress } from './wordpress.js'
 
 // Excerpt generator
 export function getExcerpt(htmlContent, wordCount = 30) {
-  const text = htmlContent.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-  return text.split(' ').slice(0, wordCount).join(' ') + '...';
+  const text = htmlContent
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return text.split(' ').slice(0, wordCount).join(' ') + '...'
 }
 
 // Patterns for site name replacement
@@ -16,36 +21,41 @@ export const siteNamePatterns = [
   /\bLeadership\b/gi,
   /\bLEADERSHIP\b/gi,
   /\bGistlover\b/gi,
-  /\bGISTLOVER\b/gi
-];
+  /\bGISTLOVER\b/gi,
+]
 
 // Replace site names in visible text only
 export function replaceSiteNamesOutsideTags(html) {
-  return html.split(/(<[^>]+>)/g).map((part, i) => {
-    if (i % 2 === 0) {
-      siteNamePatterns.forEach(pattern => {
-        part = part.replace(pattern, 'NOWAHALAZONE');
-      });
-    }
-    return part;
-  }).join('');
+  return html
+    .split(/(<[^>]+>)/g)
+    .map((part, i) => {
+      if (i % 2 === 0) {
+        siteNamePatterns.forEach((pattern) => {
+          part = part.replace(pattern, 'NOWAHALAZONE')
+        })
+      }
+      return part
+    })
+    .join('')
 }
 
 // Replace site names in an array of HTML contents
 export function replaceSiteNamesInPostDetails(postDetails) {
-  return postDetails.map(htmlContent => replaceSiteNamesOutsideTags(htmlContent));
+  return postDetails.map((htmlContent) =>
+    replaceSiteNamesOutsideTags(htmlContent)
+  )
 }
 
 // Save new post to MongoDB
 export async function saveNewPostToDb(Post, postData) {
-  const postDoc = new Post(postData);
-  await postDoc.save();
-  return postDoc;
+  const postDoc = new Post(postData)
+  await postDoc.save()
+  return postDoc
 }
 
 // In utils.js
 export function normalizeString(str) {
-  return str ? str.trim().toLowerCase() : '';
+  return str ? str.trim().toLowerCase() : ''
 }
 
 /**
@@ -55,12 +65,12 @@ export function normalizeString(str) {
  * @returns {string} - The cleaned HTML content.
  */
 export function removeSourceSiteLinks(htmlContent, siteDomain) {
-  const $ = cheerio.load(htmlContent);
+  const $ = cheerio.load(htmlContent)
   $(`a[href*="${siteDomain}"]`).each(function () {
     // Replace the link with its text content
-    $(this).replaceWith($(this).text());
-  });
-  return $.html();
+    $(this).replaceWith($(this).text())
+  })
+  return $.html()
 }
 
 /**
@@ -71,57 +81,69 @@ export function removeSourceSiteLinks(htmlContent, siteDomain) {
  * @returns {string}
  */
 export function removeLastSocialElementIfNotJustOk(htmlContent, websiteUrl) {
-  const isNotJustOk = /notjustok\.com/i.test(websiteUrl);
-  if (!isNotJustOk) return htmlContent;
+  const isNotJustOk = /notjustok\.com/i.test(websiteUrl)
+  if (!isNotJustOk) return htmlContent
 
-  const $ = cheerio.load(htmlContent);
-  let elementsWithSocial = [];
+  const $ = cheerio.load(htmlContent)
+  let elementsWithSocial = []
   $('*').each(function () {
-    const html = $(this).html() || '';
-    if (/<a[^>]+href=["'][^"']*(facebook\.com|x\.com|twitter\.com)[^"']*["']/i.test(html)) {
-      elementsWithSocial.push(this);
+    const html = $(this).html() || ''
+    if (
+      /<a[^>]+href=["'][^"']*(facebook\.com|x\.com|twitter\.com)[^"']*["']/i.test(
+        html
+      )
+    ) {
+      elementsWithSocial.push(this)
     }
-  });
+  })
 
   if (elementsWithSocial.length > 0) {
-    $(elementsWithSocial[elementsWithSocial.length - 1]).remove();
+    $(elementsWithSocial[elementsWithSocial.length - 1]).remove()
   }
-  return $.html();
+  return $.html()
 }
 
 export function removeGistreelLinks(htmlContent) {
-  const $ = cheerio.load(htmlContent);
+  const $ = cheerio.load(htmlContent)
   $('a[href*="https://www.gistreel.com/"]').each(function () {
     // Replace the link with its text content
-    $(this).replaceWith($(this).text());
-  });
-  return $.html();
+    $(this).replaceWith($(this).text())
+  })
+  return $.html()
 }
 
-export function extractImageUrlFromMultipleSelectors($, dynamicSelector, staticSelector) {
+export function extractImageUrlFromMultipleSelectors(
+  $,
+  dynamicSelector,
+  staticSelector
+) {
   // Try dynamic selector first
-  const dynamicEl = $(`${dynamicSelector} .tdb-featured-image-bg`).first();
+  const dynamicEl = $(`${dynamicSelector} .tdb-featured-image-bg`).first()
   if (dynamicEl.length) {
-    const style = dynamicEl.attr('style');
+    const style = dynamicEl.attr('style')
     if (style) {
-      const match = style.match(/background(?:-image)?:?\s*url\(['"]?(.*?\.(jpg|png))['"]?\)/i);
+      const match = style.match(
+        /background(?:-image)?:?\s*url\(['"]?(.*?\.(jpg|png))['"]?\)/i
+      )
       if (match && match[1]) {
-        return match[1];
+        return match[1]
       }
     }
   }
   // Fallback to static selector
-  const staticEl = $(staticSelector).first();
+  const staticEl = $(staticSelector).first()
   if (staticEl.length) {
-    const style = staticEl.attr('style');
+    const style = staticEl.attr('style')
     if (style) {
-      const match = style.match(/background(?:-image)?:?\s*url\(['"]?(.*?\.(jpg|png))['"]?\)/i);
+      const match = style.match(
+        /background(?:-image)?:?\s*url\(['"]?(.*?\.(jpg|png))['"]?\)/i
+      )
       if (match && match[1]) {
-        return match[1];
+        return match[1]
       }
     }
   }
-  return '';
+  return ''
 }
 
 /**
@@ -131,21 +153,63 @@ export function extractImageUrlFromMultipleSelectors($, dynamicSelector, staticS
  * @returns {Promise<{buffer: Buffer, filename: string, ext: string}>}
  */
 export async function downloadImageAsJpgOrPngForUpload(imageUrl, filename) {
-  const res = await fetch(imageUrl);
-  if (!res.ok) throw new Error(`Failed to fetch image: ${res.statusText}`);
+  const res = await fetch(imageUrl)
+  if (!res.ok) throw new Error(`Failed to fetch image: ${res.statusText}`)
 
-  // Determine extension from content-type header, fallback to .jpg
-  let ext = '.jpg';
-  const contentType = res.headers.get('content-type');
-  if (contentType && contentType.includes('png')) ext = '.png';
+  let ext = '.jpg'
+  const contentType = res.headers.get('content-type') || ''
+  if (contentType.includes('png')) ext = '.png'
 
-  // Use provided filename or generate from URL
+  // Always use the base name without extension
   if (!filename) {
-    const urlPath = new URL(imageUrl).pathname;
-    filename = path.basename(urlPath).split('.')[0];
+    const urlPath = new URL(imageUrl).pathname
+    filename = path.basename(urlPath).replace(/\.[^/.]+$/, '') // remove extension
   }
-  const finalFilename = filename + ext;
+  const finalFilename = filename + ext
 
-  const buffer = Buffer.from(await res.arrayBuffer());
-  return { buffer, filename: finalFilename, ext };
+  // Convert to jpg/png buffer using sharp
+  const inputBuffer = Buffer.from(await res.arrayBuffer())
+  let outputBuffer
+  if (ext === '.png') {
+    outputBuffer = await sharp(inputBuffer).png().toBuffer()
+  } else {
+    outputBuffer = await sharp(inputBuffer).jpeg().toBuffer()
+  }
+
+  return { buffer: outputBuffer, filename: finalFilename, ext }
+}
+
+// Process all <img> tags in HTML content: download, upload to WordPress, and replace src
+export async function processContentImages(
+  html,
+  wordpressUrl,
+  username,
+  password
+) {
+  const $ = cheerio.load(html)
+  const imgTags = $('img')
+  for (let i = 0; i < imgTags.length; i++) {
+    const img = imgTags[i]
+    let src = $(img).attr('src')
+    if (!src) continue
+
+    try {
+      // Upload to WordPress
+      const { buffer, filename } = await downloadImageAsJpgOrPngForUpload(src)
+      const wpUrl = await uploadBufferToWordpress(
+        buffer,
+        filename,
+        wordpressUrl,
+        username,
+        password
+      )
+      if (wpUrl) {
+        $(img).attr('src', wpUrl)
+        $(img).attr('width', 600).attr('height', 'auto').attr('style', 'display: block; margin-left: auto; margin-right: auto;');
+      }
+    } catch (e) {
+      console.warn('[WARN] Failed to process content image:', src, e.message)
+    }
+  }
+  return $.html()
 }
