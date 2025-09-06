@@ -371,6 +371,28 @@ export async function scrapeAndSaveRaw(postListings, page, postEls) {
     })
   }
 
+  console.log('[DEBUG] Extracted imageLink:', imageLink);
+
+  let finalImageLink = imageLink;
+if (
+  imageLink &&
+  !imageLink.match(/\.(jpg|jpeg|png)(\?|$)/i)
+) {
+  try {
+    // Download and convert to jpg/png, save to ./images folder
+    const { buffer, filename } = await downloadImageAsJpgOrPngForUpload(imageLink);
+    // Save locally (optional, or upload to WordPress/cloud here)
+    const fs = await import('fs/promises');
+    const destPath = `./images/${filename}`;
+    await fs.writeFile(destPath, buffer);
+    finalImageLink = destPath; // or set to the URL if you upload it elsewhere
+    console.log('[DEBUG] Converted and saved image as:', destPath);
+  } catch (e) {
+    console.warn('[WARN] Failed to convert image:', e.message);
+    // fallback: keep original imageLink
+  }
+}
+
   //Get the post content
   //Find the main container element that holds the post content
   let postDetails = $(postEls.post.mainContainerEl)
@@ -439,7 +461,7 @@ export async function scrapeAndSaveRaw(postListings, page, postEls) {
     author,
     timePosted,
     category,
-    imageLink,
+    imageLink: finalImageLink,
     postDetails,
     processingStage: 'raw',
   })

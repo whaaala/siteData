@@ -1,4 +1,6 @@
 import * as cheerio from 'cheerio';
+import fetch from 'node-fetch';
+import path from 'path';
 
 // Excerpt generator
 export function getExcerpt(htmlContent, wordCount = 30) {
@@ -120,4 +122,30 @@ export function extractImageUrlFromMultipleSelectors($, dynamicSelector, staticS
     }
   }
   return '';
+}
+
+/**
+ * Downloads an image from a URL and returns a buffer and filename with the correct extension.
+ * @param {string} imageUrl - The image URL (with or without query params).
+ * @param {string} [filename] - Optional filename (without extension).
+ * @returns {Promise<{buffer: Buffer, filename: string, ext: string}>}
+ */
+export async function downloadImageAsJpgOrPngForUpload(imageUrl, filename) {
+  const res = await fetch(imageUrl);
+  if (!res.ok) throw new Error(`Failed to fetch image: ${res.statusText}`);
+
+  // Determine extension from content-type header, fallback to .jpg
+  let ext = '.jpg';
+  const contentType = res.headers.get('content-type');
+  if (contentType && contentType.includes('png')) ext = '.png';
+
+  // Use provided filename or generate from URL
+  if (!filename) {
+    const urlPath = new URL(imageUrl).pathname;
+    filename = path.basename(urlPath).split('.')[0];
+  }
+  const finalFilename = filename + ext;
+
+  const buffer = Buffer.from(await res.arrayBuffer());
+  return { buffer, filename: finalFilename, ext };
 }
