@@ -134,6 +134,13 @@ export async function postToWordpressStage(
   // Embed social links in the processed content
   const contentWithEmbeds = embedSocialLinksInContent(processedContent)
 
+  // Add inline style margin: 0 auto to all <figcaption> elements
+  const $ = cheerio.load(contentWithEmbeds)
+  $('figcaption').each((_, el) => {
+    $(el).attr('style', 'margin:0 auto;')
+  })
+  contentWithEmbeds = $.html()
+
   // Inject custom CSS for .post-content and embedded social media
   const styledContent = `
   <style>
