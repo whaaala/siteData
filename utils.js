@@ -205,11 +205,83 @@ export async function processContentImages(
       )
       if (wpUrl) {
         $(img).attr('src', wpUrl)
-        $(img).attr('width', 600).attr('height', 'auto').attr('style', 'display: block; margin-left: auto; margin-right: auto;');
+        $(img)
+          .attr('width', 600)
+          .attr('height', 'auto')
+          .attr(
+            'style',
+            'display: block; margin-left: auto; margin-right: auto;'
+          )
       }
     } catch (e) {
       console.warn('[WARN] Failed to process content image:', src, e.message)
     }
   }
   return $.html()
+}
+
+/**
+ * Finds social media links in the content, replaces them with embed HTML,
+ * and returns the processed HTML.
+ * Supported: Twitter, Instagram, YouTube, Facebook, TikTok
+ */
+export function embedSocialLinksInContent(html) {
+  const $ = cheerio.load(html);
+
+  $('a').each((i, el) => {
+    const href = $(el).attr('href');
+    if (!href) return;
+
+    // Twitter
+    if (/twitter\.com\/[^/]+\/status\/\d+/.test(href)) {
+      $(el).replaceWith(`
+        <blockquote class="twitter-tweet">
+          <a href="${href}"></a>
+        </blockquote>
+        <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+      `);
+      return;
+    }
+
+    // Instagram
+    if (/instagram\.com\/p\//.test(href)) {
+      $(el).replaceWith(`
+        <blockquote class="instagram-media" data-instgrm-permalink="${href}" data-instgrm-version="14"></blockquote>
+        <script async src="//www.instagram.com/embed.js"></script>
+      `);
+      return;
+    }
+
+    // YouTube
+    const ytMatch = href.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]+)/);
+    if (ytMatch) {
+      const videoId = ytMatch[1];
+      $(el).replaceWith(`
+        <iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>
+      `);
+      return;
+    }
+
+    // Facebook (posts or videos)
+    if (/facebook\.com\/[^/]+\/(posts|videos)\/\d+/.test(href)) {
+      $(el).replaceWith(`
+        <div class="fb-post" data-href="${href}" data-width="500"></div>
+        <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v12.0"></script>
+      `);
+      return;
+    }
+
+    // TikTok
+    if (/tiktok\.com\/@[^/]+\/video\/\d+/.test(href)) {
+      $(el).replaceWith(`
+        <blockquote class="tiktok-embed" cite="${href}" data-video-id="${href.split('/').pop()}" style="max-width: 605px;min-width: 325px;">
+          <section> </section>
+        </blockquote>
+        <script async src="https://www.tiktok.com/embed.js"></script>
+      `);
+      return;
+    }
+  });
+
+  return $.html();
 }

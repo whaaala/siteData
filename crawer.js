@@ -136,7 +136,7 @@ async function main() {
     if (postToProcess) {
       console.log(`[Main] Processing post: ${postToProcess.title} (${postToProcess.url})`)
       // Stage 1: Scrape and save raw post for this URL
-      const savedPost = await scrapeAndSaveRaw([postToProcess], page, site)
+      const savedPost = await scrapeAndSaveRaw([postToProcess], page, site, process.env.WORDPRESS_URL, process.env.WORDPRESS_USERNAME, process.env.WORDPRESS_PASSWORD)
       // Stage 2: Rewrite the raw post (pass the post or its ID)
       const rewrittenPost = await rewriteContentStage(savedPost)
       // Stage 3: Publish the rewritten post (pass the post or its ID)

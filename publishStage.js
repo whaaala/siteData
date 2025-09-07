@@ -3,8 +3,14 @@ import {
   postToWordpress,
   wordpressPostExists,
   uploadImageToWordpress,
+  uploadBufferToWordpress,
 } from './wordpress.js'
-import { getExcerpt, processContentImages } from './utils.js'
+import {
+  getExcerpt,
+  processContentImages,
+  downloadImageAsJpgOrPngForUpload,
+  embedSocialLinksInContent,
+} from './utils.js'
 import { wpCategoryMap, getRandomAuthorId } from './categoryMap.js'
 
 export async function postToWordpressStage(
@@ -20,39 +26,63 @@ export async function postToWordpressStage(
     return null
   }
 
-  // Ensure post has a featured image URL
-  if (!post.imageLink && !post.wpFeaturedMediaId) {
-    console.log(
-      `[WordPress Stage] Skipping post "${post.rewrittenTitle}" (ID: ${postId}) because it has no featured image.`
-    )
-    post.processingStage = 'skipped_no_featured_image'
-    await post.save()
-    return post
-  }
-
   // Upload image to WordPress if not already uploaded
   let featuredMediaId = post.wpFeaturedMediaId || null
+  function isWordpressUrl(url) {
+    return url && url.includes(process.env.WORDPRESS_URL)
+  }
   if (!featuredMediaId && post.imageLink) {
-    console.log(
-      `[WordPress Stage] Uploading featured image for post "${post.rewrittenTitle}"...`
-    )
-    featuredMediaId = await uploadImageToWordpress(
-      post.imageLink,
-      wordpressUrl,
-      username,
-      password
-    )
-    if (featuredMediaId) {
-      post.wpFeaturedMediaId = featuredMediaId
-      await post.save()
+    if (isWordpressUrl(post.imageLink)) {
+      // Optionally: fetch media ID from WordPress using the image URL
+      // featuredMediaId = await getMediaIdFromUrl(post.imageLink, wordpressUrl, username, password);
+      // If you don't need the media ID, just use the URL in your content
       console.log(
-        `[WordPress Stage] Uploaded image. Media ID: ${featuredMediaId}`
+        '[WordPress Stage] Image already on WordPress, skipping upload.'
       )
     } else {
-      console.log(`[WordPress Stage] Failed to upload image. Skipping post.`)
-      post.processingStage = 'skipped_image_upload_failed'
-      await post.save()
-      return post
+      // Not a WordPress image, upload as before
+      try {
+        const { buffer, filename } = await downloadImageAsJpgOrPngForUpload(
+          post.imageLink
+        )
+        const media = await uploadBufferToWordpress(
+          buffer,
+          filename,
+          wordpressUrl,
+          username,
+          password
+        )
+        if (media && media.id) {
+          if (typeof media.id === 'number') {
+            post.wpFeaturedMediaId = media.id
+            console.log(
+              'Assigned wpFeaturedMediaId:',
+              post.wpFeaturedMediaId,
+              typeof post.wpFeaturedMediaId
+            )
+          } else {
+            post.wpFeaturedMediaId = undefined
+          }
+          await post.save()
+          console.log(
+            `[WordPress Stage] Uploaded image. Media ID: ${media.id} for post ID: ${postId}`
+          )
+        } else {
+          console.log(
+            `[WordPress Stage] Failed to upload image. Skipping post.`
+          )
+          post.processingStage = 'skipped_image_upload_failed'
+          await post.save()
+          return post
+        }
+      } catch (err) {
+        console.log(
+          `[WordPress Stage] Failed to convert or upload image: ${err.message}`
+        )
+        post.processingStage = 'skipped_image_upload_failed'
+        await post.save()
+        return post
+      }
     }
   }
 
@@ -101,6 +131,9 @@ export async function postToWordpressStage(
     password
   )
 
+  // Embed social links in the processed content
+  const contentWithEmbeds = embedSocialLinksInContent(processedContent)
+
   // Inject custom CSS for .post-content
   const styledContent = `
   <style>
@@ -109,21 +142,28 @@ export async function postToWordpressStage(
       text-align: justify !important;
     }
   </style>
-  ${processedContent}
+  ${contentWithEmbeds}
 `
-
   try {
+    if (typeof post.wpFeaturedMediaId !== 'number') {
+      console.log(
+        `[WordPress Stage] No valid featured image for post ID: ${postId}. Skipping WordPress post.`
+      )
+      post.processingStage = 'skipped_no_featured_image'
+      await post.save()
+      return post
+    }
+
     const wpResult = await postToWordpress(
       {
         title: finalTitle,
-        postDetails: processedContent,
+        postDetails: styledContent,
         categories: wpCategoryId,
         excerpt,
         author: wpAuthorId,
         is_featured: false,
-        featured_media: featuredMediaId, // <-- Attach the image
       },
-      featuredMediaId,
+      post.wpFeaturedMediaId,
       wordpressUrl,
       username,
       password

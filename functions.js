@@ -26,9 +26,13 @@ export const getContent = ($, element) => {
 
 // Function to get the attribute value of an element
 export const getAttribute = ($, element, attr) => {
-  if ($(element).length !== 0) {
-    return $(element).attr(attr) || "No attribute";
-  }
+  // if ($(element).length !== 0) {
+  //   return $(element).attr(attr) || "No attribute";
+  // }
+  
+  const el = $(element)
+  if (el.length === 0) return ''
+  return el.attr(attr) || ''
 };
 
 // Function to sleep for a specified number of milliseconds
