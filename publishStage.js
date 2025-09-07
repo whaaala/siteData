@@ -134,12 +134,24 @@ export async function postToWordpressStage(
   // Embed social links in the processed content
   const contentWithEmbeds = embedSocialLinksInContent(processedContent)
 
-  // Inject custom CSS for .post-content
+  // Inject custom CSS for .post-content and embedded social media
   const styledContent = `
   <style>
     .post-content {
       padding: 0 !important;
       text-align: justify !important;
+    }
+    /* Center all common embedded social media */
+    iframe,
+    .twitter-tweet,
+    .instagram-media,
+    .fb-post,
+    .fb-video,
+    .tiktok-embed,
+    .youtube-player {
+      display: block !important;
+      margin: 0 auto !important;
+      max-width: 100%;
     }
   </style>
   ${contentWithEmbeds}
