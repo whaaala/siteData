@@ -554,6 +554,18 @@ export async function scrapeAndSaveRaw(
     })
   }
 
+  // Remove any paragraph that contains "ALSO READ" or "Read " (case-insensitive) for all postDetails
+  postDetails = postDetails.map((htmlContent) => {
+    const $ = cheerio.load(htmlContent)
+    $('p')
+      .filter((_, el) => {
+        const text = $(el).text().toLowerCase()
+        return text.includes('also read') || text.includes('read ')
+      })
+      .remove()
+    return $.html()
+  })
+
   // Add top and bottom margin (newlines) within header elements (h1-h6) for all postDetails
   postDetails = postDetails.map((htmlContent) => {
     const $ = cheerio.load(htmlContent)
