@@ -586,6 +586,18 @@ export async function scrapeAndSaveRaw(
     return $.html()
   })
 
+  // Remove any hyperlink (<a>) whose text content contains the website (case-insensitive)
+  postDetails = postDetails.map((htmlContent) => {
+    const $ = cheerio.load(htmlContent)
+    const website = (postListings[listing].website || '').toLowerCase()
+    $('a').each((_, el) => {
+      if ($(el).text().toLowerCase().includes(website)) {
+        $(el).remove()
+      }
+    })
+    return $.html()
+  })
+
   // After all cleaning:
   const fullContent = postDetails.join('\n')
 
