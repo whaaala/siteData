@@ -257,7 +257,8 @@ export async function scrapeAndSaveRaw(
   let category = postListings[listing].category
   if (
     (!category || category === '' || category === 'No content') &&
-    postEls.post.categoryEl
+    postEls.post.categoryEl &&
+    postEls.post.categoryEl !== ''
   ) {
     category = getContent($, postEls.post.categoryEl)
   }
@@ -385,55 +386,6 @@ export async function scrapeAndSaveRaw(
     })
   }
 
-  // --- Upload/convert if needed ---
-  let finalImageLink = imageLink
-  let wpFeaturedMediaId = undefined
-  let media 
-  if (imageLink && !imageLink.match(/\.(jpg|jpeg|png)(\?|$)/i)) {
-    try {
-      const { buffer, filename } = await downloadImageAsJpgOrPngForUpload(
-        imageLink
-      )
-      media = await uploadBufferToWordpress(
-        buffer,
-        filename,
-        wordpressUrl,
-        username,
-        password
-      )
-
-      wpFeaturedMediaId = media.id
-      finalImageLink = media.source_url
-      console.log(
-        '[DEBUG] Uploaded image and got WordPress URL:',
-        finalImageLink
-      )
-    } catch (e) {
-      console.warn('[WARN] Failed to convert/upload image:', e.message)
-      // fallback: keep original imageLink
-      wpFeaturedMediaId = undefined
-    }
-
-    // Update all <img> tags with the original imageLink to use the new WordPress URL
-    if (media && media.source_url) {
-      $(`img[src="${imageLink}"]`).attr('src', media.source_url)
-    }
-  }
-
-  if (isPulse && postEls.post.contentEl) {
-    try {
-      await page.waitForSelector(postEls.post.contentEl, {
-        visible: true,
-        timeout: 10000,
-      })
-      console.log('[Scrape Stage] Content selector found and visible.')
-    } catch (e) {
-      console.warn(
-        `[Scrape Stage] Content selector ${postEls.post.contentEl} not found or not visible.`
-      )
-    }
-  }
-
   const pulseContentExists = await page.$(postEls.post.contentEl)
   console.log('[DEBUG] Puppeteer found contentEl:', !!pulseContentExists)
 
@@ -482,6 +434,70 @@ export async function scrapeAndSaveRaw(
         return $(el).html() || ''
       })
       .get()
+  }
+
+  // --- Upload/convert if needed ---
+  let finalImageLink = imageLink
+  let wpFeaturedMediaId = undefined
+  let media
+  if (imageLink && !imageLink.match(/\.(jpg|jpeg|png)(\?|$)/i)) {
+    try {
+      const { buffer, filename } = await downloadImageAsJpgOrPngForUpload(
+        imageLink
+      )
+      media = await uploadBufferToWordpress(
+        buffer,
+        filename,
+        wordpressUrl,
+        username,
+        password
+      )
+
+      wpFeaturedMediaId = media.id
+      finalImageLink = media.source_url
+      console.log(
+        '[DEBUG] Uploaded image and got WordPress URL:',
+        finalImageLink
+      )
+    } catch (e) {
+      console.warn('[WARN] Failed to convert/upload image:', e.message)
+      // fallback: keep original imageLink
+      wpFeaturedMediaId = undefined
+    }
+
+    // Update all <img> tags with the original imageLink to use the new WordPress URL
+    if (media && media.source_url) {
+      $(`img[src="${imageLink}"]`).attr('src', media.source_url)
+    }
+  }
+
+  // Remove any image within the content that is the same as the featured image before posting to WordPress
+  postDetails = postDetails.map((htmlContent) => {
+    const $ = cheerio.load(htmlContent)
+    $(`img[src="${finalImageLink}"]`).each((_, el) => {
+      // Remove the image or its parent <figure> if present, else just the <img>
+      const figure = $(el).closest('figure')
+      if (figure.length) {
+        figure.remove()
+      } else {
+        $(el).remove()
+      }
+    })
+    return $.html()
+  })
+
+  if (isPulse && postEls.post.contentEl) {
+    try {
+      await page.waitForSelector(postEls.post.contentEl, {
+        visible: true,
+        timeout: 10000,
+      })
+      console.log('[Scrape Stage] Content selector found and visible.')
+    } catch (e) {
+      console.warn(
+        `[Scrape Stage] Content selector ${postEls.post.contentEl} not found or not visible.`
+      )
+    }
   }
 
   // Fallback: If postDetails is empty, try to get the full main container's HTML
@@ -654,6 +670,15 @@ export async function scrapeAndSaveRaw(
       if ($(el).text().toLowerCase().includes('#featuredpost')) {
         $(el).remove()
       }
+    })
+    return $.html()
+  })
+
+  // Add CSS inline style to any iframe with id attribute containing "twitter"
+  postDetails = postDetails.map((htmlContent) => {
+    const $ = cheerio.load(htmlContent)
+    $('iframe[id*="twitter"]').each((_, el) => {
+      $(el).attr('style', 'height:550px; width:500px;')
     })
     return $.html()
   })

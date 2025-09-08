@@ -87,42 +87,48 @@ const dailypost = {
 }
 
 const leadership = {
-  siteUrl: ['https://girlracer.co.uk/category/motoring/news/'],
+    siteUrl: [
+    "https://www.gistlover.com/category/news",
+    "https://www.gistlover.com/category/entertainment",
+    "https://www.gistlover.com/category/extra",
+    "https://www.gistlover.com/category/daily-travel-and-scholarships-tips/z",
+  ],
   listings: {
-    mainContainerEl: '#main',
-    postHeadLineContainerEl: '',
-    postContainerEl: 'article',
+    mainContainerEl: ".mh-content",
+    postHeadLineContainerEl: "",
+    postContainerEl: "article",
   },
   titleEl: {
-    tag: '.entry-title a',
-    link: '',
+    tag: ".entry-title a",
+    link: "",
   },
   titleLinkEl: {
-    tag: '.entry-title a',
-    source: 'href',
+    tag: ".entry-title a",
+    source: "href",
   },
   imageEl: {
-    tag: '',
-    source: '',
-    alt: '',
+    tag: "",
+    source: "src",
+    alt: "",
   },
-  categoryEl: '',
   post: {
-    categoryEl: '',
-    authorEl: '.author a',
-    datePostedEl: '.entry-date',
-    mainContainerEl: '.entry-content-wrapper',
-    contentEl: '.entry-content',
+    categoryEl: ".mh-meta .entry-meta-categories a",
+    authorEl: ".mh-meta .entry-meta-author a",
+    datePostedEl: ".mh-meta .entry-meta-date a",
+    mainContainerEl: ".mh-content",
+    contentEl: ".entry-content",
     elToReFromPostEl: [
-      '.related-posts',
-      '.clear',
+      ".code-block",
+      ".quads-location",
+      "ul",
+      ".mh-social-bottom",
     ],
     imageEl: {
-      tag: '.wp-post-image',
-      tag1: '',
-      source: 'src',
-      source1: '',
-      alt: '',
+      tag: ".wp-block-image img",
+      tag1: "",
+      source: "src",
+      source1: "srcset",
+      alt: "",
     },
   },
 }
@@ -501,7 +507,7 @@ async function main() {
   for (const siteName in siteNames) {
     for (let url = 0; url < siteNames[siteName].siteUrl.length; url++) {
       // Prepare Puppeteer and get a new page instance
-      const page = await preparePuppeteer()
+     const { browser, page } = await preparePuppeteer()
 
       // Call the postListing function with the page, siteNames, siteName, and url
       const postListings = await postListing(page, siteNames, siteName, url)

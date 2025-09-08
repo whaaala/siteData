@@ -85,6 +85,8 @@ const leadership = {
       ".jnews_inline_related_post",
       ".jeg_post_tags",
       ".jnews_inline_related_post_wrapper",
+      ".ads-wrapper",
+      ".ads-text",
     ],
     imageEl: {
       tag: ".wp-post-image",
@@ -98,11 +100,10 @@ const leadership = {
 
 const gistlover  = {
   siteUrl: [
-    "https://www.gistlover.com/category/religion/",
     "https://www.gistlover.com/category/news",
     "https://www.gistlover.com/category/entertainment",
     "https://www.gistlover.com/category/extra",
-    "https://www.gistlover.com/category/daily-travel-and-scholarships-tips/z",
+    "https://www.gistlover.com/category/daily-travel-and-scholarships-tips/",
   ],
   listings: {
     mainContainerEl: ".mh-content",
@@ -896,7 +897,7 @@ const girlracer = {
 };
 
 //const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, brila, brilaOther, healthza, theguardian, motorverso, girlracer];
-const siteNames = [pulse];
+const siteNames = [notJustOk];
 
 
 export default siteNames;
