@@ -1,3 +1,4 @@
+import { load } from 'cheerio'
 import { Post } from './db.js'
 import {
   postToWordpress,
@@ -132,14 +133,18 @@ export async function postToWordpressStage(
   )
 
   // Embed social links in the processed content
-  const contentWithEmbeds = embedSocialLinksInContent(processedContent)
+  let contentWithEmbeds = embedSocialLinksInContent(processedContent)
 
-  // Add inline style margin: 0 auto to all <figcaption> elements
-  const $ = cheerio.load(contentWithEmbeds)
-  $('figcaption').each((_, el) => {
-    $(el).attr('style', 'margin:0 auto;')
-  })
-  contentWithEmbeds = $.html()
+  // Add inline style margin: 0 auto to all <figcaption> elements within the content
+const $ = load(contentWithEmbeds)
+$('figcaption').each((_, el) => {
+  // Preserve any existing styles and append margin:0 auto;
+  const prevStyle = $(el).attr('style') || ''
+  if (!/margin\s*:\s*0\s*auto\s*;?/i.test(prevStyle)) {
+    $(el).attr('style', `${prevStyle} margin:0 auto;`.trim())
+  }
+})
+contentWithEmbeds = $.root().html()
 
   // Inject custom CSS for .post-content and embedded social media
   const styledContent = `
