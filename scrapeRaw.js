@@ -388,12 +388,13 @@ export async function scrapeAndSaveRaw(
   // --- Upload/convert if needed ---
   let finalImageLink = imageLink
   let wpFeaturedMediaId = undefined
+  let media 
   if (imageLink && !imageLink.match(/\.(jpg|jpeg|png)(\?|$)/i)) {
     try {
       const { buffer, filename } = await downloadImageAsJpgOrPngForUpload(
         imageLink
       )
-      const media = await uploadBufferToWordpress(
+      media = await uploadBufferToWordpress(
         buffer,
         filename,
         wordpressUrl,
@@ -402,7 +403,6 @@ export async function scrapeAndSaveRaw(
       )
 
       wpFeaturedMediaId = media.id
-
       finalImageLink = media.source_url
       console.log(
         '[DEBUG] Uploaded image and got WordPress URL:',
@@ -412,6 +412,11 @@ export async function scrapeAndSaveRaw(
       console.warn('[WARN] Failed to convert/upload image:', e.message)
       // fallback: keep original imageLink
       wpFeaturedMediaId = undefined
+    }
+
+    // Update all <img> tags with the original imageLink to use the new WordPress URL
+    if (media && media.source_url) {
+      $(`img[src="${imageLink}"]`).attr('src', media.source_url)
     }
   }
 
@@ -435,6 +440,7 @@ export async function scrapeAndSaveRaw(
   //Get the post content
   //Find the main container element that holds the post content
   let postDetails
+
   if (
     postListings[listing].website &&
     postListings[listing].website.includes('pulse')
@@ -449,7 +455,8 @@ export async function scrapeAndSaveRaw(
             removeSelectors.forEach((selector) => {
               el.querySelectorAll(selector).forEach((child) => child.remove())
             })
-            return el.outerHTML
+            // Return only the inner HTML, not outerHTML, for clean merging
+            return el.innerHTML
           }),
         postEls.post.elToReFromPostEl // <-- this is passed as removeSelectors
       )
@@ -465,15 +472,42 @@ export async function scrapeAndSaveRaw(
     postDetails = $(postEls.post.mainContainerEl)
       .find(postEls.post.contentEl)
       .map((_, el) => {
+        // Remove unwanted elements by selector
         for (let i = 0; i < postEls.post.elToReFromPostEl.length; i++) {
           if ($(el).find(postEls.post.elToReFromPostEl[i]).length !== 0) {
-            $(postEls.post.elToReFromPostEl[i]).remove()
+            $(el).find(postEls.post.elToReFromPostEl[i]).remove()
           }
         }
-        return $.html(el)
+        // Return only the inner HTML of the content element
+        return $(el).html() || ''
       })
       .get()
   }
+
+  // Fallback: If postDetails is empty, try to get the full main container's HTML
+  if (
+    !postDetails ||
+    postDetails.length === 0 ||
+    postDetails.every((d) => !d.trim())
+  ) {
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('pulse')
+    ) {
+      try {
+        postDetails = await page.$$eval(postEls.post.mainContainerEl, (nodes) =>
+          nodes.map((el) => el.innerHTML)
+        )
+      } catch (e) {
+        postDetails = []
+      }
+    } else {
+      postDetails = [$(postEls.post.mainContainerEl).html() || '']
+    }
+  }
+
+  // Clean up: Remove empty strings and trim
+  postDetails = postDetails.map((d) => (d || '').trim()).filter(Boolean)
 
   postDetails = replaceSiteNamesInPostDetails(postDetails)
   postDetails = postDetails.map((htmlContent) =>
@@ -590,8 +624,34 @@ export async function scrapeAndSaveRaw(
   postDetails = postDetails.map((htmlContent) => {
     const $ = cheerio.load(htmlContent)
     const website = (postListings[listing].website || '').toLowerCase()
+
+    // Remove <a> tags whose text or href contains the website string
     $('a').each((_, el) => {
-      if ($(el).text().toLowerCase().includes(website)) {
+      const text = $(el).text().toLowerCase()
+      const href = ($(el).attr('href') || '').toLowerCase()
+      if (text.includes(website) || href.includes(website)) {
+        $(el).replaceWith($(el).text()) // Remove the link, keep the text
+      }
+    })
+
+    // Also remove any <a> tag that is the only child of a parent whose text contains the website
+    $('*').each((_, el) => {
+      if (
+        $(el).children('a').length === 1 &&
+        $(el).text().toLowerCase().includes(website)
+      ) {
+        $(el).find('a').replaceWith($(el).find('a').text())
+      }
+    })
+
+    return $.html()
+  })
+
+  // Remove any element that contains "#Featuredpost" (case-insensitive) in the content
+  postDetails = postDetails.map((htmlContent) => {
+    const $ = cheerio.load(htmlContent)
+    $('*').each((_, el) => {
+      if ($(el).text().toLowerCase().includes('#featuredpost')) {
         $(el).remove()
       }
     })

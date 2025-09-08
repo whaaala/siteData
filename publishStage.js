@@ -27,6 +27,16 @@ export async function postToWordpressStage(
     return null
   }
 
+  // ADD THIS BLOCK to prevent posting if not rewritten
+  if (!post.rewrittenDetails || !post.rewrittenDetails.trim()) {
+    console.log(
+      `[WordPress Stage] Post ID: ${postId} has not been rewritten. Skipping WordPress post.`
+    )
+    post.processingStage = 'skipped_not_rewritten'
+    await post.save()
+    return post
+  }
+
   // Upload image to WordPress if not already uploaded
   let featuredMediaId = post.wpFeaturedMediaId || null
   function isWordpressUrl(url) {
@@ -124,7 +134,7 @@ export async function postToWordpressStage(
     finalTitle = `Ghana - ${finalTitle}`
   }
 
-  const originalContent = post.processedContent || post.rewrittenDetails
+  const originalContent = post.rewrittenDetails || post.processedContent
   const processedContent = await processContentImages(
     originalContent,
     wordpressUrl,
@@ -136,15 +146,15 @@ export async function postToWordpressStage(
   let contentWithEmbeds = embedSocialLinksInContent(processedContent)
 
   // Add inline style margin: 0 auto to all <figcaption> elements within the content
-const $ = load(contentWithEmbeds)
-$('figcaption').each((_, el) => {
-  // Preserve any existing styles and append margin:0 auto;
-  const prevStyle = $(el).attr('style') || ''
-  if (!/margin\s*:\s*0\s*auto\s*;?/i.test(prevStyle)) {
-    $(el).attr('style', `${prevStyle} margin:0 auto;`.trim())
-  }
-})
-contentWithEmbeds = $.root().html()
+  const $ = load(contentWithEmbeds)
+  $('figcaption').each((_, el) => {
+    // Preserve any existing styles and append margin:0 auto;
+    const prevStyle = $(el).attr('style') || ''
+    if (!/margin\s*:\s*0\s*auto\s*;?/i.test(prevStyle)) {
+      $(el).attr('style', `${prevStyle} margin:0 auto;`.trim())
+    }
+  })
+  contentWithEmbeds = $.root().html()
 
   // Inject custom CSS for .post-content and embedded social media
   const styledContent = `

@@ -48,7 +48,7 @@ export async function rewriteContent(content) {
       },
       {
         role: "user",
-        content: `Completly rewrite the following blog post content. Keep all HTML tags and structure for the position of the images and social media links:\n${content}`
+        content: `Rewrite the following blog post content. Do NOT summarize, omit, or shorten any part. Keep ALL HTML tags and structure, and preserve the full length and detail of the original content:\n${content}`
       }
     ]
   });
