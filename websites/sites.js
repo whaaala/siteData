@@ -247,11 +247,11 @@ const naijanews = {
 
 const gistreel = {
    siteUrl: [
-    // "https://www.gistreel.com/entertainment-news/",
+    "https://www.gistreel.com/entertainment-news/",
     "https://www.gistreel.com/viral-news/",
-    // "https://www.gistreel.com/social-issues/",
-    // "https://www.gistreel.com/sport/",
-    // "https://www.gistreel.com/politics/",
+    "https://www.gistreel.com/social-issues/",
+    "https://www.gistreel.com/sport/",
+    "https://www.gistreel.com/politics/",
     
   ],
   listings: {
@@ -303,7 +303,6 @@ const guardian = {
      "https://guardian.ng/category/life/music/",
      "https://guardian.ng/category/life/film/",
      "https://guardian.ng/category/life/beauty/",
-     "https://guardian.ng/category/opinion/",
      "https://guardian.ng/category/technology/",
      "https://guardian.ng/category/features/",
      "https://guardian.ng/category/news/world/europe/",
@@ -897,7 +896,7 @@ const girlracer = {
 };
 
 //const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, brila, brilaOther, healthza, theguardian, motorverso, girlracer];
-const siteNames = [gistreel];
+const siteNames = [punchng];
 
 
 export default siteNames;

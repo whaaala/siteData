@@ -150,7 +150,7 @@ export async function postToWordpressStage(
   contentWithEmbeds = embedTikTokLinks(contentWithEmbeds)
 
   // Remove width from inline style of all <figure> elements
-let $ = load(contentWithEmbeds)
+  let $ = load(contentWithEmbeds)
 
   // 2. Remove width from inline style of all <figure> elements
   $('figure').each((_, el) => {
@@ -175,47 +175,46 @@ let $ = load(contentWithEmbeds)
   contentWithEmbeds = $.root().html()
 
   // === REMOVE elements containing "NotJustOk" and <a> with "notjustok" in text or href ===
-  
-    $ = load(contentWithEmbeds)
 
-    // // Remove any element whose text contains "notjustok" (case-insensitive, with or without space)
-    // $('p').each((_, el) => {
-    //   if ($(el).text().toLowerCase().includes('notjustok')) {
-    //     $(el).remove()
-    //   }
-    // })
+  $ = load(contentWithEmbeds)
 
-    // Remove the first element with content if it is an <h2>
-    let found = false
-    $.root()
-      .children()
-      .each((_, el) => {
-        if (!found && el.type === 'tag') {
-          // Skip empty elements (like whitespace)
-          if ($(el).is('h2')) {
-            $(el).remove()
-            found = true
-          } else if ($(el).text().trim() !== '') {
-            // Stop at the first non-empty, non-h2 element
-            found = true
-          }
+  // // Remove any element whose text contains "notjustok" (case-insensitive, with or without space)
+  // $('p').each((_, el) => {
+  //   if ($(el).text().toLowerCase().includes('notjustok')) {
+  //     $(el).remove()
+  //   }
+  // })
+
+  // Remove the first element with content if it is an <h2>
+  let found = false
+  $.root()
+    .children()
+    .each((_, el) => {
+      if (!found && el.type === 'tag') {
+        // Skip empty elements (like whitespace)
+        if ($(el).is('h2')) {
+          $(el).remove()
+          found = true
+        } else if ($(el).text().trim() !== '') {
+          // Stop at the first non-empty, non-h2 element
+          found = true
         }
-      })
-
-    // Remove any <a> tag whose text or href contains "notjustok" (case-insensitive)
-    $('a').each((_, el) => {
-      const linkText = $(el).text().toLowerCase()
-      const linkHref = ($(el).attr('href') || '').toLowerCase()
-      if (linkText.includes('notjustok') || linkHref.includes('notjustok')) {
-        $(el).remove()
       }
     })
 
-    contentWithEmbeds = $.root().html()
-  
+  // Remove any <a> tag whose text or href contains "notjustok" (case-insensitive)
+  $('a').each((_, el) => {
+    const linkText = $(el).text().toLowerCase()
+    const linkHref = ($(el).attr('href') || '').toLowerCase()
+    if (linkText.includes('notjustok') || linkHref.includes('notjustok')) {
+      $(el).remove()
+    }
+  })
+
+  contentWithEmbeds = $.root().html()
 
   // Add inline style margin: 0 auto to all <figcaption> elements within the content
-   $ = load(contentWithEmbeds)
+  $ = load(contentWithEmbeds)
   $('figcaption').each((_, el) => {
     // Preserve any existing styles and append margin:0 auto;
     const prevStyle = $(el).attr('style') || ''
@@ -223,6 +222,10 @@ let $ = load(contentWithEmbeds)
       $(el).attr('style', `${prevStyle} margin:0 auto;`.trim())
     }
   })
+
+  // Remove all <amp-video-iframe> elements
+  $('amp-video-iframe').remove()
+
   contentWithEmbeds = $.root().html()
 
   // Inject custom CSS for .post-content and embedded social media
