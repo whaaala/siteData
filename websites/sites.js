@@ -147,10 +147,10 @@ const gistlover  = {
 
 const notJustOk  = {
    siteUrl: [
-    "https://notjustok.com/news",
-    "https://notjustok.com/category/songs/",
+    // "https://notjustok.com/news",
+    // "https://notjustok.com/category/songs/",
     "https://notjustok.com/category/lyrics/",
-    "https://notjustok.com/category/sports/",
+    // "https://notjustok.com/category/sports/",
   ],
    listings: {
     mainContainerEl: ".article-list-hot",

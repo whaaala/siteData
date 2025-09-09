@@ -145,6 +145,29 @@ export async function postToWordpressStage(
   // Embed social links in the processed content
   let contentWithEmbeds = embedSocialLinksInContent(processedContent)
 
+  // === REMOVE elements containing "NotJustOk" and <a> with "notjustok" in text or href ===
+  {
+    const $ = load(contentWithEmbeds)
+
+    // // Remove any element whose text contains "notjustok" (case-insensitive, with or without space)
+    // $('p').each((_, el) => {
+    //   if ($(el).text().toLowerCase().includes('notjustok')) {
+    //     $(el).remove()
+    //   }
+    // })
+
+    // Remove any <a> tag whose text or href contains "notjustok" (case-insensitive)
+    $('a').each((_, el) => {
+      const linkText = $(el).text().toLowerCase()
+      const linkHref = ($(el).attr('href') || '').toLowerCase()
+      if (linkText.includes('notjustok') || linkHref.includes('notjustok')) {
+        $(el).remove()
+      }
+    })
+
+    contentWithEmbeds = $.root().html()
+  }
+
   // Add inline style margin: 0 auto to all <figcaption> elements within the content
   const $ = load(contentWithEmbeds)
   $('figcaption').each((_, el) => {

@@ -78,13 +78,17 @@ export async function scrapeAndSaveRaw(
   const isGirlracer =
     postListings[listing].website &&
     postListings[listing].website.includes('girlracer.co.uk')
+  const isNotjustok =
+    postListings[listing].website &&
+    postListings[listing].website.includes('notjustok')
   if (
     !isPulse &&
     !isBrila &&
     !isHealthsa &&
     !isTheguardian &&
     !isMotorverso &&
-    !isGirlracer
+    !isGirlracer &&
+    !isNotjustok
   ) {
     // Remove all <strong> elements from the content for non-pulse and non-brila sites
     $(postEls.post.mainContainerEl).find('strong').remove()
@@ -436,12 +440,14 @@ export async function scrapeAndSaveRaw(
       .get()
   }
 
-  // --- Upload/convert if needed ---
+  // --- Always upload the image to WordPress, regardless of extension ---
   let finalImageLink = imageLink
   let wpFeaturedMediaId = undefined
   let media
-  if (imageLink && !imageLink.match(/\.(jpg|jpeg|png)(\?|$)/i)) {
+
+  if (imageLink) {
     try {
+      // Always download and convert to buffer for upload
       const { buffer, filename } = await downloadImageAsJpgOrPngForUpload(
         imageLink
       )
@@ -452,6 +458,15 @@ export async function scrapeAndSaveRaw(
         username,
         password
       )
+
+      // // Debug log
+      // console.log('[DEBUG] media:', media)
+      // console.log(
+      //   '[DEBUG] media.source_url:',
+      //   media && media.source_url,
+      //   'type:',
+      //   typeof (media && media.source_url)
+      // )
 
       wpFeaturedMediaId = media.id
       finalImageLink = media.source_url
@@ -466,8 +481,22 @@ export async function scrapeAndSaveRaw(
     }
 
     // Update all <img> tags with the original imageLink to use the new WordPress URL
-    if (media && media.source_url) {
-      $(`img[src="${imageLink}"]`).attr('src', media.source_url)
+    if (media && typeof media.source_url === 'string') {
+      postDetails = postDetails.map((htmlContent) => {
+        const $ = cheerio.load(htmlContent)
+        $(`img[src="${imageLink}"]`).each((_, el) => {
+          console.log(
+            '[DEBUG] About to set img src to:',
+            media && media.source_url,
+            'type:',
+            typeof (media && media.source_url)
+          )
+          $(el).attr('src', media.source_url)
+        })
+        return $.html()
+      })
+    } else if (media) {
+      console.warn('[WARN] media.source_url is not a string:', media.source_url)
     }
   }
 
@@ -680,6 +709,49 @@ export async function scrapeAndSaveRaw(
     $('iframe[id*="twitter"]').each((_, el) => {
       $(el).attr('style', 'height:550px; width:500px;')
     })
+    return $.html()
+  })
+
+  // Remove any element that contains the text " NotJustOk" (case-insensitive)
+  // and any element that has a hyperlink (<a>) containing "notjustok" in text or href (case-insensitive)
+  postDetails = postDetails.map((htmlContent) => {
+    const $ = cheerio.load(htmlContent)
+
+    // Find the last <p> element
+    const lastP = $('p').last()
+    let shouldRemove = false
+
+    // Check if any child contains the specified keywords or links
+    lastP.children().each((_, child) => {
+      const text = $(child).text().toLowerCase()
+      const href = ($(child).attr('href') || '').toLowerCase()
+      if (
+        text.includes('updates') ||
+        text.includes('notjustok') ||
+        text.includes('facebook') ||
+        text.includes('x') ||
+        href.includes('facebook.com') ||
+        href.includes('x.com')
+      ) {
+        shouldRemove = true
+      }
+    })
+
+    // Also check the last <p> itself for direct text (not just children)
+    const lastPText = lastP.text().toLowerCase()
+    if (
+      lastPText.includes('updates') ||
+      lastPText.includes('notjustok') ||
+      lastPText.includes('facebook') ||
+      lastPText.includes('x')
+    ) {
+      shouldRemove = true
+    }
+
+    if (shouldRemove) {
+      lastP.remove()
+    }
+
     return $.html()
   })
 

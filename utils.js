@@ -148,6 +148,8 @@ export function extractImageUrlFromMultipleSelectors(
 
 /**
  * Downloads an image from a URL and returns a buffer and filename with the correct extension.
+ * If the image is already .jpg, .jpeg, or .png, keep the original extension.
+ * Otherwise, convert to .jpg.
  * @param {string} imageUrl - The image URL (with or without query params).
  * @param {string} [filename] - Optional filename (without extension).
  * @returns {Promise<{buffer: Buffer, filename: string, ext: string}>}
@@ -156,24 +158,35 @@ export async function downloadImageAsJpgOrPngForUpload(imageUrl, filename) {
   const res = await fetch(imageUrl)
   if (!res.ok) throw new Error(`Failed to fetch image: ${res.statusText}`)
 
+  // Determine extension from URL or content-type
   let ext = '.jpg'
-  const contentType = res.headers.get('content-type') || ''
-  if (contentType.includes('png')) ext = '.png'
+  const urlPath = new URL(imageUrl).pathname
+  const urlExtMatch = urlPath.match(/\.(jpg|jpeg|png)$/i)
+  if (urlExtMatch) {
+    ext = '.' + urlExtMatch[1].toLowerCase()
+  } else {
+    const contentType = res.headers.get('content-type') || ''
+    if (contentType.includes('png')) ext = '.png'
+    else if (contentType.includes('jpeg') || contentType.includes('jpg'))
+      ext = '.jpg'
+  }
 
   // Always use the base name without extension
   if (!filename) {
-    const urlPath = new URL(imageUrl).pathname
     filename = path.basename(urlPath).replace(/\.[^/.]+$/, '') // remove extension
   }
   const finalFilename = filename + ext
 
-  // Convert to jpg/png buffer using sharp
+  // Convert to buffer using sharp, but keep original format if already jpg/jpeg/png
   const inputBuffer = Buffer.from(await res.arrayBuffer())
   let outputBuffer
-  if (ext === '.png') {
-    outputBuffer = await sharp(inputBuffer).png().toBuffer()
+  if (ext === '.jpg' || ext === '.jpeg' || ext === '.png') {
+    // Use the original buffer, no conversion
+    outputBuffer = inputBuffer
   } else {
+    // Convert to jpeg if unknown
     outputBuffer = await sharp(inputBuffer).jpeg().toBuffer()
+    ext = '.jpg'
   }
 
   return { buffer: outputBuffer, filename: finalFilename, ext }
@@ -191,6 +204,11 @@ export async function processContentImages(
   for (let i = 0; i < imgTags.length; i++) {
     const img = imgTags[i]
     let src = $(img).attr('src')
+
+    // If src is a data URI or missing, try data-src or data-lazy-src
+    if (!src || src.startsWith('data:')) {
+      src = $(img).attr('data-src') || $(img).attr('data-lazy-src')
+    }
     if (!src) continue
 
     try {
@@ -203,8 +221,9 @@ export async function processContentImages(
         username,
         password
       )
-      if (wpUrl) {
-        $(img).attr('src', wpUrl)
+      const finalUrl = typeof wpUrl === 'string' ? wpUrl : wpUrl?.source_url
+      if (finalUrl) {
+        $(img).attr('src', finalUrl)
         $(img)
           .attr('width', 600)
           .attr('height', 'auto')
@@ -212,6 +231,8 @@ export async function processContentImages(
             'style',
             'display: block; margin-left: auto; margin-right: auto;'
           )
+        // Optionally remove data-src and data-lazy-src
+        $(img).removeAttr('data-src').removeAttr('data-lazy-src')
       }
     } catch (e) {
       console.warn('[WARN] Failed to process content image:', src, e.message)
@@ -226,11 +247,11 @@ export async function processContentImages(
  * Supported: Twitter, Instagram, YouTube, Facebook, TikTok
  */
 export function embedSocialLinksInContent(html) {
-  const $ = cheerio.load(html);
+  const $ = cheerio.load(html)
 
   $('a').each((i, el) => {
-    const href = $(el).attr('href');
-    if (!href) return;
+    const href = $(el).attr('href')
+    if (!href) return
 
     // Twitter
     if (/twitter\.com\/[^/]+\/status\/\d+/.test(href)) {
@@ -239,8 +260,8 @@ export function embedSocialLinksInContent(html) {
           <a href="${href}"></a>
         </blockquote>
         <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-      `);
-      return;
+      `)
+      return
     }
 
     // Instagram
@@ -248,18 +269,20 @@ export function embedSocialLinksInContent(html) {
       $(el).replaceWith(`
         <blockquote class="instagram-media" data-instgrm-permalink="${href}" data-instgrm-version="14"></blockquote>
         <script async src="//www.instagram.com/embed.js"></script>
-      `);
-      return;
+      `)
+      return
     }
 
     // YouTube
-    const ytMatch = href.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]+)/);
+    const ytMatch = href.match(
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]+)/
+    )
     if (ytMatch) {
-      const videoId = ytMatch[1];
+      const videoId = ytMatch[1]
       $(el).replaceWith(`
         <iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>
-      `);
-      return;
+      `)
+      return
     }
 
     // Facebook (posts or videos)
@@ -267,21 +290,23 @@ export function embedSocialLinksInContent(html) {
       $(el).replaceWith(`
         <div class="fb-post" data-href="${href}" data-width="500"></div>
         <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v12.0"></script>
-      `);
-      return;
+      `)
+      return
     }
 
     // TikTok
     if (/tiktok\.com\/@[^/]+\/video\/\d+/.test(href)) {
       $(el).replaceWith(`
-        <blockquote class="tiktok-embed" cite="${href}" data-video-id="${href.split('/').pop()}" style="max-width: 605px;min-width: 325px;">
+        <blockquote class="tiktok-embed" cite="${href}" data-video-id="${href
+        .split('/')
+        .pop()}" style="max-width: 605px;min-width: 325px;">
           <section> </section>
         </blockquote>
         <script async src="https://www.tiktok.com/embed.js"></script>
-      `);
-      return;
+      `)
+      return
     }
-  });
+  })
 
-  return $.html();
+  return $.html()
 }
