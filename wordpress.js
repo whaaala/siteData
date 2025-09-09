@@ -106,6 +106,7 @@ export async function postToWordpress(
   return postData
 }
 
+// Check if a post with the same title or image already exists on WordPress
 export async function wordpressPostExists(
   title,
   imageUrl,
@@ -113,29 +114,35 @@ export async function wordpressPostExists(
   username,
   password
 ) {
-  // Check by slug (exact title match)
-  const slug = slugify(title)
-  const slugRes = await axios.get(
-    `${wordpressUrl}/wp-json/wp/v2/posts?slug=${encodeURIComponent(slug)}`,
-    { auth: { username, password } }
-  )
-  if (slugRes.data && slugRes.data.length > 0) return true
+  // ...existing slug and image checks...
 
-  // Check by image URL (featured media)
-  const imgRes = await axios.get(
-    `${wordpressUrl}/wp-json/wp/v2/media?search=${encodeURIComponent(
-      imageUrl
-    )}`,
-    { auth: { username, password } }
-  )
-  if (imgRes.data && imgRes.data.length > 0) {
-    for (const media of imgRes.data) {
-      const postsRes = await axios.get(
-        `${wordpressUrl}/wp-json/wp/v2/posts?featured_media=${media.id}`,
-        { auth: { username, password } }
+  // Fallback: Check for post with same title published today
+  try {
+    const response = await fetch(
+      `${wordpressUrl}/wp-json/wp/v2/posts?search=${encodeURIComponent(title)}`,
+      {
+        headers: {
+          Authorization:
+            'Basic ' + Buffer.from(username + ':' + password).toString('base64'),
+          'Content-Type': 'application/json',
+        },
+      }
+    )
+    const posts = await response.json()
+    const today = new Date().toISOString().slice(0, 10)
+    if (
+      posts.some(
+        (post) =>
+          post.title &&
+          post.title.rendered.trim().toLowerCase() === title.trim().toLowerCase() &&
+          post.date_gmt &&
+          post.date_gmt.startsWith(today)
       )
-      if (postsRes.data && postsRes.data.length > 0) return true
+    ) {
+      return true
     }
+  } catch (err) {
+    console.warn('[wordpressPostExists] Fallback title+date check failed:', err.message)
   }
 
   return false

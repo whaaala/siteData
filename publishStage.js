@@ -11,6 +11,7 @@ import {
   processContentImages,
   downloadImageAsJpgOrPngForUpload,
   embedSocialLinksInContent,
+  embedTikTokLinks,
 } from './utils.js'
 import { wpCategoryMap, getRandomAuthorId } from './categoryMap.js'
 
@@ -145,9 +146,37 @@ export async function postToWordpressStage(
   // Embed social links in the processed content
   let contentWithEmbeds = embedSocialLinksInContent(processedContent)
 
+  // Specifically embed TikTok links
+  contentWithEmbeds = embedTikTokLinks(contentWithEmbeds)
+
+  // Remove width from inline style of all <figure> elements
+let $ = load(contentWithEmbeds)
+
+  // 2. Remove width from inline style of all <figure> elements
+  $('figure').each((_, el) => {
+    const prevStyle = $(el).attr('style') || ''
+    const newStyle = prevStyle.replace(/width\s*:\s*[^;]+;?/gi, '').trim()
+    if (newStyle) {
+      $(el).attr('style', newStyle)
+    } else {
+      $(el).removeAttr('style')
+    }
+  })
+
+  // 3. Center all images and make them responsive
+  $('img').each((_, el) => {
+    $(el).attr(
+      'style',
+      'display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;'
+    )
+  })
+
+  // 4. Assign back to contentWithEmbeds
+  contentWithEmbeds = $.root().html()
+
   // === REMOVE elements containing "NotJustOk" and <a> with "notjustok" in text or href ===
-  {
-    const $ = load(contentWithEmbeds)
+  
+    $ = load(contentWithEmbeds)
 
     // // Remove any element whose text contains "notjustok" (case-insensitive, with or without space)
     // $('p').each((_, el) => {
@@ -155,6 +184,23 @@ export async function postToWordpressStage(
     //     $(el).remove()
     //   }
     // })
+
+    // Remove the first element with content if it is an <h2>
+    let found = false
+    $.root()
+      .children()
+      .each((_, el) => {
+        if (!found && el.type === 'tag') {
+          // Skip empty elements (like whitespace)
+          if ($(el).is('h2')) {
+            $(el).remove()
+            found = true
+          } else if ($(el).text().trim() !== '') {
+            // Stop at the first non-empty, non-h2 element
+            found = true
+          }
+        }
+      })
 
     // Remove any <a> tag whose text or href contains "notjustok" (case-insensitive)
     $('a').each((_, el) => {
@@ -166,10 +212,10 @@ export async function postToWordpressStage(
     })
 
     contentWithEmbeds = $.root().html()
-  }
+  
 
   // Add inline style margin: 0 auto to all <figcaption> elements within the content
-  const $ = load(contentWithEmbeds)
+   $ = load(contentWithEmbeds)
   $('figcaption').each((_, el) => {
     // Preserve any existing styles and append margin:0 auto;
     const prevStyle = $(el).attr('style') || ''

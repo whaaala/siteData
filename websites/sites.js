@@ -147,10 +147,10 @@ const gistlover  = {
 
 const notJustOk  = {
    siteUrl: [
-    // "https://notjustok.com/news",
-    // "https://notjustok.com/category/songs/",
+    "https://notjustok.com/news",
+    "https://notjustok.com/category/songs/",
     "https://notjustok.com/category/lyrics/",
-    // "https://notjustok.com/category/sports/",
+    "https://notjustok.com/category/sports/",
   ],
    listings: {
     mainContainerEl: ".article-list-hot",
@@ -247,11 +247,11 @@ const naijanews = {
 
 const gistreel = {
    siteUrl: [
-    "https://www.gistreel.com/entertainment-news/",
+    // "https://www.gistreel.com/entertainment-news/",
     "https://www.gistreel.com/viral-news/",
-    "https://www.gistreel.com/social-issues/",
-    "https://www.gistreel.com/sport/",
-    "https://www.gistreel.com/politics/",
+    // "https://www.gistreel.com/social-issues/",
+    // "https://www.gistreel.com/sport/",
+    // "https://www.gistreel.com/politics/",
     
   ],
   listings: {
@@ -897,7 +897,7 @@ const girlracer = {
 };
 
 //const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, brila, brilaOther, healthza, theguardian, motorverso, girlracer];
-const siteNames = [notJustOk];
+const siteNames = [gistreel];
 
 
 export default siteNames;

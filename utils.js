@@ -310,3 +310,30 @@ export function embedSocialLinksInContent(html) {
 
   return $.html()
 }
+
+
+export function embedTikTokLinks(html) {
+  const $ = cheerio.load(html)
+
+  // Find all TikTok links (plain URLs in <p> or <a>)
+  $('p, a, section').each((_, el) => {
+    const text = $(el).text().trim()
+    // Match TikTok video URLs
+    const match = text.match(/https:\/\/www\.tiktok\.com\/@[\w.-]+\/video\/\d+/)
+    if (match) {
+      // Replace the <p> or <a> with TikTok embed blockquote
+      $(el).replaceWith(`
+        <blockquote class="tiktok-embed" cite="${match[0]}" data-video-id="${match[0].split('/').pop()}" style="max-width: 605px;min-width: 325px;">
+          <section></section>
+        </blockquote>
+      `)
+    }
+  })
+
+  // Add TikTok embed script if at least one embed was added
+  if ($('.tiktok-embed').length && !$('script[src*="tiktok.com/embed.js"]').length) {
+    $.root().append('<script async src="https://www.tiktok.com/embed.js"></script>')
+  }
+
+  return $.root().html()
+}

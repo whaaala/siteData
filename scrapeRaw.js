@@ -301,6 +301,7 @@ export async function scrapeAndSaveRaw(
 
   // Extract the image link
   // First try source, then source1 if source fails or is a data URI
+  // Extract the image link
   let imageLink = ''
 
   // 1. Try Puppeteer extraction first
@@ -367,6 +368,15 @@ export async function scrapeAndSaveRaw(
     )
     if (altImageLink && !altImageLink.startsWith('data:')) {
       imageLink = altImageLink
+    }
+  }
+
+  // If still no imageLink, use the first <img> in the main container
+  if (!imageLink) {
+    const firstImg = $(postEls.post.mainContainerEl).find('img').first()
+    if (firstImg.length) {
+      imageLink = firstImg.attr('src') || ''
+      console.log('[DEBUG] Used first <img> in <main container:', imageLink)
     }
   }
 
