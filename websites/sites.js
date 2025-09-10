@@ -587,7 +587,7 @@ const pulse = {
 };
 
 const thenewsguru = {
-   siteUrl: [
+    siteUrl: [
     'https://thenewsguru.com/category/news/',
     'https://thenewsguru.ng/category/politics/',
     'https://thenewsguru.ng/category/entertainment/',
@@ -595,16 +595,16 @@ const thenewsguru = {
     'https://thenewsguru.ng/category/business/',
   ],
   listings: {
-    mainContainerEl: '.row ',
+    mainContainerEl: '.wp-block-post-template ',
     postHeadLineContainerEl: '',
-    postContainerEl: '.col-md-4',
+    postContainerEl: 'li',
   },
   titleEl: {
-    tag: '.entry__title a',
+    tag: '.wp-block-post-title a',
     link: '',
   },
   titleLinkEl: {
-    tag: '.entry__title a',
+    tag: '.wp-block-post-title a',
     source: 'href',
   },
   imageEl: {
@@ -614,14 +614,14 @@ const thenewsguru = {
   },
   categoryEl: '',
   post: {
-    categoryEl: '.entry__meta-category a:first-of-type',
-    authorEl: '.entry__meta-author a:first-of-type',
+    categoryEl: '.taxonomy-category a',
+    authorEl: '.wp-block-post-author-name a',
     datePostedEl: '.entry__meta-date',
-    mainContainerEl: '.entry__article-wrap',
-    contentEl: '.entry__article',
+    mainContainerEl: '.wp-block-group',
+    contentEl: '.entry-content',
     elToReFromPostEl: ['.g'],
     imageEl: {
-      tag: '.blog__content img',
+      tag: '.wp-block-post-featured-image img',
       tag1: '',
       source: 'src',
       source1: '',
@@ -896,7 +896,7 @@ const girlracer = {
 };
 
 //const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, brila, brilaOther, healthza, theguardian, motorverso, girlracer];
-const siteNames = [punchng];
+const siteNames = [brilaOther];
 
 
 export default siteNames;

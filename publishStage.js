@@ -163,20 +163,12 @@ export async function postToWordpressStage(
     }
   })
 
-  // 3. Center all images and make them responsive
-  $('img').each((_, el) => {
-    $(el).attr(
-      'style',
-      'display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;'
-    )
-  })
+  $ = load(contentWithEmbeds)
 
   // 4. Assign back to contentWithEmbeds
   contentWithEmbeds = $.root().html()
 
   // === REMOVE elements containing "NotJustOk" and <a> with "notjustok" in text or href ===
-
-  $ = load(contentWithEmbeds)
 
   // // Remove any element whose text contains "notjustok" (case-insensitive, with or without space)
   // $('p').each((_, el) => {
@@ -220,6 +212,62 @@ export async function postToWordpressStage(
     const prevStyle = $(el).attr('style') || ''
     if (!/margin\s*:\s*0\s*auto\s*;?/i.test(prevStyle)) {
       $(el).attr('style', `${prevStyle} margin:0 auto;`.trim())
+    }
+  })
+
+
+  // Center all images, make them responsive, and set height to 30rem
+  $('img').each((_, el) => {
+    let style = $(el).attr('style') || ''
+    // Remove any existing height property
+    style = style.replace(/height\s*:\s*[^;]+;?/i, '')
+    // Ensure centering and responsiveness are present
+    if (!/display\s*:\s*block/i.test(style)) {
+      style = 'display: block; ' + style
+    }
+    if (!/margin-left\s*:\s*auto/i.test(style)) {
+      style = 'margin-left: auto; ' + style
+    }
+    if (!/margin-right\s*:\s*auto/i.test(style)) {
+      style = 'margin-right: auto; ' + style
+    }
+    if (!/max-width\s*:\s*100%/i.test(style)) {
+      style = 'max-width: 100%; ' + style
+    }
+    // Always add height: 30rem;
+    style = style.trim() + ' height: 30rem;'
+    $(el).attr('style', style.trim())
+
+    // Also handle height attribute if present
+    if ($(el).attr('height')) {
+      $(el).attr('height', '30rem')
+    }
+  })
+
+  // For all <img> elements with class containing "wp-image"
+  $('img').each((_, el) => {
+    const classAttr = $(el).attr('class') || ''
+    if (classAttr.includes('wp-image')) {
+      // Add/replace inline style
+      let style = $(el).attr('style') || ''
+      // Remove any existing height or margin property
+      style = style.replace(/height\s*:\s*[^;]+;?/i, '')
+      style = style.replace(/margin\s*:\s*[^;]+;?/i, '')
+      // Add the required styles
+      style = style.trim() + ' height: 30rem; margin: 0 auto;'
+      $(el).attr('style', style.trim())
+
+      // Remove width from parent element's style if present
+      const parent = $(el).parent()
+      if (parent && parent.attr('style')) {
+        let parentStyle = parent.attr('style')
+        parentStyle = parentStyle.replace(/width\s*:\s*[^;]+;?/gi, '').trim()
+        if (parentStyle) {
+          parent.attr('style', parentStyle)
+        } else {
+          parent.removeAttr('style')
+        }
+      }
     }
   })
 
