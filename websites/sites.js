@@ -50,10 +50,10 @@ const dailypost = {
 
 const leadership = {
   siteUrl: [
-    "https://leadership.ng/nigeria-news/",
-    "https://leadership.ng/politics/",
+    // "https://leadership.ng/nigeria-news/",
+    // "https://leadership.ng/politics/",
     "https://leadership.ng/nigeria-news/business-news/",
-    "https://leadership.ng/nigeria-news/entertainment-news/"
+    // "https://leadership.ng/nigeria-news/entertainment-news/"
   ],
   listings: {
     mainContainerEl: ".jeg_inner_content",
@@ -896,7 +896,7 @@ const girlracer = {
 };
 
 //const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, brila, brilaOther, healthza, theguardian, motorverso, girlracer];
-const siteNames = [brilaOther];
+const siteNames = [leadership];
 
 
 export default siteNames;

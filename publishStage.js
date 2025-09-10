@@ -215,7 +215,6 @@ export async function postToWordpressStage(
     }
   })
 
-
   // Center all images, make them responsive, and set height to 30rem
   $('img').each((_, el) => {
     let style = $(el).attr('style') || ''
@@ -273,6 +272,31 @@ export async function postToWordpressStage(
 
   // Remove all <amp-video-iframe> elements
   $('amp-video-iframe').remove()
+
+  // Remove all <span> elements that have no content inside
+  $('span').each((_, el) => {
+    if (!$(el).text().trim() && $(el).children().length === 0) {
+      $(el).remove()
+    }
+  })
+
+  // Remove all <p> elements that have no content inside
+  $('p').each((_, el) => {
+    if (!$(el).text().trim() && $(el).children().length === 0) {
+      $(el).remove()
+    }
+  })
+
+  // Remove all inline styles from elements with class "fluid-width-video-wrapper"
+  $('.fluid-width-video-wrapper').each((_, el) => {
+    $(el).removeAttr('style')
+    // For any <iframe> inside this wrapper, set width: 50rem; height: 40rem;
+    $(el)
+      .find('iframe')
+      .each((_, iframe) => {
+        $(iframe).attr('style', 'width: 55rem; height: 25rem;')
+      })
+  })
 
   contentWithEmbeds = $.root().html()
 
