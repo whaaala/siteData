@@ -1,6 +1,5 @@
 const dailypost = {
   siteUrl: [
-    "https://dailypost.ng/",
     "https://dailypost.ng/hot-news/",
     "https://dailypost.ng/politics/",
     "https://dailypost.ng/metro/",

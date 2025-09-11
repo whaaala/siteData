@@ -1,3 +1,4 @@
+import * as cheerio from 'cheerio'
 import sharp from 'sharp'
 import fetch from 'node-fetch'
 import path from 'path'
@@ -234,4 +235,45 @@ export async function isTikTokRestricted(url) {
     // If TikTok returns 403/404 or network error, treat as restricted
     return true
   }
+}
+
+// Rehost all images in the given HTML content to WordPress and update their src attributes
+export async function rehostAllImagesInContent(html, wordpressUrl, username, password) {
+  const $ = cheerio.load(html)
+  const imgTags = $('img')
+  for (let i = 0; i < imgTags.length; i++) {
+    const img = imgTags[i]
+    const src = $(img).attr('src')
+    if (src && /^https?:\/\//.test(src)) {
+      try {
+        const newMediaId = await uploadImageToWordpress(src, wordpressUrl, username, password)
+        if (newMediaId) {
+          // Get the new image URL from WordPress
+          const mediaRes = await fetch(`${wordpressUrl}/wp-json/wp/v2/media/${newMediaId}`, {
+            headers: {
+              Authorization: 'Basic ' + Buffer.from(username + ':' + password).toString('base64'),
+              'Content-Type': 'application/json',
+            },
+          })
+          if (mediaRes.ok) {
+            const mediaData = await mediaRes.json()
+            $(img).attr('src', mediaData.source_url)
+          } else {
+            // Remove the <img> if media fetch fails
+            $(img).remove()
+            console.warn('[rehostAllImagesInContent] Failed to fetch media data for:', src)
+          }
+        } else {
+          // Remove the <img> if upload fails
+          $(img).remove()
+          console.warn('[rehostAllImagesInContent] Failed to upload image:', src)
+        }
+      } catch (err) {
+        // Remove the <img> if download/upload fails
+        $(img).remove()
+        console.warn('[rehostAllImagesInContent] Failed to rehost image:', src, err.message)
+      }
+    }
+  }
+  return $.html()
 }

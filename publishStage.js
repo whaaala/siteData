@@ -6,6 +6,7 @@ import {
   uploadImageToWordpress,
   uploadBufferToWordpress,
   isTikTokRestricted,
+  rehostAllImagesInContent,
 } from './wordpress.js'
 import {
   getExcerpt,
@@ -149,6 +150,14 @@ export async function postToWordpressStage(
 
   // Specifically embed TikTok links
   contentWithEmbeds = embedTikTokLinks(contentWithEmbeds)
+
+  // === Rehost all images to WordPress and update their URLs ===
+  contentWithEmbeds = await rehostAllImagesInContent(
+    contentWithEmbeds,
+    wordpressUrl,
+    username,
+    password
+  )
 
   // Remove width from inline style of all <figure> elements
   let $ = load(contentWithEmbeds)
@@ -366,6 +375,18 @@ export async function postToWordpressStage(
   })
 
   contentWithEmbeds = $.root().html()
+
+  // Remove text-align: justify from all heading elements
+  $('h1, h2, h3, h4, h5, h6').each((_, el) => {
+    let style = $(el).attr('style') || ''
+    // Remove any text-align: justify from the style attribute
+    style = style.replace(/text-align\s*:\s*justify\s*;?/gi, '')
+    if (style.trim()) {
+      $(el).attr('style', style.trim())
+    } else {
+      $(el).removeAttr('style')
+    }
+  })
 
   // Inject custom CSS for .post-content and embedded social media
   const styledContent = `
