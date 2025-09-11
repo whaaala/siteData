@@ -272,21 +272,14 @@ IMPORTANT:
 - End with a reflective, constructive engagement question that invites readers to share their views (e.g., “What do you think about ethnic representation in Nigerian leadership—has it been fair? Share your view.”).
 - Ensure all disclaimers and attributions are clear, especially for controversial or comparative claims.
 
-🚦 Readability, Structure & SEO (Mandatory for All Content)
-- Avoid repetition: Vary attributions and synonyms for sources (e.g., alternate “according to,” “he emphasized,” “officials noted,” “stakeholders said,” etc.).
-- Organize the article for smooth flow: Start with the main directive or news, then stakeholder reactions, passenger rights, infrastructure issues, global comparisons, and forward outlook.
-- Make all headlines and subheadings SEO-rich and engaging, using relevant keywords and clear, punchy language.
-- Break up long paragraphs for easier online reading.
-- Use bullet points or numbered lists for key regulatory changes, meeting highlights, or major complaints/issues where appropriate.
-- Ensure the content is easy to scan, with clear sections and logical progression.
-
-🚦 Readability, Structure & SEO (Mandatory for All Content)
+🚦 Readability, Structure, Visuals & SEO (Mandatory for All Content)
 - Avoid repetition: Vary attributions and synonyms for sources (e.g., alternate “according to,” “he emphasized,” “officials noted,” “stakeholders said,” etc.).
 - Organize the article for smooth flow: Start with the main directive or news, then stakeholder reactions, passenger rights, infrastructure issues, global comparisons, and forward outlook.
 - Make all headlines and subheadings SEO-rich and engaging, using relevant keywords and clear, punchy language. Subheadings must naturally include target keywords from the article’s main topic for better scannability and SEO.
 - Break up long paragraphs for easier online reading.
 - Use bullet points or numbered lists for key regulatory changes, meeting highlights, or major complaints/issues where appropriate.
-- Ensure the content is easy to scan, with clear sections and logical progression.
+- If there are no images, videos, or social media embeds in the content, or if there are only one or two and the content would benefit from a few more, suggest or source relevant images for the subject matter (with credit) wherever possible. For each main subject, section, or key point, recommend what type of image would fit (e.g., “Photo of Larry Ellison (credit: Getty Images)”, “Infographic of billionaire rankings”, “Photo of Nigerian market (credit: local photographer)”). If no suitable image is available, suggest a visual concept or illustration.
+- Ensure the content is easy to scan, with clear sections, logical progression, and visual breaks where possible.
 
 Category-Specific Additions:
 - [News] Add Nigerian/West African reactions and explain local impact. Do not use sports, food, or unrelated analogies.
