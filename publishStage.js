@@ -5,6 +5,7 @@ import {
   wordpressPostExists,
   uploadImageToWordpress,
   uploadBufferToWordpress,
+  isTikTokRestricted,
 } from './wordpress.js'
 import {
   getExcerpt,
@@ -152,6 +153,24 @@ export async function postToWordpressStage(
   // Remove width from inline style of all <figure> elements
   let $ = load(contentWithEmbeds)
 
+  // Remove a <strong> element with content if it appears before the first <p>
+  const rootChildren = $.root().children().toArray()
+  let foundP = false
+  for (const el of rootChildren) {
+    if (
+      el.type === 'tag' &&
+      el.name === 'strong' &&
+      $(el).text().trim() !== '' &&
+      !foundP
+    ) {
+      $(el).remove()
+    }
+    if (el.type === 'tag' && el.name === 'p') {
+      foundP = true
+      break
+    }
+  }
+
   // 2. Remove width from inline style of all <figure> elements
   $('figure').each((_, el) => {
     const prevStyle = $(el).attr('style') || ''
@@ -164,6 +183,37 @@ export async function postToWordpressStage(
   })
 
   $ = load(contentWithEmbeds)
+
+  const seenTikTokUrls = new Set()
+  const tiktokPromises = []
+  $('blockquote.tiktok-embed').each((_, el) => {
+    const url = $(el).attr('cite') || $(el).data('video-id')
+    if (url) {
+      let tiktokUrl = url
+      if (!/^https?:\/\//.test(tiktokUrl) && $(el).data('video-id')) {
+        tiktokUrl = `https://www.tiktok.com/@/video/${$(el).data('video-id')}`
+      }
+      if (seenTikTokUrls.has(tiktokUrl)) {
+        // Remove duplicate embed
+        $(el).remove()
+        return
+      }
+      seenTikTokUrls.add(tiktokUrl)
+      tiktokPromises.push(
+        (async () => {
+          // const restricted = await isTikTokRestricted(tiktokUrl)
+          // if (restricted) {
+          //   $(el).replaceWith(
+          //     `<div style="color:red;font-weight:bold;text-align:center;margin:2em 0;">TikTok video unavailable: Profile restricted by creator</div>`
+          //   )
+          // } else {
+          //   $(el).replaceWith(`\n${tiktokUrl}\n`)
+          // }
+        })()
+      )
+    }
+  })
+  await Promise.all(tiktokPromises)
 
   // 4. Assign back to contentWithEmbeds
   contentWithEmbeds = $.root().html()
@@ -233,8 +283,8 @@ export async function postToWordpressStage(
     if (!/max-width\s*:\s*100%/i.test(style)) {
       style = 'max-width: 100%; ' + style
     }
-    // Always add height: 30rem;
-    style = style.trim() + ' height: 30rem;'
+    // Always add height: 23rem;
+    style = style.trim() + ' height: 23rem;'
     $(el).attr('style', style.trim())
 
     // Also handle height attribute if present

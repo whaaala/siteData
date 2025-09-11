@@ -275,10 +275,10 @@ IMPORTANT:
 🚦 Readability, Structure, Visuals & SEO (Mandatory for All Content)
 - Avoid repetition: Vary attributions and synonyms for sources (e.g., alternate “according to,” “he emphasized,” “officials noted,” “stakeholders said,” etc.).
 - Organize the article for smooth flow: Start with the main directive or news, then stakeholder reactions, passenger rights, infrastructure issues, global comparisons, and forward outlook.
-- Make all headlines and subheadings SEO-rich and engaging, using relevant keywords and clear, punchy language. Subheadings must naturally include target keywords from the article’s main topic for better scannability and SEO.
+- Make all subheadings SEO-rich and engaging, using relevant keywords and clear, punchy language. Subheadings must naturally include target keywords from the article’s main topic for better scannability and SEO.
 - Break up long paragraphs for easier online reading.
 - Use bullet points or numbered lists for key regulatory changes, meeting highlights, or major complaints/issues where appropriate.
-- If there are no images, videos, or social media embeds in the content, or if there are only one or two and the content would benefit from a few more, suggest or source relevant images for the subject matter (with credit) wherever possible. For each main subject, section, or key point, recommend what type of image would fit (e.g., “Photo of Larry Ellison (credit: Getty Images)”, “Infographic of billionaire rankings”, “Photo of Nigerian market (credit: local photographer)”). If no suitable image is available, suggest a visual concept or illustration.
+- Where possible, find and insert actual free-to-use (copyright-safe, Creative Commons, or public domain) images from the web that fit the subject matter. Only use images that are allowed for reuse (e.g., Unsplash, Wikimedia Commons, Pexels, etc.), and insert the actual <img> HTML tag with the correct src and credit in the rewritten content. Do not suggest images—only include them if they are truly free to use and allowed for this purpose. If no suitable image is available, do not add any image or suggestion. Never move, remove, or alter any placeholders like [[EMBED_0]]—leave them exactly where they appear in the input, and make sure none of the images you add (if any) are in conflict with any placeholders.
 - Ensure the content is easy to scan, with clear sections, logical progression, and visual breaks where possible.
 
 Category-Specific Additions:

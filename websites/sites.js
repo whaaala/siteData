@@ -404,7 +404,7 @@ const healthwisePunchng = {
       'https://healthwise.punchng.com/category/impact-stories/',
       'https://healthwise.punchng.com/category/maternal-health/',
       'https://healthwise.punchng.com/category/gender/',
-      // 'https://healthwise.punchng.com/category/sexual-health/',
+      'https://healthwise.punchng.com/category/sexual-health/',
       'https://healthwise.punchng.com/category/mental-health/',
        'https://healthwise.punchng.com/category/enviroment/',
     ],
@@ -895,8 +895,8 @@ const girlracer = {
   },
 };
 
-//const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, brila, brilaOther, healthza, theguardian, motorverso, girlracer];
-const siteNames = [healthwisePunchng];
+const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, brila, brilaOther, healthza, theguardian, motorverso, girlracer];
+// const siteNames = [healthza];
 
 
 export default siteNames;

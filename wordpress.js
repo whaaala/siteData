@@ -209,3 +209,29 @@ export async function uploadBufferToWordpress(
   const data = await uploadRes.json()
   return data // or data.source_url if you want the URL
 }
+
+
+// Helper to check if TikTok video/profile is restricted
+export async function isTikTokRestricted(url) {
+  try {
+    const res = await axios.get(url, {
+      timeout: 5000,
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      }
+    })
+    if (
+      res.data.includes('Profile restricted by creator') ||
+      res.data.includes('This creator turned on audience controls') ||
+      res.data.includes('video is unavailable') ||
+      res.status === 404
+    ) {
+      return true
+    }
+    return false
+  } catch (err) {
+    // If TikTok returns 403/404 or network error, treat as restricted
+    return true
+  }
+}
