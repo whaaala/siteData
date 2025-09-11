@@ -239,7 +239,7 @@ export async function postToWordpressStage(
 
     // Also handle height attribute if present
     if ($(el).attr('height')) {
-      $(el).attr('height', '30rem')
+      $(el).attr('height', 'auto')
     }
   })
 
@@ -253,7 +253,7 @@ export async function postToWordpressStage(
       style = style.replace(/height\s*:\s*[^;]+;?/i, '')
       style = style.replace(/margin\s*:\s*[^;]+;?/i, '')
       // Add the required styles
-      style = style.trim() + ' height: 30rem; margin: 0 auto;'
+      style = style.trim() + ' height: auto; margin: 0 auto;'
       $(el).attr('style', style.trim())
 
       // Remove width from parent element's style if present
@@ -298,6 +298,23 @@ export async function postToWordpressStage(
       })
   })
 
+  // For any <iframe> with id or src containing "twitter", set height: 23.5rem; width: 23rem !important;
+  $('iframe').each((_, el) => {
+    const id = ($(el).attr('id') || '').toLowerCase()
+    const src = ($(el).attr('src') || '').toLowerCase()
+    if (id.includes('twitter') || src.includes('twitter')) {
+      let style = $(el).attr('style') || ''
+      // Remove any existing height or width
+      style = style.replace(/height\s*:\s*[^;]+;?/i, '')
+      style = style.replace(/width\s*:\s*[^;]+;?/i, '')
+      // Add the required styles with !important
+      style = (
+        style + ' height: 23.5rem !important; width: 23rem !important;'
+      ).trim()
+      $(el).attr('style', style)
+    }
+  })
+
   contentWithEmbeds = $.root().html()
 
   // Inject custom CSS for .post-content and embedded social media
@@ -322,6 +339,9 @@ export async function postToWordpressStage(
   </style>
   ${contentWithEmbeds}
 `
+  const instagramScript = `<script async src="https://www.instagram.com/embed.js"></script>`
+
+  const finalContent = styledContent + instagramScript
   try {
     if (typeof post.wpFeaturedMediaId !== 'number') {
       console.log(
@@ -335,7 +355,7 @@ export async function postToWordpressStage(
     const wpResult = await postToWordpress(
       {
         title: finalTitle,
-        postDetails: styledContent,
+        postDetails: finalContent,
         categories: wpCategoryId,
         excerpt,
         author: wpAuthorId,

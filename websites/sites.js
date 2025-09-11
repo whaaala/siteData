@@ -50,10 +50,10 @@ const dailypost = {
 
 const leadership = {
   siteUrl: [
-    // "https://leadership.ng/nigeria-news/",
-    // "https://leadership.ng/politics/",
+    "https://leadership.ng/nigeria-news/",
+    "https://leadership.ng/politics/",
     "https://leadership.ng/nigeria-news/business-news/",
-    // "https://leadership.ng/nigeria-news/entertainment-news/"
+    "https://leadership.ng/nigeria-news/entertainment-news/"
   ],
   listings: {
     mainContainerEl: ".jeg_inner_content",
@@ -274,7 +274,7 @@ const gistreel = {
   },
    categoryEl: "",
   post: {
-    categoryEl: ".entry-header .post-cat-wrap a",
+    categoryEl: ".entry-header .post-cat-wrap a:last-child",
     authorEl: ".meta-author a",
     datePostedEl: ".date",
     mainContainerEl: "article",
@@ -404,7 +404,7 @@ const healthwisePunchng = {
       'https://healthwise.punchng.com/category/impact-stories/',
       'https://healthwise.punchng.com/category/maternal-health/',
       'https://healthwise.punchng.com/category/gender/',
-      'https://healthwise.punchng.com/category/sexual-health/',
+      // 'https://healthwise.punchng.com/category/sexual-health/',
       'https://healthwise.punchng.com/category/mental-health/',
        'https://healthwise.punchng.com/category/enviroment/',
     ],
@@ -896,7 +896,7 @@ const girlracer = {
 };
 
 //const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, brila, brilaOther, healthza, theguardian, motorverso, girlracer];
-const siteNames = [leadership];
+const siteNames = [healthwisePunchng];
 
 
 export default siteNames;
