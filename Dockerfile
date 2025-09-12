@@ -1,20 +1,11 @@
-# Use official Node.js LTS image
-FROM node:20
+# Use Playwright's official image with all dependencies and browsers
+FROM mcr.microsoft.com/playwright:v1.44.1-jammy
 
-# Install system dependencies for Playwright
-RUN apt-get update && \
-    apt-get install -y wget gnupg ca-certificates && \
-    rm -rf /var/lib/apt/lists/*
-
-# Set working directory
 WORKDIR /app
 
 # Copy package files and install dependencies
 COPY package*.json ./
 RUN npm install
-
-# Install Playwright browsers and dependencies
-RUN npx playwright install --with-deps
 
 # Copy the rest of your app code
 COPY . .
