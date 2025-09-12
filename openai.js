@@ -65,68 +65,93 @@ export async function rewriteContent(content) {
       {
         role: 'user',
         content: `
-            Please rewrite the following content, provided as the variable ${contentWithPlaceholders}, into a fully original, engaging, long-form article for Nigerian readers (with secondary appeal to Ghanaians, West Africans, Africans, and global audiences). Content may be News, Entertainment, Sports, Lifestyle, Health, Food, Cars, Business, Viral/Gist, or general interest.
+                Please rewrite the following content, provided as the variable ${contentWithPlaceholders}, into a fully original, engaging, long-form article for Nigerian readers (with secondary appeal to Ghanaians, West Africans, Africans, and global audiences). Content may be News, Entertainment, Sports, Lifestyle, Health, Food, Cars, Business, Viral/Gist, or general interest.
 
-            IMPORTANT: 
-            - Do NOT remove, move, or alter any placeholders like [[EMBED_0]], [[EMBED_1]], etc. Leave all placeholders exactly where they appear in the input.
-            - Preserve all original HTML tags and structure, including <p>, <ul>, <ol>, <li>, <a>, <blockquote>, <iframe>, <div>, <img>, <video>, and any other tags present in the source. Do NOT remove, move, or alter the position of any embedded social media, video, or image HTML code.
+                IMPORTANT:
+                - Do NOT remove, move, or alter placeholders like [[EMBED_0]], [[EMBED_1]], etc. Keep them exactly where they appear.
+                - Preserve all original HTML tags (<p>, <ul>, <ol>, <li>, <a>, <blockquote>, <iframe>, <div>, <img>, <video>, etc.). Do not move or delete embedded media.
 
-            🚦 Core Rules (Apply to All Content)
-            - Minimum 900 words, original structure and narrative, AdSense-safe, and factually accurate.
-            - Attribute all facts, quotes, and claims to credible sources. If unverified, state as “alleged,” “reportedly,” or “according to sources.”
-            - Avoid sensationalism, clickbait, or emotionally charged language unless directly quoted and attributed.
-            - Use neutral, respectful tone, especially for sensitive topics. Avoid graphic detail about death, suffering, or betrayal.
-            - Always include local context and relevance for Nigerian/West African readers.
-            - For global news, relate the story to how it could affect local readers, markets, or daily life.
-            - End with a locally relevant question or call to action.
-            - At the end, include contact info in this format (each on its own line or paragraph):
-              Food inquiries: <a href="mailto:food@nowahalazone.com"><strong>food@nowahalazone.com</strong></a>
-              General support: <a href="mailto:support@nowahalazone.com"><strong>support@nowahalazone.com</strong></a>
-              Story sales/submissions: <a href="mailto:story@nowahalazone.com"><strong>story@nowahalazone.com</strong></a>
-              (Never use source emails.)
-            - Then add:
-              Follow us on <a href="https://www.facebook.com/wahaala.wahaala"><strong>Facebook</strong></a><br>
-              Follow us on <a href="https://x.com/wahaala2"><strong>X (Twitter)</strong></a><br>
-              Follow us on <a href="https://www.instagram.com/wahaalawahala"><strong>Instagram</strong></a>
+                🚦 Core Rules
+                - Minimum MUST be 900 words. If the content is under 900 words, expand with more background, analysis, or local context.
+                - Maintain original meaning, facts, and context. Do not add false info or change key details.
+                - Must be original, AdSense-safe, neutral, factually accurate, and plagiarism-free.
+                - Attribute facts/quotes to credible sources. Use “alleged,” “reportedly,” or “according to” for unverified info.
+                - No clickbait, sensationalism, or graphic detail. Use respectful tone for sensitive topics.
+                - Always explain Nigerian/West African relevance, and link to global impact when useful.
+                - End with BOTH a locally relevant question AND a call to action (e.g., “What’s your view? Drop a comment and follow us for updates.”).
 
-            🚦 AdSense Safety & Robustness (Mandatory for All Content)
-            - Use precise, cautious, and neutral language for all claims and reactions. Use words like “alleges,” “claims,” “says,” “according to [source],” rather than stating as fact.
-            - Attribute all claims, quotes, and strong statements to specific, credible sources (e.g., “according to Fayose on [platform],” “as reported by [news outlet],” “data from [source]”). If data is not public, clearly state this.
-            - Always include responses or counterpoints from those who disagree, rebut, or provide alternative perspectives (e.g., critics, community leaders, legal/political analysts, affected groups).
-            - Provide context: include historical data, relevant facts, or constitutional provisions to help readers understand the background and significance of the claim.
-            - Avoid broad, absolute statements—use estimates, ranges, or qualifiers (e.g., “reportedly,” “is believed to,” “sources suggest”) unless facts are independently verified.
-            - Tone down headlines and body text to clarify when something is a claim or opinion, not an established fact (e.g., “claims,” “reportedly,” “is said to be”).
-            - Avoid sensationalist, provocative, or misleading language. Do not present unverified or comparative assertions as fact.
-            - Avoid shaming, stereotyping, or insulting language toward any group or individual. Never suggest ethnic superiority or exclusion. Focus on commentary and analysis, not judgment.
-            - Maintain a neutral, balanced tone and avoid bias toward one viewpoint. Encourage respectful discourse.
-            - Add cultural, ethical, or social reflections where relevant—explain why the issue is sensitive, and encourage thoughtful, constructive discussion.
-            - End with a reflective, constructive engagement question that invites readers to share their views (e.g., “What do you think about ethnic representation in Nigerian leadership—has it been fair? Share your view.”).
-            - Ensure all disclaimers and attributions are clear, especially for controversial or comparative claims.
+                🚦 Content Quality & Editorial Depth
+                - Where possible, add depth by including local perspectives, expert opinions, or quotes from credible sources (real or plausible, e.g., “according to Lagos-based analyst…”).
+                - Include relevant data, statistics, or comparisons to make the article more informative for local readers.
+                - Present a balanced view: mention challenges, competition, or alternative viewpoints where appropriate, not just positives.
+                - Avoid overly promotional tone; aim for editorial value and analysis.
 
-            🚦 Readability, Structure, Visuals & SEO (Mandatory for All Content)
-            - Avoid repetition: Vary attributions and synonyms for sources (e.g., alternate “according to,” “he emphasized,” “officials noted,” “stakeholders said,” etc.).
-            - Organize the article for smooth flow: Start with the main directive or news, then stakeholder reactions, passenger rights, infrastructure issues, global comparisons, and forward outlook.
-            - Make all subheadings SEO-rich and engaging, using relevant keywords and clear, punchy language. Subheadings must naturally include target keywords from the article’s main topic for better scannability and SEO.
-            - Break up long paragraphs for easier online reading.
-            - Use bullet points or numbered lists for key regulatory changes, meeting highlights, or major complaints/issues where appropriate.
-            - Where possible, find and insert actual free-to-use (copyright-safe, Creative Commons, or public domain) images from the web that fit the subject matter. Only use images that are allowed for reuse (e.g., Unsplash, Wikimedia Commons, Pexels, etc.), and insert the actual <img> HTML tag with the correct src and credit in the rewritten content. Do not suggest images—only include them if they are truly free to use and allowed for this purpose. If no suitable image is available, do not add any image or suggestion. Never move, remove, or alter any placeholders like [[EMBED_0]]—leave them exactly where they appear in the input, and make sure none of the images you add (if any) are in conflict with any placeholders.
-            - Ensure the content is easy to scan, with clear sections, logical progression, and visual breaks where possible.
+                🚦 Source Attribution & Links
+                - Where possible, link directly to official sources, press releases, court documents, or agency reports.
+                - Attribute quotes to named individuals (e.g., spokespersons, officials, activists) and include date/source if available.
 
-            Category-Specific Additions:
-            - [News] Add Nigerian/West African reactions and explain local impact. Do not use sports, food, or unrelated analogies.
-            - [Sports] Open with a local fan scene or viewing center. Attribute all reactions to real or plausible sources. Use creative, locally relevant storytelling. Ensure stats and match details are accurate. Do not use food, business, or unrelated analogies.
-            - [Entertainment] Highlight Nollywood, Afrobeats, or local celebrities/events. Show how global trends connect to West African pop culture. Do not use sports, food, or unrelated analogies.
-            - [Food & Drink] Reimagine recipes with local ingredients or stories. Suggest Nigerian/Ghanaian substitutes. Do not use sports, automotive, or unrelated analogies.
-            - [Cars & Vehicles] Focus on local driving culture, trends, or issues (e.g., okada bans, fuel, imports). Compare with global trends only if relevant. Do not use food, sports, or unrelated analogies.
-            - [Business] Explain what the news means for everyday Nigerians or local businesses. Use quotes from local analysts, business owners, or consumers. Do not use food, sports, or unrelated analogies.
-            - [Lifestyle] Tie in Nigerian/West African trends and practical tips for daily life. Do not use food, sports, or unrelated analogies.
-            - [Health & Fitness] Focus on locally relevant wellness tips. Attribute traditional remedies as “commonly believed,” not medical fact. Do not use food, sports, or unrelated analogies.
-            - [Viral/Gist] Attribute all trends or memes to their source. No rumors as fact—if unverified, state as “alleged” or “widely reported.” Explain why it’s trending locally. Do not use food, sports, or unrelated analogies.
-            - [Sensitive] Be especially cautious, neutral, and respectful. Never publish unverified, defamatory, or graphic content. Attribute all claims and avoid speculation.
+                🚦 Local Voices & Testimonials
+                - Include interviews, quotes, or perspectives from people in affected communities, local experts, or relevant stakeholders.
+                - Where appropriate, offer comment from a legal or subject-matter expert to explain implications.
 
-            Structure: Introduction → Background → Local/Regional Context → Global Angle → Reactions → Conclusion with engagement question.
+                🚦 Legal, Environmental, or Technical Analysis (if relevant)
+                - Clarify legal requirements, how regulations work, and typical consequences for non-compliance.
+                - Discuss environmental or social impacts, including remediation or reforms if applicable.
 
-            Return only the rewritten content—no commentary, notes, or <html>/<body> tags. Preserve <p> tags and inline formatting only.
+                🚦 Comparative & Historical Data
+                - Add context with comparative or historical data (e.g., similar cases, trends, benchmarks from other countries in West Africa or Africa).
+
+                🚦 Balance & Counterpoints
+                - Acknowledge challenges, enforcement issues, or possible delays.
+                - Consider whether penalties or solutions are sufficient, and present counterpoints or alternative views.
+
+                🚦 SEO & User Engagement Enhancements
+                - Use SEO-friendly subheadings, short paragraphs, and bullet lists for clarity.
+                - Where possible, add internal links to related content (e.g., similar news, backgrounders, or explainers).
+                - Use visuals, charts, or maps if possible (as HTML or placeholders), and ensure images are credited or licensed.
+
+                🚦 Technical & Policy Cleanups
+                - Ensure the article includes or references a credible author bio (if available).
+                - Confirm images are licensed or credited in the content.
+                - Do not include misleading claims or uncredited images.
+
+                🚦 Footer (must appear last, with no text after it)
+                Create a custom, interactive footer that is relevant to the content topic and encourages reader engagement.
+                - The footer MUST always include a message letting readers know they can get their story posted on the site or sell their story, and if they have a story to share or sell, they should contact us at:
+                  Story sales/submissions: <a href="mailto:story@nowahalazone.com"><strong>story@nowahalazone.com</strong></a>
+                - If the content is about food, invite readers to share their own recipes or food stories, and mention the food contact email.
+                - For news, business, or sensitive topics, encourage readers to share tips, opinions, or stories, and mention the general support or story submission email.
+                - For entertainment, sports, or lifestyle, invite readers to comment, share their experiences, or follow on social media.
+                - Always include the appropriate contact email(s) and social media links, but introduce them in a way that fits the content context and feels natural and engaging.
+                - All social media links MUST include target="_blank" so they open in a new tab.
+                - Make the footer conversational and locally relevant.
+
+                  Example (for any article):  
+                  "Have a story you want to share or sell? We’d love to hear from you! Email us at <a href='mailto:story@nowahalazone.com'><strong>story@nowahalazone.com</strong></a> to get your story featured or discuss story sales.  
+                  For general support, reach out at <a href='mailto:support@nowahalazone.com'><strong>support@nowahalazone.com</strong></a>.  
+                  Follow us on <a href='https://www.facebook.com/wahaala.wahaala' target='_blank'><strong>Facebook</strong></a>, <a href='https://x.com/wahaala2' target='_blank'><strong>X (Twitter)</strong></a>, and <a href='https://www.instagram.com/wahaalawahala' target='_blank'><strong>Instagram</strong></a> for more updates!"
+
+                🚦 Safety & SEO
+                - Use cautious language: “claims,” “alleges,” “reportedly,” “according to [source].”
+                - Include counterpoints, local reactions, or expert analysis where relevant.
+                - Ensure smooth flow: Intro → Background → Local impact → Global view → Reactions → Conclusion + CTA.
+                - Ensure each section flows logically into the next, using transitional phrases where appropriate.
+                - Use SEO-friendly subheadings, short paragraphs, and bullet points for clarity.
+                - Vary attribution styles (“according to,” “he noted,” “officials explained”) to avoid repetition.
+
+                Category-Specific Additions:
+                - [News] Include Nigerian/West African reactions and explain local impact. Do not use sports, food, or unrelated analogies.
+                - [Sports] Open with Nigerian fan culture, viewing centers, or reactions. Attribute opinions to credible voices. Do not use food, business, or unrelated analogies.
+                - [Entertainment] Highlight Nollywood, Afrobeats, or African celebrities/events, and connect global trends to local culture. Do not use sports, food, or unrelated analogies.
+                - [Food & Drink] Reframe recipes with Nigerian/Ghanaian substitutes or stories. Do not use sports, automotive, or unrelated analogies.
+                - [Cars & Vehicles] Focus on local driving, transport issues, fuel, okada/keke, or import policies. Do not use food, sports, or unrelated analogies.
+                - [Business] Explain effects on Nigerian consumers, traders, SMEs, and economy. Use local expert commentary. Do not use food, sports, or unrelated analogies.
+                - [Lifestyle] Relate tips/trends to everyday West African experiences. Do not use food, sports, or unrelated analogies.
+                - [Health & Fitness] Present locally relevant wellness advice, clearly distinguishing traditional beliefs vs. medical facts. Do not use food, sports, or unrelated analogies.
+                - [Viral/Gist] Attribute memes/trends properly, note why Nigerians are engaging, and clarify if details are unverified. Do not use food, sports, or unrelated analogies.
+                - [Sensitive] Stay strictly factual, respectful, and cautious. Attribute all claims and avoid graphic detail.
+
+                Return only the rewritten content—no extra notes, commentary, or <html>/<body> tags.
           `,
       },
     ],

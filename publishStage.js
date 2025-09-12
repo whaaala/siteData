@@ -298,7 +298,7 @@ export async function postToWordpressStage(
 
     // Also handle height attribute if present
     if ($(el).attr('height')) {
-      $(el).attr('height', 'auto')
+      $(el).attr('height', '25rem')
     }
   })
 
@@ -362,15 +362,18 @@ export async function postToWordpressStage(
     const id = ($(el).attr('id') || '').toLowerCase()
     const src = ($(el).attr('src') || '').toLowerCase()
     if (id.includes('twitter') || src.includes('twitter')) {
+      // Remove any existing height or width from the style attribute
       let style = $(el).attr('style') || ''
-      // Remove any existing height or width
-      style = style.replace(/height\s*:\s*[^;]+;?/i, '')
-      style = style.replace(/width\s*:\s*[^;]+;?/i, '')
-      // Add the required styles with !important
-      style = (
-        style + ' height: 23.5rem !important; width: 23rem !important;'
-      ).trim()
+      style = style
+        .replace(/height\s*:\s*[^;]+;?/gi, '')
+        .replace(/width\s*:\s*[^;]+;?/gi, '')
+        .trim()
+      // Add the required styles (without !important, for better browser compatibility)
+      style = `${style} height: 23.5rem; width: 23rem;`.trim()
       $(el).attr('style', style)
+      // Also set the HTML attributes for fallback
+      $(el).attr('height', '376') // 23.5rem ≈ 376px
+      $(el).attr('width', '368') // 23rem ≈ 368px
     }
   })
 
