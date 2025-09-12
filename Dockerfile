@@ -20,4 +20,4 @@ RUN npx playwright install --with-deps
 COPY . .
 
 # Start your app
-CMD ["node", "scheduler.js"]
+CMD ["npm", "start"]

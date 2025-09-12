@@ -4,7 +4,7 @@
   "type": "module",
   "main": "crawer.js",
   "scripts": {
-    "start": "node bootstrap.js",
+    "start": "npx playwright install --with-deps && node scheduler.js",
     "postinstall": "npx playwright install",
     "heroku-postbuild": "npx playwright install",
     "build": "npx playwright install"
