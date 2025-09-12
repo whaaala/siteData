@@ -1,6 +1,5 @@
 const dailypost = {
   siteUrl: [
-    "https://dailypost.ng/",
     "https://dailypost.ng/hot-news/",
     "https://dailypost.ng/politics/",
     "https://dailypost.ng/metro/",
@@ -85,6 +84,8 @@ const leadership = {
       ".jnews_inline_related_post",
       ".jeg_post_tags",
       ".jnews_inline_related_post_wrapper",
+      ".ads-wrapper",
+      ".ads-text",
     ],
     imageEl: {
       tag: ".wp-post-image",
@@ -98,11 +99,10 @@ const leadership = {
 
 const gistlover  = {
   siteUrl: [
-    "https://www.gistlover.com/category/religion/",
     "https://www.gistlover.com/category/news",
     "https://www.gistlover.com/category/entertainment",
     "https://www.gistlover.com/category/extra",
-    "https://www.gistlover.com/category/daily-travel-and-scholarships-tips/z",
+    "https://www.gistlover.com/category/daily-travel-and-scholarships-tips/",
   ],
   listings: {
     mainContainerEl: ".mh-content",
@@ -273,7 +273,7 @@ const gistreel = {
   },
    categoryEl: "",
   post: {
-    categoryEl: ".entry-header .post-cat-wrap a",
+    categoryEl: ".entry-header .post-cat-wrap a:last-child",
     authorEl: ".meta-author a",
     datePostedEl: ".date",
     mainContainerEl: "article",
@@ -302,7 +302,6 @@ const guardian = {
      "https://guardian.ng/category/life/music/",
      "https://guardian.ng/category/life/film/",
      "https://guardian.ng/category/life/beauty/",
-     "https://guardian.ng/category/opinion/",
      "https://guardian.ng/category/technology/",
      "https://guardian.ng/category/features/",
      "https://guardian.ng/category/news/world/europe/",
@@ -570,7 +569,7 @@ const pulse = {
     categoryEl: '.c-breadcrumbs:first-of-type',
     authorEl: '[class*="FollowAuthorsCard_author__name"]',
     datePostedEl: '[class*="Article_date"]',
-    mainContainerEl: '[class*="ArticleBody_content"]',
+    mainContainerEl: '[class*="Article_article-content"]',
     contentEl: '[class*="rich-text-wrapper"]',
     elToReFromPostEl: [
       '.ad-wrapper',
@@ -587,7 +586,7 @@ const pulse = {
 };
 
 const thenewsguru = {
-   siteUrl: [
+    siteUrl: [
     'https://thenewsguru.com/category/news/',
     'https://thenewsguru.ng/category/politics/',
     'https://thenewsguru.ng/category/entertainment/',
@@ -595,16 +594,16 @@ const thenewsguru = {
     'https://thenewsguru.ng/category/business/',
   ],
   listings: {
-    mainContainerEl: '.row ',
+    mainContainerEl: '.wp-block-post-template ',
     postHeadLineContainerEl: '',
-    postContainerEl: '.col-md-4',
+    postContainerEl: 'li',
   },
   titleEl: {
-    tag: '.entry__title a',
+    tag: '.wp-block-post-title a',
     link: '',
   },
   titleLinkEl: {
-    tag: '.entry__title a',
+    tag: '.wp-block-post-title a',
     source: 'href',
   },
   imageEl: {
@@ -614,14 +613,14 @@ const thenewsguru = {
   },
   categoryEl: '',
   post: {
-    categoryEl: '.entry__meta-category a:first-of-type',
-    authorEl: '.entry__meta-author a:first-of-type',
+    categoryEl: '.taxonomy-category a',
+    authorEl: '.wp-block-post-author-name a',
     datePostedEl: '.entry__meta-date',
-    mainContainerEl: '.entry__article-wrap',
-    contentEl: '.entry__article',
+    mainContainerEl: '.wp-block-group',
+    contentEl: '.entry-content',
     elToReFromPostEl: ['.g'],
     imageEl: {
-      tag: '.blog__content img',
+      tag: '.wp-block-post-featured-image img',
       tag1: '',
       source: 'src',
       source1: '',
@@ -896,7 +895,7 @@ const girlracer = {
 };
 
 const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, brila, brilaOther, healthza, theguardian, motorverso, girlracer];
-//const siteNames = [girlracer];
+// const siteNames = [healthza];
 
 
 export default siteNames;

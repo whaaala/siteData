@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node bootstrap.js",
     "postinstall": "npx playwright install",
-    "heroku-postbuild": "npx playwright install"
+    "heroku-postbuild": "npx playwright install",
+    "build": "npx playwright install"
   },
   "keywords": [],
   "author": "",

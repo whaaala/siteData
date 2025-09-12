@@ -22,6 +22,7 @@ export async function rewriteContentStage(postOrId) {
       post.processingStage = 'skipped_due_to_duplicate'
       await post.save()
       return post
+      
     }
     if (
       existing.rewrittenDetails &&
@@ -32,6 +33,15 @@ export async function rewriteContentStage(postOrId) {
       await post.save()
       return post
     }
+  }
+
+    // Place the check here:
+  if (!post.postDetails || !post.postDetails.trim()) {
+    console.warn(`[Rewrite Stage] postDetails is empty for post: ${post._id}`)
+    // Optionally, skip rewriting or handle as needed
+    post.processingStage = 'skipped_empty_content'
+    await post.save()
+    return post
   }
 
   const rewrittenTitle = await converter.rewriteTitle(post.title)

@@ -1,10 +1,14 @@
 import { chromium } from 'playwright'
 
 export default async function preparePuppeteer() {
+    // Use the Chromium path provided by the Puppeteer buildpack
+  const executablePath = process.env.CHROME_BIN || undefined;
+
   const browser = await chromium.launch({
     headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
     protocolTimeout: 1000000,
+    executablePath
   })
   // Create a new page
   // // This will be used to navigate to the URLs and perform actions on the page

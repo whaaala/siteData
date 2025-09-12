@@ -80,3 +80,36 @@ async function replaceAsync(str, regex, asyncFn) {
   return str.replace(regex, () => data.shift());
 }
 
+/**
+ * Extracts all non-text HTML embeds (img, iframe, video, blockquote, script) and replaces them with placeholders.
+ * @param {string} html - The original HTML content.
+ * @returns {{ contentWithPlaceholders: string, embeds: string[] }}
+ */
+export function extractEmbeds(html) {
+  let embedIndex = 0;
+  const embeds = [];
+  const contentWithPlaceholders = html.replace(
+    /(<img[\s\S]*?>|<iframe[\s\S]*?<\/iframe>|<video[\s\S]*?<\/video>|<blockquote[\s\S]*?<\/blockquote>|<script[\s\S]*?<\/script>)/gi,
+    (match) => {
+      const placeholder = `[[EMBED_${embedIndex}]]`;
+      embeds.push(match);
+      embedIndex++;
+      return placeholder;
+    }
+  );
+  return { contentWithPlaceholders, embeds };
+}
+
+/**
+ * Reinserts embeds into the rewritten text at their original placeholder positions.
+ * @param {string} text - The rewritten text with placeholders.
+ * @param {string[]} embeds - The array of original embed HTML.
+ * @returns {string}
+ */
+export function reinsertEmbeds(text, embeds) {
+  let result = text;
+  embeds.forEach((embed, i) => {
+    result = result.replace(`[[EMBED_${i}]]`, embed);
+  });
+  return result;
+}

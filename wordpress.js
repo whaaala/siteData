@@ -1,25 +1,30 @@
-import sharp from 'sharp';
-import fetch from 'node-fetch';
-import path from 'path';
-import axios from 'axios';
-
+import * as cheerio from 'cheerio'
+import sharp from 'sharp'
+import fetch from 'node-fetch'
+import path from 'path'
+import axios from 'axios'
 
 function slugify(text) {
   return text
     .toString()
     .toLowerCase()
-    .replace(/\s+/g, '-')           // Replace spaces with -
-    .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
-    .replace(/\-\-+/g, '-')         // Replace multiple - with single -
-    .replace(/^-+/, '')             // Trim - from start of text
-    .replace(/-+$/, '');            // Trim - from end of text
+    .replace(/\s+/g, '-') // Replace spaces with -
+    .replace(/[^\w\-]+/g, '') // Remove all non-word chars
+    .replace(/\-\-+/g, '-') // Replace multiple - with single -
+    .replace(/^-+/, '') // Trim - from start of text
+    .replace(/-+$/, '') // Trim - from end of text
 }
 
 /**
  * Download an image from a URL and upload it to WordPress media library.
  * Returns the WordPress media ID if successful, or null if failed.
  */
-export async function uploadImageToWordpress(imageUrl, wordpressUrl, username, password) {
+export async function uploadImageToWordpress(
+  imageUrl,
+  wordpressUrl,
+  username,
+  password
+) {
   try {
     // Download the image
     const response = await fetch(imageUrl)
@@ -28,14 +33,17 @@ export async function uploadImageToWordpress(imageUrl, wordpressUrl, username, p
     const fileName = imageUrl.split('/').pop().split('?')[0] || 'image.jpg'
 
     // Upload to WordPress
-    const uploadRes = await fetch(`${wordpressUrl}/wp-json/wp/v2/media`, {
+    const uploadUrl = `${wordpressUrl}/wp-json/wp/v2/media`
+    console.log('[DEBUG] Uploading image to WordPress URL:', uploadUrl)
+    const uploadRes = await fetch(uploadUrl, {
       method: 'POST',
       headers: {
-        'Authorization': 'Basic ' + Buffer.from(username + ':' + password).toString('base64'),
+        Authorization:
+          'Basic ' + Buffer.from(username + ':' + password).toString('base64'),
         'Content-Disposition': `attachment; filename="${fileName}"`,
-        'Content-Type': 'image/jpeg'
+        'Content-Type': 'image/jpeg',
       },
-      body: buffer
+      body: buffer,
     })
     if (!uploadRes.ok) throw new Error('Failed to upload image to WordPress')
     const data = await uploadRes.json()
@@ -49,13 +57,22 @@ export async function uploadImageToWordpress(imageUrl, wordpressUrl, username, p
  * Post content to WordPress using the REST API.
  * Adds the main image at the top of the content if available.
  */
-export async function postToWordpress(post, featuredMediaId, wordpressUrl, username, password, imageUrl) {
+export async function postToWordpress(
+  post,
+  featuredMediaId,
+  wordpressUrl,
+  username,
+  password,
+  imageUrl
+) {
   // Add main image to content HTML if available
-  let contentHtml = '';
+  let contentHtml = ''
   if (imageUrl) {
-    contentHtml += `<img src="${imageUrl}" alt="${post.title}" style="max-width:100%;height:auto;" /><br/>`;
+    contentHtml += `<img src="${imageUrl}" alt="${post.title}" style="max-width:100%;height:auto;" /><br/>`
   }
-  contentHtml += Array.isArray(post.postDetails) ? post.postDetails.join('\n') : post.postDetails;
+  contentHtml += Array.isArray(post.postDetails)
+    ? post.postDetails.join('\n')
+    : post.postDetails
 
   const body = {
     title: post.title,
@@ -66,86 +83,197 @@ export async function postToWordpress(post, featuredMediaId, wordpressUrl, usern
     excerpt: post.excerpt,
     featured_media: featuredMediaId || undefined,
     format: 'standard',
-    meta: { is_featured: post.is_featured || false }
-  };
+    meta: { is_featured: post.is_featured || false },
+  }
 
   const response = await fetch(`${wordpressUrl}/wp-json/wp/v2/posts`, {
     method: 'POST',
     headers: {
-      'Authorization': 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64'),
-      'Content-Type': 'application/json'
+      Authorization:
+        'Basic ' + Buffer.from(`${username}:${password}`).toString('base64'),
+      'Content-Type': 'application/json',
     },
-    body: JSON.stringify(body)
-  });
+    body: JSON.stringify(body),
+  })
 
   if (!response.ok) {
-    const errorText = await response.text();
-    console.error(`Failed to upload post to WordPress: ${response.statusText}\n${errorText}`);
-    return null;
+    const errorText = await response.text()
+    console.error(
+      `Failed to upload post to WordPress: ${response.statusText}\n${errorText}`
+    )
+    return null
   }
-  const postData = await response.json();
-  return postData;
+  const postData = await response.json()
+  return postData
 }
 
+// Check if a post with the same title or image already exists on WordPress
+export async function wordpressPostExists(
+  title,
+  imageUrl,
+  wordpressUrl,
+  username,
+  password
+) {
+  // ...existing slug and image checks...
 
-export async function wordpressPostExists(title, imageUrl, wordpressUrl, username, password) {
-  // Check by slug (exact title match)
-  const slug = slugify(title);
-  const slugRes = await axios.get(
-    `${wordpressUrl}/wp-json/wp/v2/posts?slug=${encodeURIComponent(slug)}`,
-    { auth: { username, password } }
-  );
-  if (slugRes.data && slugRes.data.length > 0) return true;
-
-  // Check by image URL (featured media)
-  const imgRes = await axios.get(
-    `${wordpressUrl}/wp-json/wp/v2/media?search=${encodeURIComponent(imageUrl)}`,
-    { auth: { username, password } }
-  );
-  if (imgRes.data && imgRes.data.length > 0) {
-    for (const media of imgRes.data) {
-      const postsRes = await axios.get(
-        `${wordpressUrl}/wp-json/wp/v2/posts?featured_media=${media.id}`,
-        { auth: { username, password } }
-      );
-      if (postsRes.data && postsRes.data.length > 0) return true;
+  // Fallback: Check for post with same title published today
+  try {
+    const response = await fetch(
+      `${wordpressUrl}/wp-json/wp/v2/posts?search=${encodeURIComponent(title)}`,
+      {
+        headers: {
+          Authorization:
+            'Basic ' + Buffer.from(username + ':' + password).toString('base64'),
+          'Content-Type': 'application/json',
+        },
+      }
+    )
+    const posts = await response.json()
+    const today = new Date().toISOString().slice(0, 10)
+    if (
+      posts.some(
+        (post) =>
+          post.title &&
+          post.title.rendered.trim().toLowerCase() === title.trim().toLowerCase() &&
+          post.date_gmt &&
+          post.date_gmt.startsWith(today)
+      )
+    ) {
+      return true
     }
+  } catch (err) {
+    console.warn('[wordpressPostExists] Fallback title+date check failed:', err.message)
   }
 
-  return false;
+  return false
 }
-
 
 export async function areContentsSimilar(content1, content2) {
   // Normalize: lowercase, remove punctuation and extra spaces
-  const clean = str => str.toLowerCase().replace(/[^\w\s]/gi, '').replace(/\s+/g, ' ').trim();
-  const c1 = clean(content1);
-  const c2 = clean(content2);
+  const clean = (str) =>
+    str
+      .toLowerCase()
+      .replace(/[^\w\s]/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+  const c1 = clean(content1)
+  const c2 = clean(content2)
 
   // Substring check
-  if (c1.includes(c2) || c2.includes(c1)) return true;
+  if (c1.includes(c2) || c2.includes(c1)) return true
 
   // Levenshtein distance (basic implementation)
   function levenshtein(a, b) {
-    const matrix = Array.from({ length: b.length + 1 }, (_, i) => [i]);
-    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+    const matrix = Array.from({ length: b.length + 1 }, (_, i) => [i])
+    for (let j = 0; j <= a.length; j++) matrix[0][j] = j
     for (let i = 1; i <= b.length; i++) {
       for (let j = 1; j <= a.length; j++) {
         if (b.charAt(i - 1) === a.charAt(j - 1)) {
-          matrix[i][j] = matrix[i - 1][j - 1];
+          matrix[i][j] = matrix[i - 1][j - 1]
         } else {
           matrix[i][j] = Math.min(
             matrix[i - 1][j - 1] + 1,
             matrix[i][j - 1] + 1,
             matrix[i - 1][j] + 1
-          );
+          )
         }
       }
     }
-    return matrix[b.length][a.length];
+    return matrix[b.length][a.length]
   }
 
-  const distance = levenshtein(c1, c2);
-  const threshold = Math.floor(Math.max(c1.length, c2.length) * 0.2); // 20% difference allowed
-  return distance <= threshold;
+  const distance = levenshtein(c1, c2)
+  const threshold = Math.floor(Math.max(c1.length, c2.length) * 0.2) // 20% difference allowed
+  return distance <= threshold
+}
+
+export async function uploadBufferToWordpress(
+  buffer,
+  filename,
+  wordpressUrl,
+  username,
+  password
+) {
+  const uploadUrl = `${wordpressUrl}/wp-json/wp/v2/media`
+  const uploadRes = await fetch(uploadUrl, {
+    method: 'POST',
+    headers: {
+      Authorization:
+        'Basic ' + Buffer.from(username + ':' + password).toString('base64'),
+      'Content-Disposition': `attachment; filename="${filename}"`,
+      'Content-Type': 'image/jpeg',
+    },
+    body: buffer,
+  })
+  if (!uploadRes.ok) throw new Error('Failed to upload image to WordPress')
+  const data = await uploadRes.json()
+  return data // or data.source_url if you want the URL
+}
+
+
+// Helper to check if TikTok video/profile is restricted
+export async function isTikTokRestricted(url) {
+  try {
+    const res = await axios.get(url, {
+      timeout: 5000,
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      }
+    })
+    if (
+      res.data.includes('Profile restricted by creator') ||
+      res.data.includes('This creator turned on audience controls') ||
+      res.data.includes('video is unavailable') ||
+      res.status === 404
+    ) {
+      return true
+    }
+    return false
+  } catch (err) {
+    // If TikTok returns 403/404 or network error, treat as restricted
+    return true
+  }
+}
+
+// Rehost all images in the given HTML content to WordPress and update their src attributes
+export async function rehostAllImagesInContent(html, wordpressUrl, username, password) {
+  const $ = cheerio.load(html)
+  const imgTags = $('img')
+  for (let i = 0; i < imgTags.length; i++) {
+    const img = imgTags[i]
+    const src = $(img).attr('src')
+    if (src && /^https?:\/\//.test(src)) {
+      try {
+        const newMediaId = await uploadImageToWordpress(src, wordpressUrl, username, password)
+        if (newMediaId) {
+          // Get the new image URL from WordPress
+          const mediaRes = await fetch(`${wordpressUrl}/wp-json/wp/v2/media/${newMediaId}`, {
+            headers: {
+              Authorization: 'Basic ' + Buffer.from(username + ':' + password).toString('base64'),
+              'Content-Type': 'application/json',
+            },
+          })
+          if (mediaRes.ok) {
+            const mediaData = await mediaRes.json()
+            $(img).attr('src', mediaData.source_url)
+          } else {
+            // Remove the <img> if media fetch fails
+            $(img).remove()
+            console.warn('[rehostAllImagesInContent] Failed to fetch media data for:', src)
+          }
+        } else {
+          // Remove the <img> if upload fails
+          $(img).remove()
+          console.warn('[rehostAllImagesInContent] Failed to upload image:', src)
+        }
+      } catch (err) {
+        // Remove the <img> if download/upload fails
+        $(img).remove()
+        console.warn('[rehostAllImagesInContent] Failed to rehost image:', src, err.message)
+      }
+    }
+  }
+  return $.html()
 }

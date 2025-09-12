@@ -5,9 +5,18 @@ import { normalizeCategory } from './normalizeCategory.js'
 import {
   replaceSiteNamesOutsideTags,
   replaceSiteNamesInPostDetails,
+  downloadImageAsJpgOrPngForUpload,
 } from './utils.js'
+import { uploadBufferToWordpress } from './wordpress.js'
 
-export async function scrapeAndSaveRaw(postListings, page, postEls) {
+export async function scrapeAndSaveRaw(
+  postListings,
+  page,
+  postEls,
+  wordpressUrl,
+  username,
+  password
+) {
   if (postListings.length === 0) return
   const listing = 0
   const url = postListings[listing].url
@@ -69,13 +78,17 @@ export async function scrapeAndSaveRaw(postListings, page, postEls) {
   const isGirlracer =
     postListings[listing].website &&
     postListings[listing].website.includes('girlracer.co.uk')
+  const isNotjustok =
+    postListings[listing].website &&
+    postListings[listing].website.includes('notjustok')
   if (
     !isPulse &&
     !isBrila &&
     !isHealthsa &&
     !isTheguardian &&
     !isMotorverso &&
-    !isGirlracer
+    !isGirlracer &&
+    !isNotjustok
   ) {
     // Remove all <strong> elements from the content for non-pulse and non-brila sites
     $(postEls.post.mainContainerEl).find('strong').remove()
@@ -248,7 +261,8 @@ export async function scrapeAndSaveRaw(postListings, page, postEls) {
   let category = postListings[listing].category
   if (
     (!category || category === '' || category === 'No content') &&
-    postEls.post.categoryEl
+    postEls.post.categoryEl &&
+    postEls.post.categoryEl !== ''
   ) {
     category = getContent($, postEls.post.categoryEl)
   }
@@ -287,22 +301,45 @@ export async function scrapeAndSaveRaw(postListings, page, postEls) {
 
   // Extract the image link
   // First try source, then source1 if source fails or is a data URI
+  // Extract the image link
   let imageLink = ''
-  if (postListings[listing].website.includes('naijanews')) {
-    imageLink = getAttribute(
-      $,
-      postEls.post.imageEl.tag,
-      postEls.post.imageEl.source1
-    )
-  } else {
+
+  // 1. Try Puppeteer extraction first
+  try {
+    imageLink = await page.$eval(postEls.post.imageEl.tag, (el) => el.src)
+    console.log('[DEBUG] Puppeteer img src:', imageLink)
+  } catch (e) {
+    console.warn('[DEBUG] Puppeteer could not extract image src:', e.message)
+  }
+
+  // 2. Fallbacks and special cases
+  const website = postListings[listing].website || ''
+
+  // If Puppeteer failed, try Cheerio
+  if (!imageLink) {
     imageLink = getAttribute(
       $,
       postEls.post.imageEl.tag,
       postEls.post.imageEl.source
     )
+    console.log('[DEBUG] Cheerio fallback img src:', imageLink)
   }
 
-  // If imageLink contains "Guardian-grey.jpg", try to get the image again using source1
+  // Special: naijanews always uses source1
+  if (website.includes('naijanews')) {
+    imageLink = getAttribute(
+      $,
+      postEls.post.imageEl.tag,
+      postEls.post.imageEl.source1
+    )
+  }
+
+  // Special: healthwise uses imageLink from postListing
+  if (website.includes('healthwise')) {
+    imageLink = postListings[listing].imageLink
+  }
+
+  // If imageLink contains "Guardian-grey.jpg", try source1
   if (
     imageLink &&
     imageLink.includes('Guardian-grey.jpg') &&
@@ -314,29 +351,11 @@ export async function scrapeAndSaveRaw(postListings, page, postEls) {
       postEls.post.imageEl.source1
     )
     if (altImageLink && altImageLink !== 'No attribute') {
-      // If there are multiple values separated by space, use the first one
-      altImageLink = altImageLink.split(' ')[0]
-      imageLink = altImageLink
+      imageLink = altImageLink.split(' ')[0]
     }
   }
 
-  // Special handling for healthwise to get imageLink from postListing
-  if (
-    postListings[listing].website &&
-    postListings[listing].website.includes('healthwise')
-  ) {
-    // Use the imageLink from postListing
-    imageLink = postListings[listing].imageLink
-  } else {
-    // For other sites, extract as usual
-    imageLink = getAttribute(
-      $,
-      postEls.post.imageEl.tag,
-      postEls.post.imageEl.source
-    )
-  }
-
-  // If imageLink is a data URI, try to get a better value from source1
+  // If imageLink is a data URI, try source1
   if (
     imageLink &&
     imageLink.startsWith('data:') &&
@@ -352,16 +371,26 @@ export async function scrapeAndSaveRaw(postListings, page, postEls) {
     }
   }
 
-  // Special handling for legit.ng to remove image and caption containing the same imageLink
-  if (
-    postListings[listing].website &&
-    postListings[listing].website.includes('legit.ng') &&
-    imageLink
-  ) {
+  // If still no imageLink, use the first <img> in the main container
+  if (!imageLink) {
+    const firstImg = $(postEls.post.mainContainerEl).find('img').first()
+    if (firstImg.length) {
+      imageLink = firstImg.attr('src') || ''
+      console.log('[DEBUG] Used first <img> in <main container:', imageLink)
+    }
+  }
+
+  const img = $(postEls.post.imageEl.tag)
+  console.log('[DEBUG] Found image count:', img.length)
+  if (img.length > 0) {
+    console.log('[DEBUG] First image src:', img.attr('src'))
+  }
+  console.log('[DEBUG] Extracted imageLink:', imageLink)
+
+  // Special: Remove legit.ng duplicate image/caption
+  if (website.includes('legit.ng') && imageLink) {
     $(`img[src="${imageLink}"]`).each(function () {
-      // Remove <figcaption> in parent if present
       $(this).parent().find('figcaption').remove()
-      // Remove closest <figure> ancestor if present, else remove parent
       const figure = $(this).closest('figure')
       if (figure.length) {
         figure.remove()
@@ -371,23 +400,169 @@ export async function scrapeAndSaveRaw(postListings, page, postEls) {
     })
   }
 
+  const pulseContentExists = await page.$(postEls.post.contentEl)
+  console.log('[DEBUG] Puppeteer found contentEl:', !!pulseContentExists)
+
   //Get the post content
   //Find the main container element that holds the post content
-  let postDetails = $(postEls.post.mainContainerEl)
-    .find(postEls.post.contentEl)
-    .map((_, el) => {
-      //Remove the element content from the DOM that is not needed
-      for (let i = 0; i < postEls.post.elToReFromPostEl.length; i++) {
-        if ($(el).find(postEls.post.elToReFromPostEl[i]) !== 0) {
-          $(postEls.post.elToReFromPostEl[i]).remove()
-        }
-      }
+  let postDetails
 
-      //Add the content to the postLising Arry for each object
-      // return $(el).html()
-      return $.html(el)
+  if (
+    postListings[listing].website &&
+    postListings[listing].website.includes('pulse')
+  ) {
+    // For Pulse, use Playwright to get the HTML of the content element(s)
+    try {
+      postDetails = await page.$$eval(
+        postEls.post.contentEl,
+        (nodes, removeSelectors) =>
+          nodes.map((el) => {
+            // Remove unwanted elements by selector
+            removeSelectors.forEach((selector) => {
+              el.querySelectorAll(selector).forEach((child) => child.remove())
+            })
+            // Return only the inner HTML, not outerHTML, for clean merging
+            return el.innerHTML
+          }),
+        postEls.post.elToReFromPostEl // <-- this is passed as removeSelectors
+      )
+    } catch (e) {
+      console.warn(
+        '[WARN] Playwright could not extract postDetails:',
+        e.message
+      )
+      postDetails = []
+    }
+  } else {
+    // For other sites, use mainContainerEl + contentEl with Cheerio
+    postDetails = $(postEls.post.mainContainerEl)
+      .find(postEls.post.contentEl)
+      .map((_, el) => {
+        // Remove unwanted elements by selector
+        for (let i = 0; i < postEls.post.elToReFromPostEl.length; i++) {
+          if ($(el).find(postEls.post.elToReFromPostEl[i]).length !== 0) {
+            $(el).find(postEls.post.elToReFromPostEl[i]).remove()
+          }
+        }
+        // Return only the inner HTML of the content element
+        return $(el).html() || ''
+      })
+      .get()
+  }
+
+  // --- Always upload the image to WordPress, regardless of extension ---
+  let finalImageLink = imageLink
+  let wpFeaturedMediaId = undefined
+  let media
+
+  if (imageLink) {
+    try {
+      // Always download and convert to buffer for upload
+      const { buffer, filename } = await downloadImageAsJpgOrPngForUpload(
+        imageLink
+      )
+      media = await uploadBufferToWordpress(
+        buffer,
+        filename,
+        wordpressUrl,
+        username,
+        password
+      )
+
+      // // Debug log
+      // console.log('[DEBUG] media:', media)
+      // console.log(
+      //   '[DEBUG] media.source_url:',
+      //   media && media.source_url,
+      //   'type:',
+      //   typeof (media && media.source_url)
+      // )
+
+      wpFeaturedMediaId = media.id
+      finalImageLink = media.source_url
+      console.log(
+        '[DEBUG] Uploaded image and got WordPress URL:',
+        finalImageLink
+      )
+    } catch (e) {
+      console.warn('[WARN] Failed to convert/upload image:', e.message)
+      // fallback: keep original imageLink
+      wpFeaturedMediaId = undefined
+    }
+
+    // Update all <img> tags with the original imageLink to use the new WordPress URL
+    if (media && typeof media.source_url === 'string') {
+      postDetails = postDetails.map((htmlContent) => {
+        const $ = cheerio.load(htmlContent)
+        $(`img[src="${imageLink}"]`).each((_, el) => {
+          console.log(
+            '[DEBUG] About to set img src to:',
+            media && media.source_url,
+            'type:',
+            typeof (media && media.source_url)
+          )
+          $(el).attr('src', media.source_url)
+        })
+        return $.html()
+      })
+    } else if (media) {
+      console.warn('[WARN] media.source_url is not a string:', media.source_url)
+    }
+  }
+
+  // Remove any image within the content that is the same as the featured image before posting to WordPress
+  postDetails = postDetails.map((htmlContent) => {
+    const $ = cheerio.load(htmlContent)
+    $(`img[src="${finalImageLink}"]`).each((_, el) => {
+      // Remove the image or its parent <figure> if present, else just the <img>
+      const figure = $(el).closest('figure')
+      if (figure.length) {
+        figure.remove()
+      } else {
+        $(el).remove()
+      }
     })
-    .get()
+    return $.html()
+  })
+
+  if (isPulse && postEls.post.contentEl) {
+    try {
+      await page.waitForSelector(postEls.post.contentEl, {
+        visible: true,
+        timeout: 10000,
+      })
+      console.log('[Scrape Stage] Content selector found and visible.')
+    } catch (e) {
+      console.warn(
+        `[Scrape Stage] Content selector ${postEls.post.contentEl} not found or not visible.`
+      )
+    }
+  }
+
+  // Fallback: If postDetails is empty, try to get the full main container's HTML
+  if (
+    !postDetails ||
+    postDetails.length === 0 ||
+    postDetails.every((d) => !d.trim())
+  ) {
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('pulse')
+    ) {
+      try {
+        postDetails = await page.$$eval(postEls.post.mainContainerEl, (nodes) =>
+          nodes.map((el) => el.innerHTML)
+        )
+      } catch (e) {
+        postDetails = []
+      }
+    } else {
+      postDetails = [$(postEls.post.mainContainerEl).html() || '']
+    }
+  }
+
+  // Clean up: Remove empty strings and trim
+  postDetails = postDetails.map((d) => (d || '').trim()).filter(Boolean)
 
   postDetails = replaceSiteNamesInPostDetails(postDetails)
   postDetails = postDetails.map((htmlContent) =>
@@ -425,11 +600,173 @@ export async function scrapeAndSaveRaw(postListings, page, postEls) {
       }
     })
 
+    // --- Place this block here ---
+    $('[data-html]').each((i, el) => {
+      const rawHtml = $(el).attr('data-html')
+      if (rawHtml) {
+        // Unescape HTML entities
+        const unescaped = rawHtml
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&quot;/g, '"')
+          .replace(/&#39;/g, "'")
+          .replace(/&amp;/g, '&')
+        // Replace the wrapper with the real HTML
+        $(el).replaceWith(unescaped)
+      }
+    })
+
     return $.html()
   })
 
   // After all extraction and cleaning:
   console.log('[Scrape Stage] Extracted post details and meta.')
+
+  // After all cleaning, but before joining postDetails:
+  if (
+    postListings[listing].website &&
+    postListings[listing].website.includes('pulse.com.gh')
+  ) {
+    postDetails = postDetails.map((htmlContent) => {
+      const $ = cheerio.load(htmlContent)
+
+      $('*')
+        .filter((_, el) => $(el).text().toLowerCase().includes('advertisement'))
+        .remove()
+
+      // Remove any paragraph that contains "Read more" (case-insensitive)
+      $('p')
+        .filter((_, el) => $(el).text().toLowerCase().includes('read more'))
+        .remove()
+
+      return $.html()
+    })
+  }
+
+  // Remove any paragraph that contains "ALSO READ" or "Read " (case-insensitive) for all postDetails
+  postDetails = postDetails.map((htmlContent) => {
+    const $ = cheerio.load(htmlContent)
+    $('p')
+      .filter((_, el) => {
+        const text = $(el).text().toLowerCase()
+        return text.includes('also read') || text.includes('read ')
+      })
+      .remove()
+    return $.html()
+  })
+
+  // Add top and bottom margin (newlines) within header elements (h1-h6) for all postDetails
+  postDetails = postDetails.map((htmlContent) => {
+    const $ = cheerio.load(htmlContent)
+    $('h1, h2, h3, h4, h5, h6').each((_, el) => {
+      const text = $(el).text().trim()
+      // Add a blank line before and after the header text
+      $(el).text(`\n\n${text}\n\n`)
+    })
+    return $.html()
+  })
+
+  // Add CSS margin-bottom to every <p> element for all postDetails
+  postDetails = postDetails.map((htmlContent) => {
+    const $ = cheerio.load(htmlContent)
+    $('p').each((_, el) => {
+      $(el).attr('style', 'margin-bottom:0.5rem;')
+    })
+    return $.html()
+  })
+
+  // Remove any hyperlink (<a>) whose text content contains the website (case-insensitive)
+  postDetails = postDetails.map((htmlContent) => {
+    const $ = cheerio.load(htmlContent)
+    const website = (postListings[listing].website || '').toLowerCase()
+
+    // Remove <a> tags whose text or href contains the website string
+    $('a').each((_, el) => {
+      const text = $(el).text().toLowerCase()
+      const href = ($(el).attr('href') || '').toLowerCase()
+      if (text.includes(website) || href.includes(website)) {
+        $(el).replaceWith($(el).text()) // Remove the link, keep the text
+      }
+    })
+
+    // Also remove any <a> tag that is the only child of a parent whose text contains the website
+    $('*').each((_, el) => {
+      if (
+        $(el).children('a').length === 1 &&
+        $(el).text().toLowerCase().includes(website)
+      ) {
+        $(el).find('a').replaceWith($(el).find('a').text())
+      }
+    })
+
+    return $.html()
+  })
+
+  // Remove any element that contains "#Featuredpost" (case-insensitive) in the content
+  postDetails = postDetails.map((htmlContent) => {
+    const $ = cheerio.load(htmlContent)
+    $('*').each((_, el) => {
+      if ($(el).text().toLowerCase().includes('#featuredpost')) {
+        $(el).remove()
+      }
+    })
+    return $.html()
+  })
+
+  // Add CSS inline style to any iframe with id attribute containing "twitter"
+  postDetails = postDetails.map((htmlContent) => {
+    const $ = cheerio.load(htmlContent)
+    $('iframe[id*="twitter"]').each((_, el) => {
+      $(el).attr('style', 'height:550px; width:500px;')
+    })
+    return $.html()
+  })
+
+  // Remove any element that contains the text " NotJustOk" (case-insensitive)
+  // and any element that has a hyperlink (<a>) containing "notjustok" in text or href (case-insensitive)
+  postDetails = postDetails.map((htmlContent) => {
+    const $ = cheerio.load(htmlContent)
+
+    // Find the last <p> element
+    const lastP = $('p').last()
+    let shouldRemove = false
+
+    // Check if any child contains the specified keywords or links
+    lastP.children().each((_, child) => {
+      const text = $(child).text().toLowerCase()
+      const href = ($(child).attr('href') || '').toLowerCase()
+      if (
+        text.includes('updates') ||
+        text.includes('notjustok') ||
+        text.includes('facebook') ||
+        text.includes('x') ||
+        href.includes('facebook.com') ||
+        href.includes('x.com')
+      ) {
+        shouldRemove = true
+      }
+    })
+
+    // Also check the last <p> itself for direct text (not just children)
+    const lastPText = lastP.text().toLowerCase()
+    if (
+      lastPText.includes('updates') ||
+      lastPText.includes('notjustok') ||
+      lastPText.includes('facebook') ||
+      lastPText.includes('x')
+    ) {
+      shouldRemove = true
+    }
+
+    if (shouldRemove) {
+      lastP.remove()
+    }
+
+    return $.html()
+  })
+
+  // After all cleaning:
+  const fullContent = postDetails.join('\n')
 
   const savedPost = await Post.create({
     url,
@@ -439,9 +776,10 @@ export async function scrapeAndSaveRaw(postListings, page, postEls) {
     author,
     timePosted,
     category,
-    imageLink,
-    postDetails,
+    imageLink: finalImageLink,
+    postDetails: fullContent,
     processingStage: 'raw',
+    wpFeaturedMediaId,
   })
 
   console.log(
