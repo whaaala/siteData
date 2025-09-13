@@ -312,7 +312,7 @@ export async function postToWordpressStage(
       style = style.replace(/height\s*:\s*[^;]+;?/i, '')
       style = style.replace(/margin\s*:\s*[^;]+;?/i, '')
       // Add the required styles
-      style = style.trim() + ' height: auto; margin: 0 auto;'
+      style = style.trim() + ' height: 25rem; margin: 0 auto;'
       $(el).attr('style', style.trim())
 
       // Remove width from parent element's style if present

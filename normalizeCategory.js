@@ -83,6 +83,7 @@ export function normalizeCategory(rawCategory) {
     cat === 'nails' ||
     cat === 'career & money' ||
     cat === 'gear-tech' ||
+    cat === 'lifestyle' ||
     cat === 'motoring' ||
     cat === 'travel' ||
     cat === 'gifts' ||
@@ -131,6 +132,7 @@ export function normalizeCategory(rawCategory) {
   } else if (
     cat === 'recipes' ||
     cat === 'food & nutrition' ||
+    cat === 'agriculture' ||
     cat === 'drinks'
 ) {
     return 'FoodAndDrink';

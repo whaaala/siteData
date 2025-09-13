@@ -13,7 +13,7 @@ async function runScript(script) {
   });
 }
 
-const ACTIVE_START_HOUR = 7;  // 7am
+const ACTIVE_START_HOUR = 5;  // 5am
 const ACTIVE_END_HOUR = 23;   // 11pm (last post at 10:48pm)
 
 let lastBatchPublishDay = null;

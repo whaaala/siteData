@@ -629,6 +629,65 @@ const thenewsguru = {
   },
 };
 
+const premiumtimesng = {
+   siteUrl: [
+    "https://www.premiumtimesng.com/category/news",
+    "https://www.premiumtimesng.com/category/business",
+    "https://www.premiumtimesng.com/category/opinion",
+    "https://www.premiumtimesng.com/category/health",
+    "https://www.premiumtimesng.com/category/agriculture",
+    "https://www.premiumtimesng.com/category/entertainment/naija-fashion",
+    "https://www.premiumtimesng.com/category/entertainment/nollywood",
+    "https://www.premiumtimesng.com/category/entertainment/travels",
+    "https://www.premiumtimesng.com/category/sports",
+    
+  ],
+  listings: {
+    mainContainerEl: ".jeg_postblock",
+    postHeadLineContainerEl: "",
+    postContainerEl: ".jeg_posts",
+  },
+  titleEl: {
+    tag: ".jeg_post_title a",
+    link: "",
+  },
+  titleLinkEl: {
+    tag: ".jeg_post_title a",
+    source: "href",
+  },
+  imageEl: {
+    tag: "",
+    source: "",
+    alt: "",
+  },
+   categoryEl: ".jnews_category_header_bottom .jeg_cat_title",
+  post: {
+    categoryEl: "",
+    authorEl: ".jeg_meta_author a",
+    datePostedEl: ".entry-header .jeg_post_meta .jeg_meta_date a",
+    mainContainerEl: ".jeg_inner_content",
+    contentEl: ".content-inner",
+    elToReFromPostEl: [
+      ".code-block",
+      ".at-above-post",
+      ".ai-viewport-3",
+      ".pullquote",
+      ".at-below-post",
+      ".sharedaddy",
+      ".robots-nocontent",
+      ".publishers-fcmz-section",
+      ".jeg_post_tags",
+    ],
+    imageEl: {
+      tag: ".featured_image .thumbnail-container .wp-post-image",
+      tag1: "",
+      source: "src",
+      source1: "data-lazy-src",
+      alt: "",
+    },
+  },
+};
+
 const brila  = {
    siteUrl: ['https://www.brila.net/football/'],
   listings: {
@@ -894,8 +953,8 @@ const girlracer = {
   },
 };
 
-const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, brila, brilaOther, healthza, theguardian, motorverso, girlracer];
-// const siteNames = [healthza];
+//const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, premiumtimesng, brila, brilaOther, healthza, theguardian, motorverso, girlracer];
+const siteNames = [premiumtimesng];
 
 
 export default siteNames;
