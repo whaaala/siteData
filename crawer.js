@@ -50,6 +50,16 @@ async function main() {
   const site = siteNames[siteVar]
   const { browser, page } = await preparePuppeteer()
 
+  // Block images, stylesheets, and fonts to save memory
+  await page.route('**/*', (route) => {
+    const type = route.request().resourceType()
+    if (['stylesheet', 'font'].includes(type)) {
+      route.abort()
+    } else {
+      route.continue()
+    }
+  })
+
   // Move these outside the try block so they're always defined
   const lastVisit = loadLastVisit()
   const now = new Date()
@@ -148,6 +158,7 @@ async function main() {
     }
 
     postListings = null
+    postToProcess = null;
 
     console.log('[Main] Memory usage after scrape:', process.memoryUsage())
   } catch (err) {
@@ -156,7 +167,7 @@ async function main() {
     await page.close()
     await browser.close()
     global.gc?.()
-    await sleep(30000)
+    await sleep(5000)
     lastVisit[url] = now.toISOString()
     saveLastVisit(lastVisit)
     await mongoose.disconnect()
@@ -164,7 +175,5 @@ async function main() {
 }
 
 main()
-
-
 
 // "start": "npx playwright install && node crawer.js",

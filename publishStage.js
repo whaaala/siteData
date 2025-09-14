@@ -117,8 +117,13 @@ export async function postToWordpressStage(
     return post
   }
 
+  // Set the default category ID to "News" if category not found
+  const defaultCategoryId = wpCategoryMap.News
+
   const category = post.category
-  const wpCategoryId = wpCategoryMap[category] ? [wpCategoryMap[category]] : []
+  const wpCategoryId = wpCategoryMap[category]
+    ? [wpCategoryMap[category]]
+    : [defaultCategoryId]
   const wpAuthorId = getRandomAuthorId(category)
   const excerpt = getExcerpt(post.rewrittenDetails, 30)
 
@@ -208,33 +213,13 @@ export async function postToWordpressStage(
         return
       }
       seenTikTokUrls.add(tiktokUrl)
-      tiktokPromises.push(
-        (async () => {
-          // const restricted = await isTikTokRestricted(tiktokUrl)
-          // if (restricted) {
-          //   $(el).replaceWith(
-          //     `<div style="color:red;font-weight:bold;text-align:center;margin:2em 0;">TikTok video unavailable: Profile restricted by creator</div>`
-          //   )
-          // } else {
-          //   $(el).replaceWith(`\n${tiktokUrl}\n`)
-          // }
-        })()
-      )
+      tiktokPromises.push((async () => {})())
     }
   })
   await Promise.all(tiktokPromises)
 
   // 4. Assign back to contentWithEmbeds
   contentWithEmbeds = $.root().html()
-
-  // === REMOVE elements containing "NotJustOk" and <a> with "notjustok" in text or href ===
-
-  // // Remove any element whose text contains "notjustok" (case-insensitive, with or without space)
-  // $('p').each((_, el) => {
-  //   if ($(el).text().toLowerCase().includes('notjustok')) {
-  //     $(el).remove()
-  //   }
-  // })
 
   // Remove the first element with content if it is an <h2>
   let found = false
@@ -274,11 +259,17 @@ export async function postToWordpressStage(
     }
   })
 
-  // Center all images, make them responsive, and set height to 30rem
+  // Center all images, make them responsive, and limit height to 25rem if greater
   $('img').each((_, el) => {
     let style = $(el).attr('style') || ''
+
+    // Extract the current height in rem (if any)
+    const heightMatch = style.match(/height\s*:\s*([\d.]+)rem\s*;?/i)
+    let currentHeight = heightMatch ? parseFloat(heightMatch[1]) : null
+
     // Remove any existing height property
     style = style.replace(/height\s*:\s*[^;]+;?/i, '')
+
     // Ensure centering and responsiveness are present
     if (!/display\s*:\s*block/i.test(style)) {
       style = 'display: block; ' + style
@@ -292,27 +283,47 @@ export async function postToWordpressStage(
     if (!/max-width\s*:\s*100%/i.test(style)) {
       style = 'max-width: 100%; ' + style
     }
-    // Always add height: 23rem;
-    style = style.trim() + ' height: 23rem;'
-    $(el).attr('style', style.trim())
 
-    // Also handle height attribute if present
-    if ($(el).attr('height')) {
+    // Only set height if currentHeight is greater than 25rem
+    if (currentHeight !== null && currentHeight > 25) {
+      style = style.trim() + ' height: 25rem;'
       $(el).attr('height', '25rem')
+    } else if (currentHeight !== null) {
+      // Keep original height (do not add height)
+      style = style.trim()
+      if ($(el).attr('height')) {
+        $(el).attr('height', `${currentHeight}rem`)
+      }
     }
+    // If no height is set, do not add height
+    $(el).attr('style', style.trim())
   })
 
   // For all <img> elements with class containing "wp-image"
   $('img').each((_, el) => {
     const classAttr = $(el).attr('class') || ''
     if (classAttr.includes('wp-image')) {
-      // Add/replace inline style
       let style = $(el).attr('style') || ''
+      // Extract the current height in rem (if any)
+      const heightMatch = style.match(/height\s*:\s*([\d.]+)rem\s*;?/i)
+      let currentHeight = heightMatch ? parseFloat(heightMatch[1]) : null
+
       // Remove any existing height or margin property
       style = style.replace(/height\s*:\s*[^;]+;?/i, '')
       style = style.replace(/margin\s*:\s*[^;]+;?/i, '')
+
       // Add the required styles
-      style = style.trim() + ' height: 25rem; margin: 0 auto;'
+      style = style.trim() + ' margin: 0 auto;'
+      // Only set height if currentHeight is greater than 25rem
+      if (currentHeight !== null && currentHeight > 25) {
+        style += ' height: 25rem;'
+        $(el).attr('height', '25rem')
+      } else if (currentHeight !== null) {
+        // Keep original height (do not add height)
+        if ($(el).attr('height')) {
+          $(el).attr('height', `${currentHeight}rem`)
+        }
+      }
       $(el).attr('style', style.trim())
 
       // Remove width from parent element's style if present
@@ -375,6 +386,18 @@ export async function postToWordpressStage(
       $(el).attr('height', '376') // 23.5rem ≈ 376px
       $(el).attr('width', '368') // 23rem ≈ 368px
     }
+  })
+
+  // Add inline style "height:30rem; width:50rem;" for any <video> inside a <figure> with class containing "wp-block-video"
+  $('figure.wp-block-video video, figure[class*="wp-block-video"] video').each(
+    (_, el) => {
+      $(el).attr('style', 'height:30rem; width:50rem;')
+    }
+  )
+
+  // Also add this style for any <video> element in the content
+  $('video').each((_, el) => {
+    $(el).attr('style', 'max-height:36rem; min-height:30rem; width:50rem;')
   })
 
   contentWithEmbeds = $.root().html()

@@ -24,19 +24,26 @@ export async function rewriteTitle(title) {
       {
         role: 'system',
         content:
-          'You are a helpful assistant. When rewriting, only return the rewritten title itself. Do not include any explanations, comments, or introductions.',
+          `
+              You are a helpful assistant. When rewriting, only return the rewritten title itself. Do not include any explanations, comments, or introductions.
+              The rewritten title must be factually accurate, not misleading, and must not exaggerate or make claims that are not supported by the original title or content.
+              If the original title makes a claim, clarify that it is a claim or opinion, not an established fact (e.g., use words like "claims," "reportedly," "is said to have," "according to reports").
+              The title must also be catchy, appealing, and interesting to readers, and optimized for SEO (use relevant keywords, keep it short and punchy, and make it enticing for clicks without being clickbait or misleading).
+          `,
       },
       {
         role: 'user',
         content: `
-            Please create 1 engaging and fully original headline that is **very different** in structure, wording, and style from the original title provided: ${title}.
-            - The headline must not copy or closely paraphrase the source title.
-            - Make it as short and punchy as possible for SEO/discovery, while keeping it catchy, clear, and contextually accurate.
-            - Use relevant keywords from the original title for SEO, but do not mimic the original phrasing.
-            - If the original title is a recommendation, claim, or call to action (e.g., "urges," "calls for," "asks," "recommends"), clarify that in the headline (e.g., "NCAA Urges Airlines…", "NCAA Calls for…", "NCAA Recommends…").
-            - If the original title makes a claim or presents an opinion, tone down the headline to clarify that it is a claim or opinion, not an established fact (e.g., use words like "claims," "reportedly," "is said to be").
-            - Tailor it primarily for Nigerian readers, with secondary appeal to Ghanaians, broader West Africans, Africans overall, and global audiences.
-            - Only return the rewritten headline, with no extra text or explanation.
+              Please create 1 engaging and fully original headline that is **very different** in structure, wording, and style from the original title provided: ${title}.
+                - The headline must not copy or closely paraphrase the source title.
+                - Make it as short and punchy as possible for SEO/discovery, while keeping it catchy, clear, and contextually accurate.
+                - Use relevant keywords from the original title for SEO, but do not mimic the original phrasing.
+                - The headline must be truthful and not misleading. Do not exaggerate or make claims that are not supported by the original title or content.
+                - If the original title is a recommendation, claim, or call to action (e.g., "urges," "calls for," "asks," "recommends"), clarify that in the headline (e.g., "NCAA Urges Airlines…", "NCAA Calls for…", "NCAA Recommends…").
+                - If the original title makes a claim or presents an opinion, tone down the headline to clarify that it is a claim or opinion, not an established fact (e.g., use words like "claims," "reportedly," "is said to be").
+                - Make the headline catchy and appealing to readers, so they are interested to click and read, but do not use clickbait or misleading language.
+                - Tailor it primarily for Nigerian readers, with secondary appeal to Ghanaians, broader West Africans, Africans overall, and global audiences.
+                - Only return the rewritten headline, with no extra text or explanation.
         `,
       },
     ],
@@ -60,7 +67,9 @@ export async function rewriteContent(content) {
       {
         role: 'system',
         content:
-          'You are a helpful assistant that rewrites blog post content to be clear, engaging, and original. Preserve any HTML tags and structure.',
+          `You are a helpful assistant that rewrites blog post content to be clear, engaging, and original. Preserve any HTML tags and structure.
+          Do NOT add a title or author name anywhere in the rewritten content. Only rewrite the main body content.
+          `,
       },
       {
         role: 'user',
@@ -70,6 +79,8 @@ export async function rewriteContent(content) {
                 IMPORTANT:
                 - Do NOT remove, move, or alter placeholders like [[EMBED_0]], [[EMBED_1]], etc. Keep them exactly where they appear.
                 - Preserve all original HTML tags (<p>, <ul>, <ol>, <li>, <a>, <blockquote>, <iframe>, <div>, <img>, <video>, etc.). Do not move or delete embedded media.
+                - Preserve all original HTML tables (<table>, <tr>, <td>, <th>, etc.) and their structure.
+                - Do NOT remove or alter YouTube embed codes or <iframe> elements. Keep them exactly as in the original content.
 
                 🚦 Core Rules
                 - Minimum MUST be 900 words. If the content is under 900 words, expand with more background, analysis, or local context.
@@ -179,3 +190,4 @@ export async function rewriteContent(content) {
 
   return rewrittenWithEmbeds;
 }
+

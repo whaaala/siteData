@@ -953,8 +953,8 @@ const girlracer = {
   },
 };
 
-//const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, premiumtimesng, brila, brilaOther, healthza, theguardian, motorverso, girlracer];
-const siteNames = [premiumtimesng];
+const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, premiumtimesng, brila, brilaOther, healthza, theguardian, motorverso, girlracer];
+// const siteNames = [premiumtimesng];
 
 
 export default siteNames;

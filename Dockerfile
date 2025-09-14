@@ -11,4 +11,4 @@ RUN npm install
 COPY . .
 
 # Start your app
-CMD ["node", "scheduler.js"]
+CMD ["node", "--expose-gc", "scheduler.js"]
