@@ -765,6 +765,94 @@ export async function scrapeAndSaveRaw(
     return $.html()
   })
 
+  // Remove any element that contains the text " NotJustOk" (case-insensitive)
+  // and any element that has a hyperlink (<a>) containing "notjustok" in text or href (case-insensitive)
+  // Enhanced: Remove last <p> if its child <a> contains facebook/x URL or text contains "Check", "latest", "updates" for notjustok
+  postDetails = postDetails.map((htmlContent) => {
+    const $ = cheerio.load(htmlContent)
+
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('notjustok')
+    ) {
+      const lastP = $('p').last()
+      let shouldRemove = false
+
+      // Check child <a> for facebook/x URL
+      lastP.children('a').each((_, child) => {
+        const href = ($(child).attr('href') || '').toLowerCase()
+        const text = $(child).text().toLowerCase()
+        if (
+          href.includes('facebook.com') ||
+          href.includes('x.com') ||
+          text.includes('check') ||
+          text.includes('latest') ||
+          text.includes('updates')
+        ) {
+          shouldRemove = true
+        }
+      })
+
+      // Check last <p> itself for keywords
+      const lastPText = lastP.text().toLowerCase()
+      if (
+        lastPText.includes('check') ||
+        lastPText.includes('latest') ||
+        lastPText.includes('latest') ||
+        lastPText.includes('updates')
+      ) {
+        shouldRemove = true
+      }
+
+      if (shouldRemove) {
+        lastP.remove()
+      }
+    }
+
+    return $.html()
+  })
+
+  postDetails = postDetails.map((htmlContent) => {
+    const $ = cheerio.load(htmlContent)
+
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('notjustok')
+    ) {
+      const strongs = $('strong')
+      let lastMatch = null
+      strongs.each((_, el) => {
+        const text = $(el).text().toLowerCase()
+        if (
+          text.includes('drop') ||
+          text.includes('get') ||
+          text.includes('fresh')
+        ) {
+          lastMatch = el
+        }
+      })
+      if (lastMatch) {
+        $(lastMatch).remove()
+      }
+    }
+
+    return $.html()
+  })
+
+  postDetails = postDetails.map((htmlContent) => {
+    const postUrl = (postListings[listing].url || '').toLowerCase()
+    const $ = cheerio.load(htmlContent)
+
+    $('a').each((_, el) => {
+      const text = $(el).text().toLowerCase()
+      if (text.includes(postUrl)) {
+        $(el).replaceWith($(el).text()) // Remove the link, keep the text
+      }
+    })
+
+    return $.html()
+  })
+
   // After all cleaning:
   const fullContent = postDetails.join('\n')
 

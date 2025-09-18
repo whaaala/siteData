@@ -285,14 +285,14 @@ export async function postToWordpressStage(
     }
 
     // Only set height if currentHeight is greater than 25rem
-    if (currentHeight !== null && currentHeight > 25) {
-      style = style.trim() + ' height: 25rem;'
-      $(el).attr('height', '25rem')
+    if (currentHeight !== null && currentHeight > 30) {
+      style = style.trim() + ' max-height: 30rem;'
+      $(el).attr('max-height', '30rem')
     } else if (currentHeight !== null) {
       // Keep original height (do not add height)
       style = style.trim()
-      if ($(el).attr('height')) {
-        $(el).attr('height', `${currentHeight}rem`)
+      if ($(el).attr('max-height')) {
+        $(el).attr('max-height', `${currentHeight}rem`)
       }
     }
     // If no height is set, do not add height
@@ -314,14 +314,14 @@ export async function postToWordpressStage(
 
       // Add the required styles
       style = style.trim() + ' margin: 0 auto;'
-      // Only set height if currentHeight is greater than 25rem
-      if (currentHeight !== null && currentHeight > 25) {
-        style += ' height: 25rem;'
-        $(el).attr('height', '25rem')
+      // Only set height if currentHeight is greater than 30rem
+      if (currentHeight !== null && currentHeight > 30) {
+        style += ' max-height: 30rem;'
+        $(el).attr('max-height', '30rem')
       } else if (currentHeight !== null) {
         // Keep original height (do not add height)
-        if ($(el).attr('height')) {
-          $(el).attr('height', `${currentHeight}rem`)
+        if ($(el).attr('max-height')) {
+          $(el).attr('max-height', `${currentHeight}rem`)
         }
       }
       $(el).attr('style', style.trim())

@@ -100,6 +100,15 @@ async function main() {
     // Find the first post in postListings that has not been processed
     let postToProcess = null
     for (const post of postListings) {
+      // Custom category logic for notjustok
+
+      if (post.url && post.url.toLowerCase().includes('notjustok')) {
+        if (post.category && post.category.toLowerCase().includes('sports')) {
+          post.category = 'Sports'
+        } else {
+          post.category = 'Entertainment'
+        }
+      }
       const exists = await Post.findOne({ url: post.url })
       if (!exists) {
         postToProcess = post
@@ -158,7 +167,7 @@ async function main() {
     }
 
     postListings = null
-    postToProcess = null;
+    postToProcess = null
 
     console.log('[Main] Memory usage after scrape:', process.memoryUsage())
   } catch (err) {

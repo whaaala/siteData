@@ -182,12 +182,13 @@ const notJustOk  = {
       ".jnews_inline_related_post",
       ".jeg_post_tags",
       ".jnews_inline_related_post_wrapper",
+      ".pp-multiple-authors-boxes-li",
     ],
     imageEl: {
       tag: ".single-article-img img",
       tag1: "",
       source: "src",
-      source1: "srcset",
+      source1: "data-src",
       alt: "",
     },
   },
@@ -953,8 +954,8 @@ const girlracer = {
   },
 };
 
-const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, premiumtimesng, brila, brilaOther, healthza, theguardian, motorverso, girlracer];
-// const siteNames = [premiumtimesng];
+//const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, premiumtimesng, brila, brilaOther, healthza, theguardian, motorverso, girlracer];
+const siteNames = [notJustOk];
 
 
 export default siteNames;
