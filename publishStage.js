@@ -16,6 +16,7 @@ import {
   embedTikTokLinks,
 } from './utils.js'
 import { wpCategoryMap, getRandomAuthorId } from './categoryMap.js'
+import { normalizeCategory } from './normalizeCategory.js' 
 
 export async function postToWordpressStage(
   postOrId,
@@ -117,10 +118,11 @@ export async function postToWordpressStage(
     return post
   }
 
+  const category = normalizeCategory(post.category)
   // Set the default category ID to "News" if category not found
   const defaultCategoryId = wpCategoryMap.News
 
-  const category = post.category
+  // const category = post.category
   const wpCategoryId = wpCategoryMap[category]
     ? [wpCategoryMap[category]]
     : [defaultCategoryId]
@@ -359,7 +361,7 @@ export async function postToWordpressStage(
     // Remove any existing max-height property
     style = style.replace(/max-height\s*:\s*[^;]+;?/i, '');
     // Add max-height:40rem;
-    style = style.trim() + ' max-height:35rem;';
+    style = style.trim() + ' max-height:31rem;';
     $(el).attr('style', style.trim());
   }
 });

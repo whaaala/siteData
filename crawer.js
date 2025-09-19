@@ -8,6 +8,8 @@ import { scrapeAndSaveRaw } from './scrapeRaw.js'
 import { rewriteContentStage } from './rewriteStage.js'
 import { postToWordpressStage } from './publishStage.js'
 import { loadLastVisit, saveLastVisit } from './scraperUtils.js'
+import { normalizeCategory } from './normalizeCategory.js'
+import calculateCategoryQuotas from './categoryQuota.js'
 import { Post } from './db.js'
 dotenv.config()
 
@@ -77,6 +79,11 @@ async function main() {
     let postListings = await postListing(page, siteNames, siteVar, urlIdx)
     console.log(`[Main] Found ${postListings.length} post(s) on this page.`)
 
+    postListings = postListings.map((post) => ({
+      ...post,
+      category: normalizeCategory(post.category),
+    }))
+
     postListings = postListings.filter((post) => {
       const dateStr = post.dateRetrieved || post.timePosted
       if (!dateStr) return false
@@ -92,16 +99,46 @@ async function main() {
       return isToday && isAfterLastVisit
     })
 
+    const categoryCounts = {
+      news: postListings.filter((post) => post.category === 'News').length,
+      entertainment: postListings.filter(
+        (post) => post.category === 'Entertainment'
+      ).length,
+      sport: postListings.filter((post) => post.category === 'Sports').length,
+      health: postListings.filter(
+        (post) => post.category === 'HealthAndFitness'
+      ).length,
+      lifestyle: postListings.filter((post) => post.category === 'Lifestyle')
+        .length,
+      gist: postListings.filter((post) => post.category === 'Gists').length,
+      // Add more if needed
+    }
+
+    const dailyTotal = 100 // or your desired total per run
+    const quotas = calculateCategoryQuotas(categoryCounts, dailyTotal)
+
     if (postListings.length === 0) {
       console.log(
         `[LOG] No new posts from today and since last visit for URL: ${url}`
       )
     }
     // Find the first post in postListings that has not been processed
-    let postToProcess = null
+    let postedQuotas = {
+      news: 0,
+      entertainment: 0,
+      sport: 0,
+      health: 0,
+      lifestyle: 0,
+      gist: 0,
+    }
+
+    console.log('[DEBUG] Quotas:', quotas)
+    console.log('[DEBUG] PostedQuotas:', postedQuotas)
+
+    let postPublished = false
+
     for (const post of postListings) {
       // Custom category logic for notjustok
-
       if (post.url && post.url.toLowerCase().includes('notjustok')) {
         if (post.category && post.category.toLowerCase().includes('sports')) {
           post.category = 'Sports'
@@ -109,42 +146,88 @@ async function main() {
           post.category = 'Entertainment'
         }
       }
+
+      const catKey =
+        post.category === 'HealthAndFitness'
+          ? 'health'
+          : post.category === 'Lifestyle'
+          ? 'lifestyle'
+          : post.category === 'Gists'
+          ? 'gist'
+          : post.category === 'Sports'
+          ? 'sport'
+          : post.category === 'Entertainment'
+          ? 'entertainment'
+          : post.category === 'News'
+          ? 'news'
+          : null
+
+      if (!catKey || postedQuotas[catKey] >= quotas[catKey]) continue
+
       const exists = await Post.findOne({ url: post.url })
+      console.log(`[DEBUG] Exists for ${post.url}:`, !!exists)
+
       if (!exists) {
-        postToProcess = post
-        break
+        console.log(`[Main] Processing post: ${post.title} (${post.url})`)
+        const savedPost = await scrapeAndSaveRaw(
+          [post],
+          page,
+          site,
+          process.env.WORDPRESS_URL,
+          process.env.WORDPRESS_USERNAME,
+          process.env.WORDPRESS_PASSWORD
+        )
+        const rewrittenPost = await rewriteContentStage(savedPost)
+        await postToWordpressStage(
+          rewrittenPost,
+          process.env.WORDPRESS_URL,
+          process.env.WORDPRESS_USERNAME,
+          process.env.WORDPRESS_PASSWORD
+        )
+        postedQuotas[catKey]++
+        console.log('[Quota Progress]', postedQuotas)
+        console.log(`[Main] Finished processing post: ${post.title}`)
+        postPublished = true
+        break // Only publish one post per run
       }
     }
 
-    if (postToProcess) {
+    if (!postPublished) {
       console.log(
-        `[Main] Processing post: ${postToProcess.title} (${postToProcess.url})`
-      )
-      // Stage 1: Scrape and save raw post for this URL
-      const savedPost = await scrapeAndSaveRaw(
-        [postToProcess],
-        page,
-        site,
-        process.env.WORDPRESS_URL,
-        process.env.WORDPRESS_USERNAME,
-        process.env.WORDPRESS_PASSWORD
-      )
-      // Stage 2: Rewrite the raw post (pass the post or its ID)
-      const rewrittenPost = await rewriteContentStage(savedPost)
-      // Stage 3: Publish the rewritten post (pass the post or its ID)
-      await postToWordpressStage(
-        rewrittenPost,
-        process.env.WORDPRESS_URL,
-        process.env.WORDPRESS_USERNAME,
-        process.env.WORDPRESS_PASSWORD
-      )
-      console.log(`[Main] Finished processing post: ${postToProcess.title}`)
-    } else {
-      console.log(
-        `[Main] All posts for this URL have already been processed. Marking URL as scraped.`
+        `[Main] All posts for this URL have already been processed or quota met. Marking URL as scraped.`
       )
       await ScrapeStatus.create({ url, siteVar })
     }
+
+    // if (postToProcess) {
+    //   console.log(
+    //     `[Main] Processing post: ${postToProcess.title} (${postToProcess.url})`
+    //   )
+    //   // Stage 1: Scrape and save raw post for this URL
+    //   const savedPost = await scrapeAndSaveRaw(
+    //     [postToProcess],
+    //     page,
+    //     site,
+    //     process.env.WORDPRESS_URL,
+    //     process.env.WORDPRESS_USERNAME,
+    //     process.env.WORDPRESS_PASSWORD
+    //   )
+    //   // Stage 2: Rewrite the raw post (pass the post or its ID)
+    //   const rewrittenPost = await rewriteContentStage(savedPost)
+    //   // Stage 3: Publish the rewritten post (pass the post or its ID)
+    //   await postToWordpressStage(
+    //     rewrittenPost,
+    //     process.env.WORDPRESS_URL,
+    //     process.env.WORDPRESS_USERNAME,
+    //     process.env.WORDPRESS_PASSWORD
+    //   )
+    //   console.log(`[Main] Finished processing post: ${postToProcess.title}`)
+    // } else {
+    //   console.log(
+    //     `[Main] All posts for this URL have already been processed. Marking URL as scraped.`
+    //   )
+    //   await ScrapeStatus.create({ url, siteVar })
+    // }
 
     // Check if all URLs for this site have been scraped
     const allSiteUrls = site.siteUrl
@@ -167,7 +250,7 @@ async function main() {
     }
 
     postListings = null
-    postToProcess = null
+    // postToProcess = null
 
     console.log('[Main] Memory usage after scrape:', process.memoryUsage())
   } catch (err) {
