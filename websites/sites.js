@@ -1003,8 +1003,8 @@ const bestsellingcarsblog = {
   },
 };
 
-//const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, premiumtimesng, brila, brilaOther, healthza, theguardian, motorverso, girlracer, bestsellingcarsblog];
-const siteNames = [bestsellingcarsblog];
+const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, premiumtimesng, brila, brilaOther, healthza, theguardian, motorverso, girlracer, bestsellingcarsblog];
+//const siteNames = [bestsellingcarsblog];
 
 
 export default siteNames;
