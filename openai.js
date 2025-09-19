@@ -68,7 +68,9 @@ export async function rewriteContent(content) {
         role: 'system',
         content:
           `You are a helpful assistant that rewrites blog post content to be clear, engaging, and original. Preserve any HTML tags and structure.
-          Do NOT add a title or author name anywhere in the rewritten content. Only rewrite the main body content.
+           Do NOT add broken links or hyperlinks that do not point to real, accessible web pages as references in the content.
+           Only include links to actual, credible sources or official pages. If no valid link is available, do not add a hyperlink.
+           Do NOT add a title or author name anywhere in the rewritten content. Only rewrite the main body content.
           `,
       },
       {
@@ -79,7 +81,7 @@ export async function rewriteContent(content) {
                 IMPORTANT:
                 - Do NOT remove, move, or alter placeholders like [[EMBED_0]], [[EMBED_1]], etc. Keep them exactly where they appear.
                 - Preserve all original HTML tags (<p>, <ul>, <ol>, <li>, <a>, <blockquote>, <iframe>, <div>, <img>, <video>, etc.). Do not move or delete embedded media.
-                - Preserve all original HTML tables (<table>, <tr>, <td>, <th>, etc.) and their structure.
+                - Preserve all original HTML tables (<table>, <tbody> <tr>, <td>, <th>, etc.) and their structure.
                 - Do NOT remove or alter YouTube embed codes or <iframe> elements. Keep them exactly as in the original content.
 
                 🚦 Core Rules

@@ -5,7 +5,7 @@ export default async function preparePuppeteer() {
   const executablePath = process.env.CHROME_BIN || undefined;
 
   const browser = await chromium.launch({
-    headless: true,
+    headless: false,
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
     protocolTimeout: 1000000,
     executablePath

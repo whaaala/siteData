@@ -292,6 +292,7 @@ export async function scrapeAndSaveRaw(
   // Special handling for motorverso to set category to "Cars"
   if (
     postListings[listing].website.includes('motorverso') ||
+    postListings[listing].website.includes('bestsellingcarsblog') ||
     postListings[listing].website.includes('girlracer')
   ) {
     category = 'Cars'
@@ -849,6 +850,26 @@ export async function scrapeAndSaveRaw(
         $(el).replaceWith($(el).text()) // Remove the link, keep the text
       }
     })
+
+    return $.html()
+  })
+
+  postDetails = postDetails.map((htmlContent) => {
+    const $ = cheerio.load(htmlContent)
+
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('bestsellingcarsblog')
+    ) {
+      $('p')
+        .filter((_, el) => {
+          const text = $(el).text().toLowerCase()
+          return (
+            text.includes('previous month') || text.includes('one year ago')
+          )
+        })
+        .remove()
+    }
 
     return $.html()
   })
