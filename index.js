@@ -88,50 +88,39 @@ const dailypost = {
 
 const leadership = {
    siteUrl: [
-    "https://www.vanguardngr.com/category/more/metro/",
-    // "https://www.vanguardngr.com/category/politics/",
-    // "https://www.vanguardngr.com/category/business/",
-    // "https://www.vanguardngr.com/category/sports/",
-    // "https://www.vanguardngr.com/category/columns/",
-    // "https://www.premiumtimesng.com/category/entertainment/naija-fashion",
-    // "https://www.premiumtimesng.com/category/entertainment/nollywood",
-    // "https://www.premiumtimesng.com/category/entertainment/travels",
-    // "https://www.premiumtimesng.com/category/sports",
-    
+    "https://www.motortrend.com/auto-news",
   ],
   listings: {
-    mainContainerEl: ".section-archive-hero-main",
+    mainContainerEl: ".col-span-1",
     postHeadLineContainerEl: "",
-    postContainerEl: "[class*='section-archive-hero-']",
+    postContainerEl:".grid-flow-row",
   },
   titleEl: {
-    tag: ".entry-title a",
-    link: "",
+    tag: ".flex-col h2",
+    link: " ",
   },
   titleLinkEl: {
-    tag: ".entry-title a",
+    tag: ".block",
     source: "href",
   },
   imageEl: {
-    tag: "",
+    tag: " ",
     source: "",
     alt: "",
   },
    categoryEl: "",
   post: {
-    categoryEl: ".entry-excerpt-wrapper .entry-excerpt-tag",
-    authorEl: "",
-    datePostedEl: ".entry-excerpt-wrapper .entry-excerpt-date",
-    mainContainerEl: ".content-box-wrapper",
-    contentEl: ".entry-content-inner-wrapper",
+    categoryEl: "",
+    authorEl: ".inline-block a",
+    datePostedEl: ".transition-colors time",
+    mainContainerEl: ".col-span-1",
+    contentEl: ".flex-col:nth-child(2)",
     elToReFromPostEl: [
-      ".entry-content-inner-wrapper p:first-of-type",
-      ".ad-container",
-      "[id*='div-gpt-ad-']",
-      ".wp-block-dx-blocks-related-news",
+      ".hidden",
+      "[id*='ad-']",
     ],
     imageEl: {
-      tag: ".entry-content-wrapper .entry-thumbnail-wrapper img",
+      tag: ".object-cover",
       tag1: "",
       source: "src",
       source1: "data-lazy-src",
@@ -199,6 +188,12 @@ async function postListing(page, siteNames, siteName, url) {
         // Ensure url starts with a slash
         const path = url.startsWith('/') ? url : '/' + url
         url = 'https://www.theguardian.com' + path
+      }
+      // Ensure absolute URL for motortrend.com
+      if (website.includes('motortrend') && url && !/^https?:\/\//i.test(url)) {
+        // Ensure url starts with a slash
+        const path = url.startsWith('/') ? url : '/' + url
+        url = 'https://www.motortrend.com' + path
       }
 
       let category = ''

@@ -954,8 +954,57 @@ const girlracer = {
   },
 };
 
-//const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, premiumtimesng, brila, brilaOther, healthza, theguardian, motorverso, girlracer];
-const siteNames = [notJustOk];
+const bestsellingcarsblog = {
+  siteUrl: [
+    "https://bestsellingcarsblog.com/sales/",
+    "https://bestsellingcarsblog.com/chinese-market/",
+    "https://bestsellingcarsblog.com/explore/",
+  ],
+  listings: {
+    mainContainerEl: "#primary",
+    postHeadLineContainerEl: "",
+    postContainerEl: "#blog-entries",
+  },
+  titleEl: {
+    tag: ".entry-title a",
+    link: "",
+  },
+  titleLinkEl: {
+    tag: ".entry-title a",
+    source: "href",
+  },
+  imageEl: {
+    tag: "",
+    source: "",
+    alt: "",
+  },
+   categoryEl: "",
+  post: {
+    categoryEl: "",
+    authorEl: ".fn a",
+    datePostedEl: ".updated",
+    mainContainerEl: "article",
+    contentEl: ".single-blog-content",
+    elToReFromPostEl: [
+      "#single-blocks p:nth-child(1) img",
+      "#single-blocks p:nth-child(1) em",
+      ".wpex-social-share-wrap",
+      ".related-posts",
+      ".comments-area",
+      ".pmpro_card",
+    ],
+    imageEl: {
+      tag: "#single-blocks p:nth-child(1) img",
+      tag1: "",
+      source: "src",
+      source1: "data-lazy-src",
+      alt: "",
+    },
+  },
+};
+
+const siteNames = [dailypost, leadership, gistlover, notJustOk, naijanews, gistreel, guardian, punchng, healthwisePunchng, legit, pulse, thenewsguru, premiumtimesng, brila, brilaOther, healthza, theguardian, motorverso, girlracer, bestsellingcarsblog];
+//const siteNames = [bestsellingcarsblog];
 
 
 export default siteNames;

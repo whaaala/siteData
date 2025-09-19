@@ -340,6 +340,30 @@ export async function postToWordpressStage(
     }
   })
 
+  $('img').each((_, el) => {
+  const classAttr = $(el).attr('class') || '';
+  if (classAttr.includes('article-image')) {
+    let style = $(el).attr('style') || '';
+    // Remove any existing max-height property
+    style = style.replace(/max-height\s*:\s*[^;]+;?/i, '');
+    // Add max-height:35rem;
+    style = style.trim() + ' max-height:35rem;';
+    $(el).attr('style', style.trim());
+  }
+});
+
+  $('img').each((_, el) => {
+  const classAttr = $(el).attr('class') || '';
+  if (classAttr.includes('wp-image')) {
+    let style = $(el).attr('style') || '';
+    // Remove any existing max-height property
+    style = style.replace(/max-height\s*:\s*[^;]+;?/i, '');
+    // Add max-height:40rem;
+    style = style.trim() + ' max-height:35rem;';
+    $(el).attr('style', style.trim());
+  }
+});
+
   // Remove all <amp-video-iframe> elements
   $('amp-video-iframe').remove()
 
