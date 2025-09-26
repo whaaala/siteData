@@ -167,6 +167,29 @@ export async function postToWordpressStage(
   // Remove width from inline style of all <figure> elements
   let $ = load(contentWithEmbeds)
 
+    const socialSelectors = [
+    '.tiktok-embed',
+    '.twitter-tweet',
+    '.instagram-media',
+    '.fb-post',
+    '.fb-video',
+    '.youtube-player',
+    'iframe[src*="tiktok"]',
+    'iframe[src*="twitter"]',
+    'iframe[src*="instagram"]',
+    'iframe[src*="facebook"]',
+    'iframe[src*="youtube"]',
+  ]
+
+  socialSelectors.forEach((selector) => {
+    $(selector).each((_, el) => {
+      const parent = $(el).parent()
+      if (parent.is('p')) {
+        parent.attr('style', 'height: 47rem;')
+      }
+    })
+  })
+
   // Remove a <strong> element with content if it appears before the first <p>
   const rootChildren = $.root().children().toArray()
   let foundP = false
@@ -341,28 +364,28 @@ export async function postToWordpressStage(
   })
 
   $('img').each((_, el) => {
-  const classAttr = $(el).attr('class') || '';
-  if (classAttr.includes('article-image')) {
-    let style = $(el).attr('style') || '';
-    // Remove any existing max-height property
-    style = style.replace(/max-height\s*:\s*[^;]+;?/i, '');
-    // Add max-height:35rem;
-    style = style.trim() + ' max-height:35rem;';
-    $(el).attr('style', style.trim());
-  }
-});
+    const classAttr = $(el).attr('class') || ''
+    if (classAttr.includes('article-image')) {
+      let style = $(el).attr('style') || ''
+      // Remove any existing max-height property
+      style = style.replace(/max-height\s*:\s*[^;]+;?/i, '')
+      // Add max-height:35rem;
+      style = style.trim() + ' max-height:30rem;'
+      $(el).attr('style', style.trim())
+    }
+  })
 
   $('img').each((_, el) => {
-  const classAttr = $(el).attr('class') || '';
-  if (classAttr.includes('wp-image')) {
-    let style = $(el).attr('style') || '';
-    // Remove any existing max-height property
-    style = style.replace(/max-height\s*:\s*[^;]+;?/i, '');
-    // Add max-height:40rem;
-    style = style.trim() + ' max-height:35rem;';
-    $(el).attr('style', style.trim());
-  }
-});
+    const classAttr = $(el).attr('class') || ''
+    if (classAttr.includes('wp-image')) {
+      let style = $(el).attr('style') || ''
+      // Remove any existing max-height property
+      style = style.replace(/max-height\s*:\s*[^;]+;?/i, '')
+      // Add max-height:40rem;
+      style = style.trim() + ' max-height:30rem;'
+      $(el).attr('style', style.trim())
+    }
+  })
 
   // Remove all <amp-video-iframe> elements
   $('amp-video-iframe').remove()
@@ -393,24 +416,24 @@ export async function postToWordpressStage(
   })
 
   // For any <iframe> with id or src containing "twitter", set height: 23.5rem; width: 23rem !important;
-  $('iframe').each((_, el) => {
-    const id = ($(el).attr('id') || '').toLowerCase()
-    const src = ($(el).attr('src') || '').toLowerCase()
-    if (id.includes('twitter') || src.includes('twitter')) {
-      // Remove any existing height or width from the style attribute
-      let style = $(el).attr('style') || ''
-      style = style
-        .replace(/height\s*:\s*[^;]+;?/gi, '')
-        .replace(/width\s*:\s*[^;]+;?/gi, '')
-        .trim()
-      // Add the required styles (without !important, for better browser compatibility)
-      style = `${style} height: 23.5rem; width: 23rem;`.trim()
-      $(el).attr('style', style)
-      // Also set the HTML attributes for fallback
-      $(el).attr('height', '376') // 23.5rem ≈ 376px
-      $(el).attr('width', '368') // 23rem ≈ 368px
-    }
-  })
+  // $('iframe').each((_, el) => {
+  //   const id = ($(el).attr('id') || '').toLowerCase()
+  //   const src = ($(el).attr('src') || '').toLowerCase()
+  //   if (id.includes('twitter') || src.includes('twitter')) {
+  //     // Remove any existing height or width from the style attribute
+  //     let style = $(el).attr('style') || ''
+  //     style = style
+  //       .replace(/height\s*:\s*[^;]+;?/gi, '')
+  //       .replace(/width\s*:\s*[^;]+;?/gi, '')
+  //       .trim()
+  //     // Add the required styles (without !important, for better browser compatibility)
+  //     style = `${style} height: 23.5rem; width: 23rem;`.trim()
+  //     $(el).attr('style', style)
+  //     // Also set the HTML attributes for fallback
+  //     $(el).attr('height', '376') // 23.5rem ≈ 376px
+  //     $(el).attr('width', '368') // 23rem ≈ 368px
+  //   }
+  // })
 
   // Add inline style "height:30rem; width:50rem;" for any <video> inside a <figure> with class containing "wp-block-video"
   $('figure.wp-block-video video, figure[class*="wp-block-video"] video').each(
@@ -455,7 +478,7 @@ export async function postToWordpressStage(
     .youtube-player {
       display: block !important;
       margin: 0 auto !important;
-      max-width: 100%;
+      // max-width: 100%;
     }
   </style>
   ${contentWithEmbeds}
@@ -472,6 +495,8 @@ export async function postToWordpressStage(
       await post.save()
       return post
     }
+    // Log the content before saving
+    // console.log('[DEBUG] Full content to be saved:', finalContent);
 
     const wpResult = await postToWordpress(
       {

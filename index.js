@@ -87,44 +87,48 @@ const dailypost = {
 }
 
 const leadership = {
-   siteUrl: [
-    "https://www.motortrend.com/auto-news",
-  ],
+  siteUrl: ['https://www.yabaleftonline.ng/viral/'],
   listings: {
-    mainContainerEl: ".col-span-1",
-    postHeadLineContainerEl: "",
-    postContainerEl:".grid-flow-row",
+    mainContainerEl: '.td-main-content',
+    postHeadLineContainerEl: '',
+    postContainerEl: '.td-block-span4',
   },
   titleEl: {
-    tag: ".flex-col h2",
-    link: " ",
+    tag: '.td-module-title a',
+    link: ' ',
   },
   titleLinkEl: {
-    tag: ".block",
-    source: "href",
+    tag: '.td-module-title a',
+    source: 'href',
   },
   imageEl: {
-    tag: " ",
-    source: "",
-    alt: "",
+    tag: ' ',
+    source: '',
+    alt: '',
   },
-   categoryEl: "",
+  categoryEl: '.td-bred-no-url-last',
   post: {
-    categoryEl: "",
-    authorEl: ".inline-block a",
-    datePostedEl: ".transition-colors time",
-    mainContainerEl: ".col-span-1",
-    contentEl: ".flex-col:nth-child(2)",
+    categoryEl: '',
+    authorEl: '.meta-info .td-post-author-name a',
+    datePostedEl: '.meta-info .td-post-date time',
+    mainContainerEl: '.td-ss-main-content',
+    contentEl: '.td-post-content',
     elToReFromPostEl: [
-      ".hidden",
+      '.td-g-rec',
+      '.google-auto-placed',
+      '.sharedaddy',
       "[id*='ad-']",
     ],
+    titleEl: {
+      tag: '.entry-title',
+      link: ' ',
+    },
     imageEl: {
-      tag: ".object-cover",
-      tag1: "",
-      source: "src",
-      source1: "data-lazy-src",
-      alt: "",
+      tag: '.td-post-featured-image img',
+      tag1: '',
+      source: 'src',
+      source1: 'srcset',
+      alt: '',
     },
   },
 }
@@ -153,8 +157,6 @@ async function postListing(page, siteNames, siteName, url) {
     .find(siteNames[siteName].listings.postContainerEl)
     .children()
     .map((index, content) => {
-
-      
       // Extract the title
       const title = getElementContent(
         $,
@@ -184,7 +186,11 @@ async function postListing(page, siteNames, siteName, url) {
         url = 'https://www.pulse.ng' + path
       }
       // Ensure absolute URL for theguardian
-      if (website.includes('theguardian') && url && !/^https?:\/\//i.test(url)) {
+      if (
+        website.includes('theguardian') &&
+        url &&
+        !/^https?:\/\//i.test(url)
+      ) {
         // Ensure url starts with a slash
         const path = url.startsWith('/') ? url : '/' + url
         url = 'https://www.theguardian.com' + path
@@ -203,7 +209,7 @@ async function postListing(page, siteNames, siteName, url) {
       ) {
         category = getContent($, siteNames[siteName].categoryEl)
       }
-  
+
       let imageLink = ''
       if (website.includes('healthwise')) {
         imageLink = getElementAttributeValue(
@@ -296,6 +302,23 @@ async function getPostCotent(postListings, page, postEls) {
     // Load the HTML into cheerio
     const $ = cheerio.load(html)
 
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('yabaleftonline') &&
+      typeof postListings[listing].title === 'string' &&
+      postListings[listing].title.trim().endsWith('...')
+    ) {
+      // Try to extract the full title from the content page
+      // Adjust selector as needed for the actual title element
+      const fullTitle = $(postEls.post.titleEl?.tag || '.td-post-title')
+        .first()
+        .text()
+        .trim()
+      if (fullTitle && fullTitle.length > postListings[listing].title.length) {
+        postListings[listing].title = fullTitle
+      }
+    }
+
     // Remove all <strong> elements from the content
     $(postEls.post.mainContainerEl).find('strong').remove()
 
@@ -367,6 +390,21 @@ async function getPostCotent(postListings, page, postEls) {
         })
     }
 
+    // Inside getPostCotent, after loading HTML with Cheerio and before extracting postDetails:
+    if (
+      postListings[listing].website &&
+      postListings[listing].website.includes('yabaleftonline')
+    ) {
+      $(postEls.post.contentEl)
+        .find('img[src$=".gif"]')
+        .each(function () {
+          const dataSrc = $(this).attr('data-src')
+          if (dataSrc) {
+            $(this).attr('src', dataSrc)
+          }
+        })
+    }
+
     // console.log(siteNames[siteName].post);
 
     //  console.log(postEls.post.datePostedEl);
@@ -401,9 +439,9 @@ async function getPostCotent(postListings, page, postEls) {
       }
     }
 
-     if (postListings[listing].website.includes('theguardian')) {
+    if (postListings[listing].website.includes('theguardian')) {
       category = 'Recipes'
-     }
+    }
     // const category = getContent($, postEls.post.categoryEl);
     let imageLink = getAttribute(
       $,
@@ -509,7 +547,7 @@ async function main() {
   for (const siteName in siteNames) {
     for (let url = 0; url < siteNames[siteName].siteUrl.length; url++) {
       // Prepare Puppeteer and get a new page instance
-     const { browser, page } = await preparePuppeteer()
+      const { browser, page } = await preparePuppeteer()
 
       // Call the postListing function with the page, siteNames, siteName, and url
       const postListings = await postListing(page, siteNames, siteName, url)

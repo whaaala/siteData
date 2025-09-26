@@ -1,10 +1,10 @@
 const CATEGORY_PERCENTAGES = {
-  news: 0.3,
-  entertainment: 0.22,
+  news: 0.15,
+  entertainment: 0.30,
   sport: 0.13,
   health: 0.07,
   lifestyle: 0.08,
-  gist: 0.2,
+  gist: 0.27,
 }
 
 // Categories to redistribute unused quotas to
