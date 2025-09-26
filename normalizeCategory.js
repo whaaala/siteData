@@ -102,6 +102,7 @@ export function normalizeCategory(rawCategory) {
     cat === 'features' ||
     cat === 'punch lite' ||
     cat === 'people' ||
+    cat === 'viral' ||
     cat === 'celebrity biographies' ||
     cat === 'viral gist'
 ) {

@@ -275,5 +275,46 @@ export async function rehostAllImagesInContent(html, wordpressUrl, username, pas
       }
     }
   }
+
+const noscriptTags = $('noscript').toArray();
+for (let i = 0; i < noscriptTags.length; i++) {
+  const $el = $(noscriptTags[i]);
+  const innerHtml = $el.html();
+  if (innerHtml) {
+    const $inner = cheerio.load(innerHtml);
+    const img = $inner('img');
+    if (img.length) {
+      const src = img.attr('src');
+      if (src && /^https?:\/\//.test(src)) {
+        try {
+          const newMediaId = await uploadImageToWordpress(src, wordpressUrl, username, password);
+          if (newMediaId) {
+            const mediaRes = await fetch(`${wordpressUrl}/wp-json/wp/v2/media/${newMediaId}`, {
+              headers: {
+                Authorization: 'Basic ' + Buffer.from(username + ':' + password).toString('base64'),
+                'Content-Type': 'application/json',
+              },
+            });
+            if (mediaRes.ok) {
+              const mediaData = await mediaRes.json();
+              img.attr('src', mediaData.source_url);
+              // Replace the <noscript> content with the updated HTML
+              $el.html($inner.html());
+            } else {
+              $el.remove();
+              console.warn('[rehostAllImagesInContent] Failed to fetch media data for <noscript>:', src);
+            }
+          } else {
+            $el.remove();
+            console.warn('[rehostAllImagesInContent] Failed to upload <noscript> image:', src);
+          }
+        } catch (err) {
+          $el.remove();
+          console.warn('[rehostAllImagesInContent] Failed to rehost <noscript> image:', src, err.message);
+        }
+      }
+    }
+  }
+}
   return $.html()
 }

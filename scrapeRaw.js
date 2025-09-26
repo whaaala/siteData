@@ -59,6 +59,24 @@ export async function scrapeAndSaveRaw(
   // Load the HTML into cheerio
   const $ = cheerio.load(html)
 
+  // Special handling for yabaleftonline truncated titles
+  if (
+    postListings[listing].website &&
+    postListings[listing].website.includes('yabaleftonline') &&
+    typeof postListings[listing].title === 'string' &&
+    postListings[listing].title.trim().endsWith('...')
+  ) {
+    // Try to extract the full title from the content page
+    // Adjust selector as needed for the actual title element
+    const fullTitle = $(postEls.post.titleEl?.tag || '.td-post-title')
+      .first()
+      .text()
+      .trim()
+    if (fullTitle && fullTitle.length > postListings[listing].title.length) {
+      postListings[listing].title = fullTitle
+    }
+  }
+
   // Determine if the site is pulse or brila for special handling
   const isPulse =
     postListings[listing].website &&
@@ -570,6 +588,21 @@ export async function scrapeAndSaveRaw(
     replaceSiteNamesOutsideTags(htmlContent)
   )
 
+  // Inside getPostCotent, after loading HTML with Cheerio and before extracting postDetails:
+  if (
+    postListings[listing].website &&
+    postListings[listing].website.includes('yabaleftonline')
+  ) {
+    $(postEls.post.contentEl)
+      .find('img[src$=".gif"]')
+      .each(function () {
+        const dataSrc = $(this).attr('data-src')
+        if (dataSrc) {
+          $(this).attr('src', dataSrc)
+        }
+      })
+  }
+
   // After extracting postDetails but before rewriting:
   postDetails = postDetails.map((htmlContent) =>
     htmlContent
@@ -876,6 +909,9 @@ export async function scrapeAndSaveRaw(
 
   // After all cleaning:
   const fullContent = postDetails.join('\n')
+
+  // Log the content before saving
+  // console.log('[DEBUG] Full content to be saved:', fullContent)
 
   const savedPost = await Post.create({
     url,
