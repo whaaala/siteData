@@ -22,7 +22,21 @@ const postSchema = new mongoose.Schema({
   excerpt: String,
   wpPostId: Number,
   wpPostUrl: String,
-  wpFeaturedMediaId: Number
+  wpFeaturedMediaId: Number,
+  fbPostId: String,
+  fbPostUrl: String,
+  // Facebook moderation tracking
+  fbModerationStatus: {
+    type: String,
+    enum: ['pending', 'approved', 'blocked', 'posted', 'failed_to_post', 'skipped_pattern_match', 'error'],
+    default: 'pending'
+  },
+  fbModerationReason: String,
+  fbModerationFlags: mongoose.Schema.Types.Mixed,
+  fbModerationDate: {
+    type: Date,
+    default: Date.now
+  }
 });
 
 export const Post = mongoose.model('Post', postSchema);

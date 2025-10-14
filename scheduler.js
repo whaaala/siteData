@@ -49,8 +49,8 @@ async function startScheduler() {
           console.log('[Scheduler] Garbage collection not exposed. Start node with --expose-gc');
         }
 
-        console.log('[Scheduler] Waiting 5 minutes before next run...');
-        await new Promise((res) => setTimeout(res, 5 * 60 * 1000)); // 5 minutes
+        console.log('[Scheduler] Waiting 8 minutes before next run...');
+        await new Promise((res) => setTimeout(res, 8 * 60 * 1000)); // 8 minutes
 
         // Optionally, force garbage collection again after wait
         if (global.gc) {

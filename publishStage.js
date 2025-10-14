@@ -16,6 +16,43 @@ import {
   embedTikTokLinks,
 } from './utils.js'
 import { wpCategoryMap, getRandomAuthorId } from './categoryMap.js'
+import { postPhotoToFacebook } from './facebook.js'
+import {
+  isContentSafeForFacebook,
+  getModerationExplanation,
+  shouldSkipFacebookPosting
+} from './contentModeration.js'
+
+/**
+ * Format Facebook post message: Link → Excerpt → Image (below)
+ * @param {string} title - Post title (not used)
+ * @param {string} excerpt - Post excerpt
+ * @param {string} wordpressUrl - WordPress post URL
+ * @returns {string} Formatted Facebook message
+ */
+function formatFacebookPostMessage(title, excerpt, wordpressUrl) {
+  let message = ''
+
+  // 1. Add WordPress link first (at the top)
+  message += `🔗 ${wordpressUrl}\n\n`
+
+  // 2. Add excerpt below the link
+  if (excerpt && excerpt.trim()) {
+    // Clean excerpt (remove HTML tags if any)
+    let cleanExcerpt = excerpt.replace(/<[^>]*>/g, '').trim()
+
+    // Limit excerpt to ~250 characters for optimal readability
+    // Keep it concise to avoid "See more" truncation
+    if (cleanExcerpt.length > 250) {
+      cleanExcerpt = cleanExcerpt.substring(0, 247) + '...'
+    }
+
+    message += cleanExcerpt
+  }
+
+  // 3. Image will appear below this caption automatically
+  return message
+}
 
 export async function postToWordpressStage(
   postOrId,
@@ -126,6 +163,12 @@ export async function postToWordpressStage(
     : [defaultCategoryId]
   const wpAuthorId = getRandomAuthorId(category)
   const excerpt = getExcerpt(post.rewrittenDetails, 30)
+
+  // Save excerpt to post object for Facebook posting later
+  if (!post.excerpt) {
+    post.excerpt = excerpt
+    await post.save()
+  }
 
   // Special handling for Ghana sites
   let finalTitle = post.rewrittenTitle
@@ -521,6 +564,78 @@ export async function postToWordpressStage(
       console.log(
         `[WordPress Stage] Successfully posted "${post.rewrittenTitle}" (ID: ${postId}) to WordPress: ${wpResult.link}`
       )
+
+      // Post to Facebook after successful WordPress publish
+      try {
+        // First, check if content is safe for Facebook
+        console.log('[Facebook Stage] Checking content safety for Facebook...')
+
+        // Quick pre-check: Skip certain patterns automatically
+        if (shouldSkipFacebookPosting(post)) {
+          post.fbModerationStatus = 'skipped_pattern_match'
+          post.fbModerationReason = 'Post URL or source matches skip pattern'
+          await post.save()
+          console.log(
+            `[Facebook Stage] ⏭️ Skipping Facebook post - matched skip pattern`
+          )
+        } else {
+          // Perform AI moderation check
+          const moderationResult = await isContentSafeForFacebook(post)
+          const explanation = getModerationExplanation(moderationResult)
+
+          // Save moderation result to database
+          post.fbModerationStatus = moderationResult.isSafe ? 'approved' : 'blocked'
+          post.fbModerationReason = explanation
+          post.fbModerationFlags = moderationResult.moderationFlags
+
+          if (moderationResult.isSafe) {
+            // Content is safe, proceed with posting
+            // Format Facebook post with title, excerpt, and WordPress URL
+            const fbMessage = formatFacebookPostMessage(
+              post.rewrittenTitle,
+              post.excerpt,
+              wpResult.link
+            )
+
+            const fbResult = await postPhotoToFacebook({
+              imageUrl: post.imageLink,
+              message: fbMessage,
+              link: wpResult.link,
+            })
+
+            if (fbResult && fbResult.success) {
+              post.fbPostId = fbResult.postId
+              post.fbModerationStatus = 'posted'
+              await post.save()
+              console.log(
+                `[Facebook Stage] ✅ Successfully posted to Facebook. Post ID: ${fbResult.postId}`
+              )
+            } else {
+              post.fbModerationStatus = 'failed_to_post'
+              await post.save()
+              console.log(
+                `[Facebook Stage] ❌ Failed to post "${post.rewrittenTitle}" to Facebook (non-critical, continuing...)`
+              )
+            }
+          } else {
+            // Content blocked by moderation
+            await post.save()
+            console.log(
+              `[Facebook Stage] 🚫 Post blocked from Facebook: ${explanation}`
+            )
+          }
+        }
+      } catch (fbError) {
+        console.error(
+          `[Facebook Stage] Error in Facebook posting flow (non-critical):`,
+          fbError.message
+        )
+        // Save error to database
+        post.fbModerationStatus = 'error'
+        post.fbModerationReason = fbError.message
+        await post.save()
+        // Don't fail the entire process if Facebook posting fails
+      }
     } else {
       console.log(
         `[WordPress Stage] Failed to post "${post.rewrittenTitle}" (ID: ${postId}) to WordPress.`
