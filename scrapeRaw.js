@@ -34,7 +34,21 @@ export async function scrapeAndSaveRaw(
 
   // Go to the post URL
   console.log(`[Scrape Stage] Navigating to post URL: ${url}`)
-  await page.goto(url)
+
+  try {
+    await page.goto(url, {
+      waitUntil: 'domcontentloaded',
+      timeout: 30000 // 30 seconds timeout
+    })
+    console.log(`[Scrape Stage] Successfully loaded: ${url}`)
+  } catch (navError) {
+    console.error(`[Scrape Stage] ❌ Failed to load page: ${url}`)
+    console.error(`[Scrape Stage] Error: ${navError.message}`)
+    console.log(`[Scrape Stage] Skipping this post and moving to next...`)
+
+    // Return null to signal that this post should be skipped
+    return null
+  }
 
   // Wait for the main image to be visible before extracting
   if (postEls.post.imageEl.tag) {
