@@ -33,7 +33,24 @@ const postSchema = new mongoose.Schema({
   },
   fbModerationReason: String,
   fbModerationFlags: mongoose.Schema.Types.Mixed,
+  fbImageAnalysis: mongoose.Schema.Types.Mixed, // Store image analysis results
   fbModerationDate: {
+    type: Date,
+    default: Date.now
+  },
+  // Instagram posting tracking
+  igPostId: String, // Instagram feed post ID
+  igPostUrl: String,
+  igStoryId: String, // Instagram story ID (24-hour story with clickable link)
+  igModerationStatus: {
+    type: String,
+    enum: ['pending', 'approved', 'blocked', 'posted', 'failed_to_post', 'skipped_pattern_match', 'error'],
+    default: 'pending'
+  },
+  igModerationReason: String,
+  igModerationFlags: mongoose.Schema.Types.Mixed,
+  igImageAnalysis: mongoose.Schema.Types.Mixed,
+  igModerationDate: {
     type: Date,
     default: Date.now
   }

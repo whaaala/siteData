@@ -9,33 +9,154 @@ import { rewriteContentStage } from './rewriteStage.js'
 import { postToWordpressStage } from './publishStage.js'
 import { loadLastVisit, saveLastVisit } from './scraperUtils.js'
 import { Post } from './db.js'
+import {
+  getCategoryPriorities,
+  getWeightedRandomCategory,
+  logCategoryStatus
+} from './dailyCategoryTracker.js'
+import { normalizeCategory } from './normalizeCategory.js'
 dotenv.config()
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-async function findRandomToScrape() {
+/**
+ * Guess which category a URL will likely produce
+ * Based on URL path and site configuration
+ */
+function guessUrlCategory(url, site) {
+  // Validate URL is a string
+  if (!url || typeof url !== 'string') {
+    return null
+  }
+
+  const urlLower = url.toLowerCase()
+
+  // Check URL path for category hints
+  if (urlLower.includes('/sport') || urlLower.includes('/football') || urlLower.includes('/basketball')) {
+    return 'Sports'
+  }
+  if (urlLower.includes('/entertainment') || urlLower.includes('/music') || urlLower.includes('/celebrities')) {
+    return 'Entertainment'
+  }
+  if (urlLower.includes('/news') || urlLower.includes('/politics') || urlLower.includes('/business')) {
+    return 'News'
+  }
+  if (urlLower.includes('/gist') || urlLower.includes('/gossip') || urlLower.includes('/viral')) {
+    return 'Gists'
+  }
+  if (urlLower.includes('/food') || urlLower.includes('/recipe') || urlLower.includes('/cooking')) {
+    return 'FoodAndDrink'
+  }
+  if (urlLower.includes('/car') || urlLower.includes('/auto') || urlLower.includes('/vehicle')) {
+    return 'Cars'
+  }
+  if (urlLower.includes('/health') || urlLower.includes('/fitness') || urlLower.includes('/wellness')) {
+    return 'HealthAndFitness'
+  }
+  if (urlLower.includes('/lifestyle') || urlLower.includes('/fashion') || urlLower.includes('/beauty')) {
+    return 'Lifestyle'
+  }
+
+  // Check site domain for hints
+  const domain = url.match(/https?:\/\/([^\/]+)/)?.[1] || ''
+
+  if (domain.includes('notjustok') || domain.includes('bellanaija')) {
+    return 'Entertainment'
+  }
+  if (domain.includes('yabaleft') || domain.includes('lindaikeji')) {
+    return 'Gists'
+  }
+  if (domain.includes('brila') || domain.includes('completesports')) {
+    return 'Sports'
+  }
+  if (domain.includes('food') || domain.includes('recipe') || domain.includes('allrecipes')) {
+    return 'FoodAndDrink'
+  }
+  if (domain.includes('motor') || domain.includes('car') || domain.includes('girlracer')) {
+    return 'Cars'
+  }
+  if (domain.includes('health') || domain.includes('fitness') || domain.includes('womenshealth')) {
+    return 'HealthAndFitness'
+  }
+
+  // Default guess based on site type
+  if (domain.includes('punch') || domain.includes('guardian') || domain.includes('tribune')) {
+    return 'News'
+  }
+
+  // Unknown - return null to indicate no strong signal
+  return null
+}
+
+/**
+ * Find next URL to scrape with category-weighted selection
+ * Prioritizes URLs that will help meet category distribution targets
+ */
+async function findWeightedToScrape() {
+  // Get all unscraped URLs
   const unscraped = []
   for (const siteVar of Object.keys(siteNames)) {
     const site = siteNames[siteVar]
+
+    // Validate site has siteUrl array
+    if (!site.siteUrl || !Array.isArray(site.siteUrl)) {
+      console.warn(`[Weighted Selection] Site "${siteVar}" has no valid siteUrl array, skipping`)
+      continue
+    }
+
     for (let urlIdx = 0; urlIdx < site.siteUrl.length; urlIdx++) {
       const url = site.siteUrl[urlIdx]
+
+      // Skip invalid URLs
+      if (!url || typeof url !== 'string') {
+        console.warn(`[Weighted Selection] Invalid URL at ${siteVar}[${urlIdx}], skipping`)
+        continue
+      }
+
       const alreadyScraped = await ScrapeStatus.findOne({ url })
       if (!alreadyScraped) {
-        unscraped.push({ siteVar, urlIdx, url })
+        const guessedCategory = guessUrlCategory(url, site)
+        unscraped.push({ siteVar, urlIdx, url, guessedCategory })
       }
     }
   }
+
   if (unscraped.length === 0) return null
+
+  // Get most needed category
+  const neededCategory = await getWeightedRandomCategory()
+
+  if (!neededCategory) {
+    // All targets met, pick randomly
+    const randomIdx = Math.floor(Math.random() * unscraped.length)
+    return unscraped[randomIdx]
+  }
+
+  // Filter URLs that match needed category
+  const matchingUrls = unscraped.filter(item => item.guessedCategory === neededCategory)
+
+  if (matchingUrls.length > 0) {
+    // Pick randomly from matching URLs
+    const randomIdx = Math.floor(Math.random() * matchingUrls.length)
+    console.log(`[Weighted Selection] 🎯 Targeting "${neededCategory}" content (${matchingUrls.length} matching URLs)`)
+    return matchingUrls[randomIdx]
+  }
+
+  // No exact matches, pick from all unscraped
   const randomIdx = Math.floor(Math.random() * unscraped.length)
+  console.log(`[Weighted Selection] ⚠️ No URLs found for "${neededCategory}", selecting randomly`)
   return unscraped[randomIdx]
 }
 
 async function main() {
   await mongoose.connect(process.env.MONGO_URI)
 
-  const nextToScrape = await findRandomToScrape()
+  // Log category distribution status
+  await logCategoryStatus()
+
+  const nextToScrape = await findWeightedToScrape()
 
   if (!nextToScrape) {
     console.log(
@@ -76,6 +197,8 @@ async function main() {
 
     let postListings = await postListing(page, siteNames, siteVar, urlIdx)
     console.log(`[Main] Found ${postListings.length} post(s) on this page.`)
+
+    // If we got here without error, we can proceed with filtering
 
     postListings = postListings.filter((post) => {
       const dateStr = post.dateRetrieved || post.timePosted
@@ -172,6 +295,12 @@ async function main() {
     console.log('[Main] Memory usage after scrape:', process.memoryUsage())
   } catch (err) {
     console.error(`[Main] Error scraping ${url}:`, err)
+
+    // If there's a critical error (like invalid site config), mark URL as scraped to skip it
+    if (err.message && err.message.includes('[postListing]')) {
+      console.error(`[Main] Critical configuration error. Marking URL as scraped to skip it.`)
+      await ScrapeStatus.create({ url, siteVar })
+    }
   } finally {
     await page.close()
     await browser.close()

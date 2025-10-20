@@ -44,11 +44,30 @@ function writeArrayToFile(array, filename) {
 
 // Function to fetch post listings from a site
 export default async function postListing(page, siteNames, siteName, url) {
+  // Validate that the site and URL index exist
+  if (!siteNames[siteName]) {
+    throw new Error(`[postListing] Invalid siteName: ${siteName}`)
+  }
+
+  if (!siteNames[siteName].siteUrl || !Array.isArray(siteNames[siteName].siteUrl)) {
+    throw new Error(`[postListing] siteUrl is not an array for site: ${siteName}`)
+  }
+
+  if (!siteNames[siteName].siteUrl[url]) {
+    throw new Error(`[postListing] URL index ${url} does not exist for site: ${siteName}. Available URLs: ${siteNames[siteName].siteUrl.length}`)
+  }
+
+  const targetUrl = siteNames[siteName].siteUrl[url]
+
+  if (typeof targetUrl !== 'string') {
+    throw new Error(`[postListing] URL at index ${url} is not a string for site: ${siteName}. Type: ${typeof targetUrl}`)
+  }
+
   //Get the website name from the siteNames array
-  const website = siteNames[siteName].siteUrl[url].split('/')[2]
+  const website = targetUrl.split('/')[2]
 
   //Go to the URL the siteName is pointing to
-  await page.goto(siteNames[siteName].siteUrl[url])
+  await page.goto(targetUrl)
 
   // Wait for the main container to load
   const html = await page.content()

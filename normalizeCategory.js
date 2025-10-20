@@ -68,6 +68,15 @@ export function normalizeCategory(rawCategory) {
   ) {
     return 'Sports';
   } else if (
+    cat === 'cars' ||
+    cat === 'motoring' ||
+    cat === 'automotive' ||
+    cat === 'vehicles' ||
+    cat === 'auto' ||
+    cat === 'car news'
+  ) {
+    return 'Cars';
+  } else if (
     cat === 'relationships' ||
     cat === 'wedding' ||
     cat === 'people' ||
@@ -84,13 +93,11 @@ export function normalizeCategory(rawCategory) {
     cat === 'career & money' ||
     cat === 'gear-tech' ||
     cat === 'lifestyle' ||
-    cat === 'motoring' ||
     cat === 'travel' ||
     cat === 'gifts' ||
     cat === 'life' ||
     cat === 'grooming' ||
     cat === 'fashion' ||
-    cat === 'cars' ||
     cat === 'scoop'
   ) {
     return 'Lifestyle';
