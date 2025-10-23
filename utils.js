@@ -150,6 +150,7 @@ export function extractImageUrlFromMultipleSelectors(
  * Downloads an image from a URL and returns a buffer and filename with the correct extension.
  * If the image is already .jpg, .jpeg, or .png, keep the original extension.
  * Otherwise, convert to .jpg.
+ * Includes quality checks and optimization for clean, clear images.
  * @param {string} imageUrl - The image URL (with or without query params).
  * @param {string} [filename] - Optional filename (without extension).
  * @returns {Promise<{buffer: Buffer, filename: string, ext: string}>}
@@ -177,17 +178,61 @@ export async function downloadImageAsJpgOrPngForUpload(imageUrl, filename) {
   }
   const finalFilename = filename + ext
 
-  // Convert to buffer using sharp, but keep original format if already jpg/jpeg/png
+  // Convert to buffer and process with Sharp for quality
   const inputBuffer = Buffer.from(await res.arrayBuffer())
+
+  // Load image with Sharp to check dimensions and quality
+  let image = sharp(inputBuffer)
+  const metadata = await image.metadata()
+
+  // Image quality validation
+  const MIN_WIDTH = 400
+  const MIN_HEIGHT = 300
+
+  if (metadata.width < MIN_WIDTH || metadata.height < MIN_HEIGHT) {
+    console.warn(
+      `[Image Quality] Image too small (${metadata.width}x${metadata.height}). ` +
+      `Minimum: ${MIN_WIDTH}x${MIN_HEIGHT}. URL: ${imageUrl}`
+    )
+    // Don't throw error, but log warning - allow post to continue
+  }
+
+  // Process and optimize image
   let outputBuffer
-  if (ext === '.jpg' || ext === '.jpeg' || ext === '.png') {
-    // Use the original buffer, no conversion
-    outputBuffer = inputBuffer
+
+  if (ext === '.png') {
+    // Optimize PNG: remove metadata, compress
+    outputBuffer = await sharp(inputBuffer)
+      .png({
+        quality: 90,
+        compressionLevel: 9,
+        adaptiveFiltering: true
+      })
+      .withMetadata(false) // Remove EXIF/metadata
+      .toBuffer()
   } else {
-    // Convert to jpeg if unknown
-    outputBuffer = await sharp(inputBuffer).jpeg().toBuffer()
+    // Process as JPEG with optimization
+    // Auto-enhance: normalize, sharpen slightly
+    outputBuffer = await sharp(inputBuffer)
+      .jpeg({
+        quality: 85,
+        progressive: true,
+        mozjpeg: true // Better compression
+      })
+      .normalize() // Auto-adjust brightness/contrast
+      .sharpen({ sigma: 0.5 }) // Subtle sharpening for clarity
+      .withMetadata(false) // Remove EXIF/metadata for privacy and smaller file size
+      .toBuffer()
+
     ext = '.jpg'
   }
+
+  // Check output file size
+  const fileSizeKB = outputBuffer.length / 1024
+  console.log(
+    `[Image Processing] ${finalFilename}: ${metadata.width}x${metadata.height}, ` +
+    `${Math.round(fileSizeKB)}KB`
+  )
 
   return { buffer: outputBuffer, filename: finalFilename, ext }
 }

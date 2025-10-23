@@ -24,6 +24,7 @@ import {
   getModerationExplanation,
   shouldSkipFacebookPosting
 } from './contentModeration.js'
+import { prepareImageForInstagram, uploadInstagramImageToWordPress } from './instagramImageUtils.js'
 
 /**
  * Format Facebook post message: Excerpt → Link → Image (below)
@@ -674,8 +675,46 @@ export async function postToWordpressStage(
           }
           igCaption += `🔗 ${wpResult.link}`
 
+          // Prepare image for Instagram (validate aspect ratio and resize if needed)
+          console.log('[Instagram Stage] Preparing image for Instagram...')
+          let instagramImageUrl = post.imageLink
+
+          try {
+            const preparedImage = await prepareImageForInstagram(post.imageLink)
+
+            if (preparedImage.wasResized) {
+              console.log(
+                `[Instagram Stage] Image resized for Instagram compatibility ` +
+                `(${preparedImage.width}x${preparedImage.height}, ratio: ${preparedImage.aspectRatio.toFixed(2)})`
+              )
+
+              // Upload the Instagram-optimized image to WordPress
+              const originalFilename = post.imageLink.split('/').pop().split('?')[0]
+              instagramImageUrl = await uploadInstagramImageToWordPress(
+                preparedImage.buffer,
+                originalFilename,
+                wordpressUrl,
+                username,
+                password
+              )
+
+              console.log(`[Instagram Stage] Instagram-optimized image URL: ${instagramImageUrl}`)
+            } else {
+              console.log(
+                `[Instagram Stage] ✅ Image already Instagram-compatible ` +
+                `(${preparedImage.width}x${preparedImage.height}, ratio: ${preparedImage.aspectRatio.toFixed(2)})`
+              )
+            }
+          } catch (imageError) {
+            console.warn(
+              `[Instagram Stage] Image preparation warning: ${imageError.message}. ` +
+              `Attempting to post with original image...`
+            )
+            // Continue with original image if preparation fails
+          }
+
           const igResult = await postPhotoToInstagram({
-            imageUrl: post.imageLink,
+            imageUrl: instagramImageUrl,
             caption: igCaption,
           })
 
@@ -687,11 +726,11 @@ export async function postToWordpressStage(
               `[Instagram Stage] ✅ Successfully posted to Instagram Feed. Post ID: ${igResult.postId}`
             )
 
-            // Post to Instagram Story with clickable link
+            // Post to Instagram Story with clickable link (use Instagram-optimized image)
             console.log(`[Instagram Story] Posting to Stories with clickable link...`)
             try {
               const storyResult = await postStoryToInstagram({
-                imageUrl: post.imageLink,
+                imageUrl: instagramImageUrl,
                 link: wpResult.link, // This will be a clickable link in the story!
               })
 
