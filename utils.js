@@ -250,9 +250,21 @@ export async function processContentImages(
     const img = imgTags[i]
     let src = $(img).attr('src')
 
-    // If src is a data URI or missing, try data-src or data-lazy-src
-    if (!src || src.startsWith('data:')) {
-      src = $(img).attr('data-src') || $(img).attr('data-lazy-src')
+    // If src is a data URI, placeholder, or missing, try data-src or data-lazy-src
+    const isPlaceholder = src && (
+      src.includes('lazy_placeholder') ||
+      src.includes('placeholder.gif') ||
+      src.includes('placeholder.png') ||
+      src.includes('lazy-load') ||
+      src.startsWith('data:image/svg')
+    )
+
+    if (!src || src.startsWith('data:') || isPlaceholder) {
+      const lazySrc = $(img).attr('data-src') || $(img).attr('data-lazy-src')
+      if (lazySrc) {
+        console.log(`[Image Processing] Detected lazy-loaded image, using data-src: ${lazySrc}`)
+        src = lazySrc
+      }
     }
     if (!src) continue
 
