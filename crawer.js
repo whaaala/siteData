@@ -319,6 +319,13 @@ async function main() {
     lastVisit[url] = now.toISOString()
     saveLastVisit(lastVisit)
     await mongoose.disconnect()
+
+    // Exit with code 1 if no post was published successfully
+    // This makes scheduler retry after 1 minute instead of 8 minutes
+    if (!postPublishedSuccessfully) {
+      console.log('[Main] ⚠️ No post published successfully. Exiting with code 1 for fast retry...')
+      process.exit(1)
+    }
   }
 }
 
