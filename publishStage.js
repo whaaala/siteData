@@ -26,6 +26,16 @@ import {
   shouldSkipFacebookPosting
 } from './contentModeration.js'
 import { prepareImageForInstagram, uploadInstagramImageToWordPress } from './instagramImageUtils.js'
+import {
+  isInstagramPostingAllowed,
+  markInstagramRateLimited,
+  isRateLimitError
+} from './instagramRateLimitTracker.js'
+import {
+  isXPostingAllowed,
+  markXRateLimited,
+  isXRateLimitError
+} from './xRateLimitTracker.js'
 
 /**
  * Format Facebook post message: Excerpt → Link → Image (below)
@@ -647,11 +657,34 @@ export async function postToWordpressStage(
 
       // Post to Instagram after Facebook
       try {
-        console.log('[Instagram Stage] Checking content safety for Instagram...')
+        // ========== CATEGORY FILTER FOR INSTAGRAM ==========
+        // Only post Entertainment and Gists to Instagram
+        const instagramAllowedCategories = ['Entertainment', 'Gists']
 
-        // Perform AI moderation check for Instagram (stricter than Facebook)
-        const igModerationResult = await isContentSafeForInstagram(post)
-        const igExplanation = getModerationExplanation(igModerationResult)
+        if (!instagramAllowedCategories.includes(post.category)) {
+          console.log(`[Instagram Stage] ⏭️ Skipping Instagram - Category "${post.category}" not in allowed list`)
+          console.log(`[Instagram Stage] Allowed categories: ${instagramAllowedCategories.join(', ')}`)
+          post.igModerationStatus = 'skipped_pattern_match'
+          post.igModerationReason = `Category "${post.category}" not allowed for Instagram`
+          await post.save()
+          // Skip Instagram posting but continue with rest of flow
+        } else if (!isInstagramPostingAllowed().allowed) {
+          // Check if Instagram posting is rate limited
+          const rateLimitCheck = isInstagramPostingAllowed()
+          console.log(`[Instagram Stage] ⏸️ Instagram posting temporarily disabled (rate limited)`)
+          console.log(`[Instagram Stage] Reason: ${rateLimitCheck.reason}`)
+          console.log(`[Instagram Stage] Cooldown remaining: ${rateLimitCheck.cooldownRemaining} minutes`)
+          post.igModerationStatus = 'error'
+          post.igModerationReason = `Rate limited: ${rateLimitCheck.reason}`
+          await post.save()
+          // Skip Instagram posting but continue with rest of flow
+        } else {
+          console.log('[Instagram Stage] Checking content safety for Instagram...')
+          console.log(`[Instagram Stage] ✅ Category "${post.category}" is allowed`)
+
+          // Perform AI moderation check for Instagram (stricter than Facebook)
+          const igModerationResult = await isContentSafeForInstagram(post)
+          const igExplanation = getModerationExplanation(igModerationResult)
 
         // Save Instagram moderation result to database
         post.igModerationStatus = igModerationResult.isSafe ? 'approved' : 'blocked'
@@ -770,11 +803,19 @@ export async function postToWordpressStage(
             `[Instagram Stage] 🚫 Post blocked from Instagram: ${igExplanation}`
           )
         }
+        }
       } catch (igError) {
         console.error(
           `[Instagram Stage] Error in Instagram posting flow (non-critical):`,
           igError.message
         )
+
+        // Check if this is a rate limit error
+        if (isRateLimitError(igError)) {
+          console.log('[Instagram Stage] 🚫 Rate limit error detected. Marking Instagram as rate limited...')
+          markInstagramRateLimited(igError, 2) // 2 hour cooldown
+        }
+
         // Save error to database
         post.igModerationStatus = 'error'
         post.igModerationReason = igError.message
@@ -785,47 +826,76 @@ export async function postToWordpressStage(
       // ========== POST TO X (TWITTER) ==========
       // Post to X after Instagram (non-critical - continues even if it fails)
       try {
-        console.log('[X Stage] Posting to X (Twitter)...')
+        // ========== CATEGORY FILTER FOR X ==========
+        // Only post Entertainment and Gists to X
+        const xAllowedCategories = ['Entertainment', 'Gists']
 
-        // Format tweet text (title + link, max 280 characters)
-        const tweetText = formatTweetText(
-          post.rewrittenTitle,
-          post.excerpt,
-          wpResult.link
-        )
-
-        // Use the Instagram-optimized image if available, otherwise use original
-        const xImageUrl = instagramImageUrl || post.imageLink
-
-        const xResult = await postToX({
-          imageUrl: xImageUrl,
-          text: tweetText,
-          link: wpResult.link,
-        })
-
-        if (xResult && xResult.success) {
-          post.xTweetId = xResult.tweetId
-          post.xTweetUrl = `https://x.com/i/web/status/${xResult.tweetId}`
-          post.xPostStatus = 'posted'
-          post.xPostDate = new Date()
+        if (!xAllowedCategories.includes(post.category)) {
+          console.log(`[X Stage] ⏭️ Skipping X - Category "${post.category}" not in allowed list`)
+          console.log(`[X Stage] Allowed categories: ${xAllowedCategories.join(', ')}`)
+          post.xPostStatus = 'error'
           await post.save()
-
-          console.log(
-            `[X Stage] ✅ Successfully posted to X. Tweet ID: ${xResult.tweetId}`
-          )
-          console.log(`[X Stage] 🔗 Tweet URL: ${post.xTweetUrl}`)
+          // Skip X posting but continue with rest of flow
+        } else if (!isXPostingAllowed().allowed) {
+          // Check if X posting is rate limited
+          const xRateLimitCheck = isXPostingAllowed()
+          console.log(`[X Stage] ⏸️ X posting temporarily disabled (rate limited)`)
+          console.log(`[X Stage] Reason: ${xRateLimitCheck.reason}`)
+          console.log(`[X Stage] Cooldown remaining: ${xRateLimitCheck.cooldownRemaining} minutes`)
+          post.xPostStatus = 'error'
+          await post.save()
+          // Skip X posting but continue with rest of flow
         } else {
-          post.xPostStatus = 'failed_to_post'
-          await post.save()
-          console.log(
-            `[X Stage] ❌ Failed to post "${post.rewrittenTitle}" to X (non-critical, continuing...)`
+          console.log('[X Stage] Posting to X (Twitter)...')
+          console.log(`[X Stage] ✅ Category "${post.category}" is allowed`)
+
+          // Format tweet text (title + link, max 280 characters)
+          const tweetText = formatTweetText(
+            post.rewrittenTitle,
+            post.excerpt,
+            wpResult.link
           )
+
+          // Use the Instagram-optimized image if available, otherwise use original
+          const xImageUrl = instagramImageUrl || post.imageLink
+
+          const xResult = await postToX({
+            imageUrl: xImageUrl,
+            text: tweetText,
+            link: wpResult.link,
+          })
+
+          if (xResult && xResult.success) {
+            post.xTweetId = xResult.tweetId
+            post.xTweetUrl = `https://x.com/i/web/status/${xResult.tweetId}`
+            post.xPostStatus = 'posted'
+            post.xPostDate = new Date()
+            await post.save()
+
+            console.log(
+              `[X Stage] ✅ Successfully posted to X. Tweet ID: ${xResult.tweetId}`
+            )
+            console.log(`[X Stage] 🔗 Tweet URL: ${post.xTweetUrl}`)
+          } else {
+            post.xPostStatus = 'failed_to_post'
+            await post.save()
+            console.log(
+              `[X Stage] ❌ Failed to post "${post.rewrittenTitle}" to X (non-critical, continuing...)`
+            )
+          }
         }
       } catch (xError) {
         console.error(
           `[X Stage] Error in X posting flow (non-critical):`,
           xError.message
         )
+
+        // Check if this is a rate limit error
+        if (isXRateLimitError(xError)) {
+          console.log('[X Stage] 🚫 Rate limit error detected. Marking X as rate limited...')
+          markXRateLimited(xError, 24) // 24 hour cooldown (X has daily limits)
+        }
+
         // Save error to database
         post.xPostStatus = 'error'
         await post.save()
