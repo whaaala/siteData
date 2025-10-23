@@ -18,6 +18,7 @@ import {
 import { wpCategoryMap, getRandomAuthorId } from './categoryMap.js'
 import { postPhotoToFacebook } from './facebook.js'
 import { postPhotoToInstagram, postStoryToInstagram } from './instagram.js'
+import { postToX, formatTweetText } from './x.js'
 import {
   isContentSafeForFacebook,
   isContentSafeForInstagram,
@@ -641,6 +642,9 @@ export async function postToWordpressStage(
         // Don't fail the entire process if Facebook posting fails
       }
 
+      // Declare instagramImageUrl at higher scope for use by Instagram and X posting
+      let instagramImageUrl = post.imageLink
+
       // Post to Instagram after Facebook
       try {
         console.log('[Instagram Stage] Checking content safety for Instagram...')
@@ -677,7 +681,7 @@ export async function postToWordpressStage(
 
           // Prepare image for Instagram (validate aspect ratio and resize if needed)
           console.log('[Instagram Stage] Preparing image for Instagram...')
-          let instagramImageUrl = post.imageLink
+          instagramImageUrl = post.imageLink
 
           try {
             const preparedImage = await prepareImageForInstagram(post.imageLink)
@@ -776,6 +780,56 @@ export async function postToWordpressStage(
         post.igModerationReason = igError.message
         await post.save()
         // Don't fail the entire process if Instagram posting fails
+      }
+
+      // ========== POST TO X (TWITTER) ==========
+      // Post to X after Instagram (non-critical - continues even if it fails)
+      try {
+        console.log('[X Stage] Posting to X (Twitter)...')
+
+        // Format tweet text (title + link, max 280 characters)
+        const tweetText = formatTweetText(
+          post.rewrittenTitle,
+          post.excerpt,
+          wpResult.link
+        )
+
+        // Use the Instagram-optimized image if available, otherwise use original
+        const xImageUrl = instagramImageUrl || post.imageLink
+
+        const xResult = await postToX({
+          imageUrl: xImageUrl,
+          text: tweetText,
+          link: wpResult.link,
+        })
+
+        if (xResult && xResult.success) {
+          post.xTweetId = xResult.tweetId
+          post.xTweetUrl = `https://x.com/i/web/status/${xResult.tweetId}`
+          post.xPostStatus = 'posted'
+          post.xPostDate = new Date()
+          await post.save()
+
+          console.log(
+            `[X Stage] ✅ Successfully posted to X. Tweet ID: ${xResult.tweetId}`
+          )
+          console.log(`[X Stage] 🔗 Tweet URL: ${post.xTweetUrl}`)
+        } else {
+          post.xPostStatus = 'failed_to_post'
+          await post.save()
+          console.log(
+            `[X Stage] ❌ Failed to post "${post.rewrittenTitle}" to X (non-critical, continuing...)`
+          )
+        }
+      } catch (xError) {
+        console.error(
+          `[X Stage] Error in X posting flow (non-critical):`,
+          xError.message
+        )
+        // Save error to database
+        post.xPostStatus = 'error'
+        await post.save()
+        // Don't fail the entire process if X posting fails
       }
     } else {
       console.log(

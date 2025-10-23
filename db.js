@@ -53,6 +53,17 @@ const postSchema = new mongoose.Schema({
   igModerationDate: {
     type: Date,
     default: Date.now
+  },
+  // X (Twitter) posting tracking
+  xTweetId: String, // Tweet ID
+  xTweetUrl: String, // Tweet URL
+  xPostStatus: {
+    type: String,
+    enum: ['pending', 'posted', 'failed_to_post', 'error'],
+    default: 'pending'
+  },
+  xPostDate: {
+    type: Date
   }
 });
 
