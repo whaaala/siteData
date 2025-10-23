@@ -32,21 +32,43 @@ export async function scrapeAndSaveRaw(
     return
   }
 
-  // Go to the post URL
+  // Go to the post URL with improved loading strategy
   console.log(`[Scrape Stage] Navigating to post URL: ${url}`)
 
-  try {
-    await page.goto(url, {
-      waitUntil: 'domcontentloaded',
-      timeout: 30000 // 30 seconds timeout
-    })
-    console.log(`[Scrape Stage] Successfully loaded: ${url}`)
-  } catch (navError) {
-    console.error(`[Scrape Stage] ❌ Failed to load page: ${url}`)
-    console.error(`[Scrape Stage] Error: ${navError.message}`)
-    console.log(`[Scrape Stage] Skipping this post and moving to next...`)
+  let pageLoaded = false
 
-    // Return null to signal that this post should be skipped
+  // Try multiple loading strategies with increasing timeouts
+  const loadStrategies = [
+    { waitUntil: 'domcontentloaded', timeout: 45000, name: 'domcontentloaded (45s)' },
+    { waitUntil: 'commit', timeout: 30000, name: 'commit (30s)' },
+    { waitUntil: 'load', timeout: 60000, name: 'load (60s)' }
+  ]
+
+  for (const strategy of loadStrategies) {
+    try {
+      console.log(`[Scrape Stage] Attempting to load with ${strategy.name}...`)
+      await page.goto(url, {
+        waitUntil: strategy.waitUntil,
+        timeout: strategy.timeout
+      })
+      console.log(`[Scrape Stage] ✅ Successfully loaded: ${url} (using ${strategy.name})`)
+      pageLoaded = true
+      break
+    } catch (navError) {
+      console.warn(`[Scrape Stage] ⚠️ Failed with ${strategy.name}: ${navError.message}`)
+
+      // If this wasn't the last strategy, continue to next one
+      if (strategy !== loadStrategies[loadStrategies.length - 1]) {
+        console.log(`[Scrape Stage] Trying alternative loading method...`)
+        continue
+      }
+    }
+  }
+
+  // If all strategies failed, skip this post
+  if (!pageLoaded) {
+    console.error(`[Scrape Stage] ❌ Failed to load page after ${loadStrategies.length} attempts: ${url}`)
+    console.log(`[Scrape Stage] Skipping this post and moving to next...`)
     return null
   }
 

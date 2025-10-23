@@ -114,6 +114,7 @@ export function isXRateLimitError(error) {
   // Check for rate limit error codes
   const errorCode = error.code || error.status || error.statusCode
   const errorMessage = (error.message || error.detail || '').toLowerCase()
+  const errorTitle = (error.title || '').toLowerCase()
 
   // X (Twitter) rate limit indicators
   // HTTP 429 = Too Many Requests
@@ -126,7 +127,9 @@ export function isXRateLimitError(error) {
     errorCode === 420 ||
     errorMessage.includes('too many requests') ||
     errorMessage.includes('rate limit') ||
-    errorMessage.includes('rate_limit')
+    errorMessage.includes('rate_limit') ||
+    errorTitle.includes('too many requests') ||
+    errorTitle.includes('rate limit')
   )
 }
 
