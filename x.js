@@ -163,7 +163,15 @@ export async function postToX({ imageUrl, text, link }) {
       })
     }
 
-    return null
+    // Attach error.data properties to the main error object for rate limit detection
+    if (error.data) {
+      error.title = error.data.title
+      error.detail = error.data.detail
+      error.type = error.data.type
+    }
+
+    // Throw the error so publishStage.js can detect rate limits
+    throw error
   }
 }
 
