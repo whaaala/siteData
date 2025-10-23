@@ -187,6 +187,9 @@ async function main() {
   const lastVisitTime = lastVisit[url] ? new Date(lastVisit[url]) : null
   const todayStr = now.toISOString().slice(0, 10)
 
+  // Track whether we successfully published a post
+  let postPublishedSuccessfully = false
+
   try {
     console.log(`[Main] Memory usage before scrape:`, process.memoryUsage())
     console.log(
@@ -255,12 +258,19 @@ async function main() {
       // Stage 2: Rewrite the raw post (pass the post or its ID)
       const rewrittenPost = await rewriteContentStage(savedPost)
       // Stage 3: Publish the rewritten post (pass the post or its ID)
-      await postToWordpressStage(
+      const publishedPost = await postToWordpressStage(
         rewrittenPost,
         process.env.WORDPRESS_URL,
         process.env.WORDPRESS_USERNAME,
         process.env.WORDPRESS_PASSWORD
       )
+
+      // Check if post was successfully published to WordPress
+      if (publishedPost && publishedPost.wpPostId) {
+        postPublishedSuccessfully = true
+        console.log(`[Main] ✅ Post successfully published to WordPress (ID: ${publishedPost.wpPostId})`)
+      }
+
       console.log(`[Main] Finished processing post: ${postToProcess.title}`)
     } else {
       console.log(
