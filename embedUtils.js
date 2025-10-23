@@ -82,21 +82,80 @@ async function replaceAsync(str, regex, asyncFn) {
 
 /**
  * Extracts all non-text HTML embeds (img, iframe, video, blockquote, script) and replaces them with placeholders.
+ * Preserves original dimensions and makes media responsive.
  * @param {string} html - The original HTML content.
  * @returns {{ contentWithPlaceholders: string, embeds: string[] }}
  */
 export function extractEmbeds(html) {
   let embedIndex = 0;
   const embeds = [];
+  const embedInfo = []; // Track embed types and dimensions for logging
+
   const contentWithPlaceholders = html.replace(
     /(<img[\s\S]*?>|<iframe[\s\S]*?<\/iframe>|<video[\s\S]*?<\/video>|<blockquote[\s\S]*?<\/blockquote>|<script[\s\S]*?<\/script>)/gi,
     (match) => {
       const placeholder = `[[EMBED_${embedIndex}]]`;
-      embeds.push(match);
+
+      // Extract dimensions if present
+      const widthMatch = match.match(/width\s*=\s*["']?(\d+)/i);
+      const heightMatch = match.match(/height\s*=\s*["']?(\d+)/i);
+      const width = widthMatch ? widthMatch[1] : null;
+      const height = heightMatch ? heightMatch[1] : null;
+
+      // Determine embed type
+      let embedType = 'unknown';
+      if (match.startsWith('<img')) embedType = 'image';
+      else if (match.startsWith('<iframe')) embedType = 'iframe';
+      else if (match.startsWith('<video')) embedType = 'video';
+      else if (match.startsWith('<blockquote')) embedType = 'social embed';
+      else if (match.startsWith('<script')) embedType = 'script';
+
+      // Make media responsive by adding/updating style attributes
+      let enhancedEmbed = match;
+
+      if (embedType === 'image') {
+        // Preserve original dimensions but make responsive
+        // Remove any existing style attribute
+        enhancedEmbed = enhancedEmbed.replace(/\s*style\s*=\s*["'][^"']*["']/gi, '');
+
+        // Add responsive styling
+        const responsiveStyle = width && height
+          ? `style="max-width: 100%; height: auto; width: ${width}px; display: block; margin: 0 auto;"`
+          : `style="max-width: 100%; height: auto; display: block; margin: 0 auto;"`;
+
+        // Insert style before the closing >
+        enhancedEmbed = enhancedEmbed.replace(/>$/, ` ${responsiveStyle}>`);
+      } else if (embedType === 'iframe' || embedType === 'video') {
+        // Make iframes and videos responsive with aspect ratio preservation
+        enhancedEmbed = enhancedEmbed.replace(/\s*style\s*=\s*["'][^"']*["']/gi, '');
+
+        const responsiveStyle = width && height
+          ? `style="max-width: 100%; width: ${width}px; height: ${height}px; display: block; margin: 0 auto;"`
+          : `style="max-width: 100%; display: block; margin: 0 auto;"`;
+
+        enhancedEmbed = enhancedEmbed.replace(/>/, ` ${responsiveStyle}>`);
+      }
+
+      // Store enhanced embed instead of original
+      embeds.push(enhancedEmbed);
+
+      // Log embed info
+      const dimensions = width && height ? `${width}x${height}` : 'auto';
+      embedInfo.push({ index: embedIndex, type: embedType, dimensions });
+
       embedIndex++;
       return placeholder;
     }
   );
+
+  // Log extracted embeds
+  if (embedInfo.length > 0) {
+    console.log(`[Embed Extraction] Extracted ${embedInfo.length} media element(s):`);
+    embedInfo.forEach(info => {
+      console.log(`  [${info.index}] ${info.type} (${info.dimensions})`);
+    });
+  }
+
   return { contentWithPlaceholders, embeds };
 }
 
@@ -108,8 +167,19 @@ export function extractEmbeds(html) {
  */
 export function reinsertEmbeds(text, embeds) {
   let result = text;
+  let reinsertedCount = 0;
+
   embeds.forEach((embed, i) => {
-    result = result.replace(`[[EMBED_${i}]]`, embed);
+    const placeholder = `[[EMBED_${i}]]`;
+    if (result.includes(placeholder)) {
+      result = result.replace(placeholder, embed);
+      reinsertedCount++;
+    } else {
+      console.warn(`[Embed Warning] Placeholder ${placeholder} not found in rewritten content. Media may be lost!`);
+    }
   });
+
+  console.log(`[Embed Reinsertion] Successfully reinserted ${reinsertedCount}/${embeds.length} media element(s)`);
+
   return result;
 }

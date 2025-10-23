@@ -71,6 +71,182 @@ export async function moderateWithOpenAI(content) {
 }
 
 /**
+ * Analyze image using OpenAI Vision API for Facebook policy violations
+ * @param {string} imageUrl - URL of the image to analyze
+ * @returns {Object} Analysis result with safety assessment
+ */
+export async function analyzeImageWithVision(imageUrl) {
+  try {
+    console.log(`[Moderation] Analyzing image: ${imageUrl}`)
+
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: `Analyze this image for Facebook Community Standards violations. Check for:
+1. Violence or graphic content (blood, injuries, weapons used violently)
+2. Nudity or sexual content
+3. Hate symbols or hate speech imagery
+4. Dangerous individuals or organizations
+5. Misinformation or manipulated media
+
+For NEWS images: Some violence/sensitive content is acceptable if it's newsworthy and not gratuitously graphic.
+
+Respond in JSON format:
+{
+  "isSafe": true/false,
+  "violations": ["category1", "category2"],
+  "severity": "none/low/medium/high",
+  "reasoning": "Brief explanation",
+  "isNewsworthy": true/false
+}`,
+            },
+            {
+              type: 'image_url',
+              image_url: {
+                url: imageUrl,
+              },
+            },
+          ],
+        },
+      ],
+      max_tokens: 300,
+    })
+
+    const content = response.choices[0].message.content
+
+    // Try to parse JSON response
+    let analysis
+    try {
+      // Extract JSON from markdown code blocks if present
+      const jsonMatch = content.match(/```json\n?([\s\S]*?)\n?```/) || content.match(/\{[\s\S]*\}/)
+      const jsonStr = jsonMatch ? (jsonMatch[1] || jsonMatch[0]) : content
+      analysis = JSON.parse(jsonStr)
+    } catch (parseError) {
+      console.error('[Moderation] Failed to parse Vision API response:', content)
+      // If parsing fails, assume unsafe to be cautious
+      return {
+        isSafe: false,
+        violations: ['parsing_error'],
+        severity: 'high',
+        reasoning: 'Failed to parse image analysis response',
+        rawResponse: content,
+      }
+    }
+
+    console.log(`[Moderation] Image analysis result: ${analysis.isSafe ? 'SAFE' : 'UNSAFE'} - ${analysis.reasoning}`)
+
+    return analysis
+  } catch (error) {
+    console.error('[Moderation] Vision API error:', error.message)
+    // On error, block the image to be safe
+    return {
+      isSafe: false,
+      violations: ['api_error'],
+      severity: 'high',
+      reasoning: `Vision API error: ${error.message}`,
+      error: error.message,
+    }
+  }
+}
+
+/**
+ * Analyze image for Instagram Community Guidelines violations
+ * Instagram has similar but slightly different policies than Facebook
+ * @param {string} imageUrl - URL of the image to analyze
+ * @returns {Object} Analysis result for Instagram
+ */
+export async function analyzeImageForInstagram(imageUrl) {
+  try {
+    console.log(`[Moderation] Analyzing image for Instagram: ${imageUrl}`)
+
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: `Analyze this image for Instagram Community Guidelines violations. Check for:
+1. Nudity or sexual activity (Instagram is stricter than Facebook)
+2. Violence or graphic content (blood, injuries, weapons)
+3. Hate speech or symbols
+4. Bullying or harassment imagery
+5. Self-harm or suicide content
+6. Illegal drugs or sales
+7. Dangerous organizations
+8. Misinformation about health
+
+For NEWS images: Some sensitive content is acceptable if it's newsworthy and not exploitative.
+
+Instagram is particularly strict about:
+- Partial nudity (cleavage, underwear, etc.)
+- Suggestive poses
+- Graphic violence or injuries
+- Self-harm imagery
+
+Respond in JSON format:
+{
+  "isSafe": true/false,
+  "violations": ["category1", "category2"],
+  "severity": "none/low/medium/high",
+  "reasoning": "Brief explanation",
+  "isNewsworthy": true/false,
+  "instagramSpecificIssues": "Any Instagram-specific concerns"
+}`,
+            },
+            {
+              type: 'image_url',
+              image_url: {
+                url: imageUrl,
+              },
+            },
+          ],
+        },
+      ],
+      max_tokens: 300,
+    })
+
+    const content = response.choices[0].message.content
+
+    // Try to parse JSON response
+    let analysis
+    try {
+      const jsonMatch = content.match(/```json\n?([\s\S]*?)\n?```/) || content.match(/\{[\s\S]*\}/)
+      const jsonStr = jsonMatch ? (jsonMatch[1] || jsonMatch[0]) : content
+      analysis = JSON.parse(jsonStr)
+    } catch (parseError) {
+      console.error('[Moderation] Failed to parse Instagram Vision API response:', content)
+      return {
+        isSafe: false,
+        violations: ['parsing_error'],
+        severity: 'high',
+        reasoning: 'Failed to parse image analysis response',
+        rawResponse: content,
+      }
+    }
+
+    console.log(`[Moderation] Instagram image analysis: ${analysis.isSafe ? 'SAFE' : 'UNSAFE'} - ${analysis.reasoning}`)
+
+    return analysis
+  } catch (error) {
+    console.error('[Moderation] Instagram Vision API error:', error.message)
+    return {
+      isSafe: false,
+      violations: ['api_error'],
+      severity: 'high',
+      reasoning: `Instagram Vision API error: ${error.message}`,
+      error: error.message,
+    }
+  }
+}
+
+/**
  * Check if content contains high-risk keywords
  * @param {string} content - The content to check
  * @returns {Object} Result with violations found
@@ -107,6 +283,7 @@ export async function isContentSafeForFacebook(post) {
     isSafe: true,
     reason: null,
     moderationFlags: {},
+    imageAnalysis: {},
     recommendations: [],
   }
 
@@ -137,6 +314,29 @@ export async function isContentSafeForFacebook(post) {
       // Soft warning for borderline content
       result.recommendations.push(`Flagged but acceptable for news: ${flaggedCategories.join(', ')}`)
       console.log(`[Moderation] ⚠️ Soft warning: ${flaggedCategories.join(', ')}`)
+    }
+  }
+
+  // 1.5. IMAGE ANALYSIS (Critical for Facebook!)
+  if (post.imageLink && post.imageLink.trim() !== '') {
+    console.log('[Moderation] Analyzing featured image...')
+    const imageAnalysis = await analyzeImageWithVision(post.imageLink)
+    result.imageAnalysis = imageAnalysis
+
+    // Block if image is unsafe
+    if (!imageAnalysis.isSafe) {
+      result.isSafe = false
+      result.reason = `Image violated policy: ${imageAnalysis.reasoning} (Violations: ${imageAnalysis.violations?.join(', ') || 'unknown'})`
+      console.log(`[Moderation] ❌ Post BLOCKED - ${result.reason}`)
+      return result
+    }
+
+    // Warn if severity is medium or high but still safe
+    if (imageAnalysis.severity === 'medium' || imageAnalysis.severity === 'high') {
+      result.recommendations.push(`Image has ${imageAnalysis.severity} severity content: ${imageAnalysis.reasoning}`)
+      console.log(`[Moderation] ⚠️ Image warning (${imageAnalysis.severity}): ${imageAnalysis.reasoning}`)
+    } else {
+      console.log(`[Moderation] ✅ Image is safe: ${imageAnalysis.reasoning}`)
     }
   }
 
@@ -260,4 +460,102 @@ export function shouldSkipFacebookPosting(post) {
   }
 
   return false
+}
+
+/**
+ * Comprehensive check if content is safe for Instagram
+ * Instagram has stricter content policies than Facebook
+ * @param {Object} post - The post object from database
+ * @returns {Object} Safety result with recommendation
+ */
+export async function isContentSafeForInstagram(post) {
+  console.log(`[Moderation] Checking if post is safe for Instagram: "${post.rewrittenTitle}"`)
+
+  const result = {
+    isSafe: true,
+    reason: null,
+    moderationFlags: {},
+    imageAnalysis: {},
+    recommendations: [],
+  }
+
+  // Combine title and excerpt for text moderation
+  const contentToCheck = `${post.rewrittenTitle}\n\n${post.excerpt || ''}`
+
+  // 1. OpenAI Text Moderation
+  const aiModeration = await moderateWithOpenAI(contentToCheck)
+  result.moderationFlags = aiModeration
+
+  if (aiModeration.flagged) {
+    const flaggedCategories = Object.entries(aiModeration.categories)
+      .filter(([_, flagged]) => flagged)
+      .map(([category]) => category)
+
+    // Instagram is stricter - block more categories
+    const criticalCategories = [
+      'violence/graphic',
+      'violence',
+      'sexual',
+      'sexual/minors',
+      'hate',
+      'self-harm',
+      'self-harm/intent',
+      'self-harm/instructions'
+    ]
+
+    const hasCriticalViolation = flaggedCategories.some(cat =>
+      criticalCategories.some(critical => cat.includes(critical))
+    )
+
+    if (hasCriticalViolation) {
+      result.isSafe = false
+      result.reason = `OpenAI flagged for: ${flaggedCategories.join(', ')}`
+      console.log(`[Moderation] ❌ Instagram Post BLOCKED - ${result.reason}`)
+      return result
+    }
+  }
+
+  // 2. IMAGE ANALYSIS (Critical for Instagram - they're strict!)
+  if (post.imageLink && post.imageLink.trim() !== '') {
+    console.log('[Moderation] Analyzing image for Instagram policies...')
+    const imageAnalysis = await analyzeImageForInstagram(post.imageLink)
+    result.imageAnalysis = imageAnalysis
+
+    // Instagram is stricter - block medium severity too
+    if (!imageAnalysis.isSafe || imageAnalysis.severity === 'medium' || imageAnalysis.severity === 'high') {
+      result.isSafe = false
+      result.reason = `Instagram image policy: ${imageAnalysis.reasoning} (Violations: ${imageAnalysis.violations?.join(', ') || 'unknown'})`
+      console.log(`[Moderation] ❌ Instagram Post BLOCKED - ${result.reason}`)
+      return result
+    }
+
+    console.log(`[Moderation] ✅ Image is safe for Instagram: ${imageAnalysis.reasoning}`)
+  } else {
+    // Instagram REQUIRES an image - can't post without one
+    result.isSafe = false
+    result.reason = 'No image - Instagram posts require an image'
+    console.log(`[Moderation] ❌ Instagram Post BLOCKED - No image`)
+    return result
+  }
+
+  // 3. Content quality checks
+  if (!post.rewrittenTitle || post.rewrittenTitle.length < 10) {
+    result.isSafe = false
+    result.reason = 'Title too short or missing'
+    console.log(`[Moderation] ❌ Instagram Post BLOCKED - Invalid title`)
+    return result
+  }
+
+  // 4. Instagram caption length check (max 2200 characters)
+  const caption = `${post.rewrittenTitle}\n\n${post.excerpt || ''}`
+  if (caption.length > 2200) {
+    result.recommendations.push('Caption will be truncated (Instagram max: 2200 chars)')
+    console.log(`[Moderation] ⚠️ Caption too long, will be truncated`)
+  }
+
+  if (result.isSafe) {
+    console.log(`[Moderation] ✅ Post is SAFE for Instagram`)
+  }
+
+  return result
 }

@@ -17,15 +17,19 @@ import {
 } from './utils.js'
 import { wpCategoryMap, getRandomAuthorId } from './categoryMap.js'
 import { postPhotoToFacebook } from './facebook.js'
+import { postPhotoToInstagram, postStoryToInstagram } from './instagram.js'
+import { postToX, formatTweetText } from './x.js'
 import {
   isContentSafeForFacebook,
+  isContentSafeForInstagram,
   getModerationExplanation,
   shouldSkipFacebookPosting
 } from './contentModeration.js'
+import { prepareImageForInstagram, uploadInstagramImageToWordPress } from './instagramImageUtils.js'
 
 /**
- * Format Facebook post message: Link → Excerpt → Image (below)
- * @param {string} title - Post title (not used)
+ * Format Facebook post message: Excerpt → Link → Image (below)
+ * @param {string} title - Post title (not used in message)
  * @param {string} excerpt - Post excerpt
  * @param {string} wordpressUrl - WordPress post URL
  * @returns {string} Formatted Facebook message
@@ -33,10 +37,7 @@ import {
 function formatFacebookPostMessage(title, excerpt, wordpressUrl) {
   let message = ''
 
-  // 1. Add WordPress link first (at the top)
-  message += `🔗 ${wordpressUrl}\n\n`
-
-  // 2. Add excerpt below the link
+  // 1. Add excerpt first (at the top)
   if (excerpt && excerpt.trim()) {
     // Clean excerpt (remove HTML tags if any)
     let cleanExcerpt = excerpt.replace(/<[^>]*>/g, '').trim()
@@ -47,10 +48,13 @@ function formatFacebookPostMessage(title, excerpt, wordpressUrl) {
       cleanExcerpt = cleanExcerpt.substring(0, 247) + '...'
     }
 
-    message += cleanExcerpt
+    message += `${cleanExcerpt}\n\n`
   }
 
-  // 3. Image will appear below this caption automatically
+  // 2. Add WordPress link below excerpt
+  message += `🔗 ${wordpressUrl}`
+
+  // 4. Image will appear below this caption automatically
   return message
 }
 
@@ -579,7 +583,7 @@ export async function postToWordpressStage(
             `[Facebook Stage] ⏭️ Skipping Facebook post - matched skip pattern`
           )
         } else {
-          // Perform AI moderation check
+          // Perform AI moderation check (includes image analysis)
           const moderationResult = await isContentSafeForFacebook(post)
           const explanation = getModerationExplanation(moderationResult)
 
@@ -587,6 +591,7 @@ export async function postToWordpressStage(
           post.fbModerationStatus = moderationResult.isSafe ? 'approved' : 'blocked'
           post.fbModerationReason = explanation
           post.fbModerationFlags = moderationResult.moderationFlags
+          post.fbImageAnalysis = moderationResult.imageAnalysis || null
 
           if (moderationResult.isSafe) {
             // Content is safe, proceed with posting
@@ -635,6 +640,196 @@ export async function postToWordpressStage(
         post.fbModerationReason = fbError.message
         await post.save()
         // Don't fail the entire process if Facebook posting fails
+      }
+
+      // Declare instagramImageUrl at higher scope for use by Instagram and X posting
+      let instagramImageUrl = post.imageLink
+
+      // Post to Instagram after Facebook
+      try {
+        console.log('[Instagram Stage] Checking content safety for Instagram...')
+
+        // Perform AI moderation check for Instagram (stricter than Facebook)
+        const igModerationResult = await isContentSafeForInstagram(post)
+        const igExplanation = getModerationExplanation(igModerationResult)
+
+        // Save Instagram moderation result to database
+        post.igModerationStatus = igModerationResult.isSafe ? 'approved' : 'blocked'
+        post.igModerationReason = igExplanation
+        post.igModerationFlags = igModerationResult.moderationFlags
+        post.igImageAnalysis = igModerationResult.imageAnalysis || null
+
+        if (igModerationResult.isSafe) {
+          // Content is safe for Instagram, proceed with posting
+          // Format Instagram caption: Title + Excerpt + Full URL
+          // Note: Links in feed captions aren't clickable, but we show the URL
+          // The clickable link will be in the Story post
+          let igCaption = ''
+          if (post.rewrittenTitle) {
+            igCaption += `${post.rewrittenTitle}\n\n`
+          }
+          if (post.excerpt) {
+            const cleanExcerpt = post.excerpt.replace(/<[^>]*>/g, '').trim()
+            const excerptLimit = 2100 - igCaption.length - wpResult.link.length - 50 // Leave room for URL
+            if (cleanExcerpt.length > excerptLimit) {
+              igCaption += cleanExcerpt.substring(0, excerptLimit - 3) + '...\n\n'
+            } else {
+              igCaption += `${cleanExcerpt}\n\n`
+            }
+          }
+          igCaption += `🔗 ${wpResult.link}`
+
+          // Prepare image for Instagram (validate aspect ratio and resize if needed)
+          console.log('[Instagram Stage] Preparing image for Instagram...')
+          instagramImageUrl = post.imageLink
+
+          try {
+            const preparedImage = await prepareImageForInstagram(post.imageLink)
+
+            if (preparedImage.wasResized) {
+              console.log(
+                `[Instagram Stage] Image resized for Instagram compatibility ` +
+                `(${preparedImage.width}x${preparedImage.height}, ratio: ${preparedImage.aspectRatio.toFixed(2)})`
+              )
+
+              // Upload the Instagram-optimized image to WordPress
+              const originalFilename = post.imageLink.split('/').pop().split('?')[0]
+              instagramImageUrl = await uploadInstagramImageToWordPress(
+                preparedImage.buffer,
+                originalFilename,
+                wordpressUrl,
+                username,
+                password
+              )
+
+              console.log(`[Instagram Stage] Instagram-optimized image URL: ${instagramImageUrl}`)
+            } else {
+              console.log(
+                `[Instagram Stage] ✅ Image already Instagram-compatible ` +
+                `(${preparedImage.width}x${preparedImage.height}, ratio: ${preparedImage.aspectRatio.toFixed(2)})`
+              )
+            }
+          } catch (imageError) {
+            console.warn(
+              `[Instagram Stage] Image preparation warning: ${imageError.message}. ` +
+              `Attempting to post with original image...`
+            )
+            // Continue with original image if preparation fails
+          }
+
+          const igResult = await postPhotoToInstagram({
+            imageUrl: instagramImageUrl,
+            caption: igCaption,
+          })
+
+          if (igResult && igResult.success) {
+            post.igPostId = igResult.postId
+            post.igModerationStatus = 'posted'
+            await post.save()
+            console.log(
+              `[Instagram Stage] ✅ Successfully posted to Instagram Feed. Post ID: ${igResult.postId}`
+            )
+
+            // Post to Instagram Story with clickable link (use Instagram-optimized image)
+            console.log(`[Instagram Story] Posting to Stories with clickable link...`)
+            try {
+              const storyResult = await postStoryToInstagram({
+                imageUrl: instagramImageUrl,
+                link: wpResult.link, // This will be a clickable link in the story!
+              })
+
+              if (storyResult && storyResult.success) {
+                post.igStoryId = storyResult.storyId
+                await post.save()
+                console.log(
+                  `[Instagram Story] ✅ Successfully posted to Instagram Story. Story ID: ${storyResult.storyId}`
+                )
+                console.log(`[Instagram Story] 🔗 Story has clickable link to: ${wpResult.link}`)
+              } else {
+                console.log(
+                  `[Instagram Story] ⚠️ Failed to post story (feed post succeeded, continuing...)`
+                )
+              }
+            } catch (storyError) {
+              console.error(
+                `[Instagram Story] Error posting story (non-critical):`,
+                storyError.message
+              )
+            }
+          } else {
+            post.igModerationStatus = 'failed_to_post'
+            await post.save()
+            console.log(
+              `[Instagram Stage] ❌ Failed to post "${post.rewrittenTitle}" to Instagram (non-critical, continuing...)`
+            )
+          }
+        } else {
+          // Content blocked by Instagram moderation
+          await post.save()
+          console.log(
+            `[Instagram Stage] 🚫 Post blocked from Instagram: ${igExplanation}`
+          )
+        }
+      } catch (igError) {
+        console.error(
+          `[Instagram Stage] Error in Instagram posting flow (non-critical):`,
+          igError.message
+        )
+        // Save error to database
+        post.igModerationStatus = 'error'
+        post.igModerationReason = igError.message
+        await post.save()
+        // Don't fail the entire process if Instagram posting fails
+      }
+
+      // ========== POST TO X (TWITTER) ==========
+      // Post to X after Instagram (non-critical - continues even if it fails)
+      try {
+        console.log('[X Stage] Posting to X (Twitter)...')
+
+        // Format tweet text (title + link, max 280 characters)
+        const tweetText = formatTweetText(
+          post.rewrittenTitle,
+          post.excerpt,
+          wpResult.link
+        )
+
+        // Use the Instagram-optimized image if available, otherwise use original
+        const xImageUrl = instagramImageUrl || post.imageLink
+
+        const xResult = await postToX({
+          imageUrl: xImageUrl,
+          text: tweetText,
+          link: wpResult.link,
+        })
+
+        if (xResult && xResult.success) {
+          post.xTweetId = xResult.tweetId
+          post.xTweetUrl = `https://x.com/i/web/status/${xResult.tweetId}`
+          post.xPostStatus = 'posted'
+          post.xPostDate = new Date()
+          await post.save()
+
+          console.log(
+            `[X Stage] ✅ Successfully posted to X. Tweet ID: ${xResult.tweetId}`
+          )
+          console.log(`[X Stage] 🔗 Tweet URL: ${post.xTweetUrl}`)
+        } else {
+          post.xPostStatus = 'failed_to_post'
+          await post.save()
+          console.log(
+            `[X Stage] ❌ Failed to post "${post.rewrittenTitle}" to X (non-critical, continuing...)`
+          )
+        }
+      } catch (xError) {
+        console.error(
+          `[X Stage] Error in X posting flow (non-critical):`,
+          xError.message
+        )
+        // Save error to database
+        post.xPostStatus = 'error'
+        await post.save()
+        // Don't fail the entire process if X posting fails
       }
     } else {
       console.log(

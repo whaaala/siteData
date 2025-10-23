@@ -463,7 +463,6 @@ const notJustOkSong  = {
    siteUrl: [
     "https://notjustok.com/category/songs/",
     "https://notjustok.com/category/lyrics/",
-  ,
   ],
    listings: {
     mainContainerEl: ".article-list-hot",
@@ -1620,7 +1619,7 @@ const pulseSports = {
 const thenewsguru = {
     siteUrl: [
     'https://thenewsguru.com/category/news/',
-    'https://thenewsguru.ng/category/politics/',+
+    'https://thenewsguru.ng/category/politics/',
     'https://thenewsguru.ng/category/business/',
   ],
   listings: {
@@ -2505,6 +2504,7 @@ const siteNames = [
   bestsellingcarsblog
 ];
 //const siteNames = [yabaleftonlineGists];
+
 
 
 export default siteNames;

@@ -37,7 +37,8 @@ You don't need Facebook Login to post to your page! Here's the simplified approa
    - Copy the extended token
 
 7. **Get Page Token:**
-   - In Graph API Explorer, enter: `me/accounts`
+   - In Graph API Explorer, enter: `
+   `
    - Click Submit
    - Find your page in results
    - Copy the `id` (Page ID) and `access_token` (Page Access Token)
