@@ -5,6 +5,14 @@
  */
 export function normalizeCategory(rawCategory) {
   if (!rawCategory) return '';
+
+  // If category is already normalized (exact match), return it as-is
+  const exactMatch = rawCategory.trim();
+  const validCategories = ['News', 'Entertainment', 'Sports', 'Lifestyle', 'Gists', 'HealthAndFitness', 'FoodAndDrink', 'Cars'];
+  if (validCategories.includes(exactMatch)) {
+    return exactMatch;
+  }
+
   const cat = rawCategory.trim().toLowerCase();
   if (
     cat === 'news' ||
@@ -102,9 +110,10 @@ export function normalizeCategory(rawCategory) {
   ) {
     return 'Lifestyle';
   } else if (
-    cat === 'extra' || 
-    cat === 'religion' || 
+    cat === 'extra' ||
+    cat === 'religion' ||
     cat === 'gist' ||
+    cat === 'gists' ||
     cat === 'opinion' ||
     cat === 'features' ||
     cat === 'punch lite' ||
@@ -132,6 +141,7 @@ export function normalizeCategory(rawCategory) {
     cat === 'partnerships' ||
     cat === 'fitness' ||
     cat === 'health' ||
+    cat === 'healthandfitness' ||
     cat === 'weight loss' ||
     cat === 'tech & gear' ||
     cat === 'general health'
@@ -140,6 +150,7 @@ export function normalizeCategory(rawCategory) {
   } else if (
     cat === 'recipes' ||
     cat === 'food & nutrition' ||
+    cat === 'foodanddrink' ||
     cat === 'agriculture' ||
     cat === 'drinks'
 ) {
