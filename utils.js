@@ -306,9 +306,30 @@ export async function processContentImages(
 export function embedSocialLinksInContent(html) {
   const $ = cheerio.load(html)
 
+  // Clean up TikTok blockquotes: Remove plain URLs and links inside them
+  $('.tiktok-embed section').each((i, section) => {
+    let sectionHtml = $(section).html() || ''
+
+    // Remove TikTok URLs (creator, tags, music) - they're not needed for the embed
+    sectionHtml = sectionHtml.replace(/https?:\/\/www\.tiktok\.com\/[@\w/-]+\?refer=\w+/g, '')
+    sectionHtml = sectionHtml.replace(/https?:\/\/www\.tiktok\.com\/tag\/[\w-]+\?refer=\w+/g, '')
+    sectionHtml = sectionHtml.replace(/https?:\/\/www\.tiktok\.com\/music\/[\w-]+\?refer=\w+/g, '')
+
+    // Remove empty paragraphs and extra whitespace
+    sectionHtml = sectionHtml.replace(/<p[^>]*>\s*<\/p>/g, '')
+    sectionHtml = sectionHtml.trim()
+
+    $(section).html(sectionHtml)
+  })
+
   $('a').each((i, el) => {
     const href = $(el).attr('href')
     if (!href) return
+
+    // Skip links that are already inside social media embeds (blockquote, iframe, etc.)
+    if ($(el).closest('blockquote, iframe, .tiktok-embed, .instagram-media, .twitter-tweet, .fb-post').length > 0) {
+      return
+    }
 
     // Twitter
     if (/twitter\.com\/[^/]+\/status\/\d+/.test(href)) {

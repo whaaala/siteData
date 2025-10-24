@@ -17,6 +17,7 @@ import {
 } from './utils.js'
 import { wpCategoryMap, getRandomAuthorId } from './categoryMap.js'
 import { postPhotoToFacebook } from './facebook.js'
+import { getFacebookPagesForCategory } from './facebookPageRouter.js'
 import { postPhotoToInstagram, postStoryToInstagram } from './instagram.js'
 import { postToX, formatTweetText } from './x.js'
 import {
@@ -612,24 +613,57 @@ export async function postToWordpressStage(
               wpResult.link
             )
 
-            const fbResult = await postPhotoToFacebook({
-              imageUrl: post.imageLink,
-              message: fbMessage,
-              link: wpResult.link,
-            })
+            // Get Facebook pages to post to based on category
+            const facebookPages = getFacebookPagesForCategory(post.category)
+            console.log(`[Facebook Stage] Category "${post.category}" → Posting to ${facebookPages.length} page(s)`)
 
-            if (fbResult && fbResult.success) {
-              post.fbPostId = fbResult.postId
-              post.fbModerationStatus = 'posted'
+            // Post to each configured page
+            const fbResults = []
+            let allPostsSuccessful = true
+
+            for (const page of facebookPages) {
+              console.log(`[Facebook Stage] Posting to ${page.name}...`)
+
+              const fbResult = await postPhotoToFacebook({
+                imageUrl: post.imageLink,
+                message: fbMessage,
+                link: wpResult.link,
+                pageId: page.pageId,
+                accessToken: page.accessToken,
+                pageName: page.name,
+              })
+
+              if (fbResult && fbResult.success) {
+                fbResults.push({
+                  pageName: page.name,
+                  pageId: page.pageId,
+                  postId: fbResult.postId,
+                })
+                console.log(
+                  `[Facebook Stage] ✅ Successfully posted to ${page.name}. Post ID: ${fbResult.postId}`
+                )
+              } else {
+                allPostsSuccessful = false
+                console.log(
+                  `[Facebook Stage] ❌ Failed to post to ${page.name} (non-critical, continuing...)`
+                )
+              }
+            }
+
+            // Store results in database
+            if (fbResults.length > 0) {
+              // Store as JSON array with all successful posts
+              post.fbPostId = JSON.stringify(fbResults)
+              post.fbModerationStatus = allPostsSuccessful ? 'posted' : 'partially_posted'
               await post.save()
               console.log(
-                `[Facebook Stage] ✅ Successfully posted to Facebook. Post ID: ${fbResult.postId}`
+                `[Facebook Stage] ✅ Posted to ${fbResults.length}/${facebookPages.length} Facebook page(s)`
               )
             } else {
               post.fbModerationStatus = 'failed_to_post'
               await post.save()
               console.log(
-                `[Facebook Stage] ❌ Failed to post "${post.rewrittenTitle}" to Facebook (non-critical, continuing...)`
+                `[Facebook Stage] ❌ Failed to post "${post.rewrittenTitle}" to any Facebook page (non-critical, continuing...)`
               )
             }
           } else {
