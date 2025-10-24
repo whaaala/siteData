@@ -352,6 +352,219 @@ export async function scrapeAndSaveRaw(
     category = 'Cars'
   }
 
+  // Special handling for pulse.com.gh/pulse.ng to infer category from URL
+  if (
+    postListings[listing].website &&
+    postListings[listing].website.includes('pulse.') &&
+    url
+  ) {
+    try {
+      const urlPath = new URL(url).pathname.toLowerCase()
+
+      // Extract category from URL path
+      if (urlPath.includes('/news/') || urlPath.includes('/articles/news/')) {
+        category = 'News'
+        console.log(`[Pulse Category Fix] Inferred category "News" from URL path: ${urlPath}`)
+      } else if (urlPath.includes('/entertainment/')) {
+        category = 'Entertainment'
+        console.log(`[Pulse Category Fix] Inferred category "Entertainment" from URL path: ${urlPath}`)
+      } else if (urlPath.includes('/lifestyle/')) {
+        category = 'Lifestyle'
+        console.log(`[Pulse Category Fix] Inferred category "Lifestyle" from URL path: ${urlPath}`)
+      } else if (urlPath.includes('/sports/')) {
+        category = 'Sports'
+        console.log(`[Pulse Category Fix] Inferred category "Sports" from URL path: ${urlPath}`)
+      } else if (urlPath.includes('/business/')) {
+        category = 'News'  // Business articles go to News category
+        console.log(`[Pulse Category Fix] Inferred category "News" (business) from URL path: ${urlPath}`)
+      }
+    } catch (urlError) {
+      console.warn(`[Pulse Category Fix] Failed to parse URL: ${url}`)
+    }
+  }
+
+  // Special handling for legit.ng to infer category from URL
+  if (
+    postListings[listing].website &&
+    postListings[listing].website.includes('legit.ng') &&
+    url
+  ) {
+    try {
+      const urlPath = new URL(url).pathname.toLowerCase()
+
+      // Extract category from URL path
+      if (urlPath.includes('/politics/') || urlPath.includes('/business-economy/')) {
+        category = 'News'
+        console.log(`[Legit Category Fix] Inferred category "News" from URL path: ${urlPath}`)
+      } else if (urlPath.includes('/entertainment/')) {
+        category = 'Entertainment'
+        console.log(`[Legit Category Fix] Inferred category "Entertainment" from URL path: ${urlPath}`)
+      } else if (urlPath.includes('/people/')) {
+        category = 'Lifestyle'
+        console.log(`[Legit Category Fix] Inferred category "Lifestyle" (people) from URL path: ${urlPath}`)
+      } else if (urlPath.includes('/sports/')) {
+        category = 'Sports'
+        console.log(`[Legit Category Fix] Inferred category "Sports" from URL path: ${urlPath}`)
+      }
+    } catch (urlError) {
+      console.warn(`[Legit Category Fix] Failed to parse URL: ${url}`)
+    }
+  }
+
+  // Special handling for naijanews.com to infer category from URL
+  if (
+    postListings[listing].website &&
+    postListings[listing].website.includes('naijanews.com') &&
+    url
+  ) {
+    try {
+      const urlPath = new URL(url).pathname.toLowerCase()
+
+      if (urlPath.includes('/entertainment/')) {
+        category = 'Entertainment'
+        console.log(`[Naijanews Category Fix] Inferred category "Entertainment" from URL path: ${urlPath}`)
+      } else if (urlPath.includes('/sports/')) {
+        category = 'Sports'
+        console.log(`[Naijanews Category Fix] Inferred category "Sports" from URL path: ${urlPath}`)
+      } else if (urlPath.includes('/gist/')) {
+        category = 'Gists'
+        console.log(`[Naijanews Category Fix] Inferred category "Gists" from URL path: ${urlPath}`)
+      } else {
+        // Default to News for main naijanews.com posts
+        category = 'News'
+        console.log(`[Naijanews Category Fix] Inferred category "News" (default) from URL path: ${urlPath}`)
+      }
+    } catch (urlError) {
+      console.warn(`[Naijanews Category Fix] Failed to parse URL: ${url}`)
+    }
+  }
+
+  // Special handling for gistreel.com to infer category from URL
+  if (
+    postListings[listing].website &&
+    postListings[listing].website.includes('gistreel.com') &&
+    url
+  ) {
+    try {
+      const urlPath = new URL(url).pathname.toLowerCase()
+
+      if (urlPath.includes('/politics/')) {
+        category = 'News'
+        console.log(`[Gistreel Category Fix] Inferred category "News" (politics) from URL path: ${urlPath}`)
+      } else if (urlPath.includes('/entertainment-news/')) {
+        category = 'Entertainment'
+        console.log(`[Gistreel Category Fix] Inferred category "Entertainment" from URL path: ${urlPath}`)
+      } else if (urlPath.includes('/viral-news/')) {
+        category = 'Gists'
+        console.log(`[Gistreel Category Fix] Inferred category "Gists" (viral) from URL path: ${urlPath}`)
+      } else if (urlPath.includes('/sport/')) {
+        category = 'Sports'
+        console.log(`[Gistreel Category Fix] Inferred category "Sports" from URL path: ${urlPath}`)
+      }
+    } catch (urlError) {
+      console.warn(`[Gistreel Category Fix] Failed to parse URL: ${url}`)
+    }
+  }
+
+  // Special handling for guardian.ng to infer category from URL
+  if (
+    postListings[listing].website &&
+    postListings[listing].website.includes('guardian.ng') &&
+    url
+  ) {
+    try {
+      const urlPath = new URL(url).pathname.toLowerCase()
+
+      if (urlPath.includes('/category/news/') || urlPath.includes('/politics/')) {
+        category = 'News'
+        console.log(`[Guardian Category Fix] Inferred category "News" from URL path: ${urlPath}`)
+      } else if (urlPath.includes('/category/sport/')) {
+        category = 'Sports'
+        console.log(`[Guardian Category Fix] Inferred category "Sports" from URL path: ${urlPath}`)
+      } else if (urlPath.includes('/category/life/')) {
+        category = 'Lifestyle'
+        console.log(`[Guardian Category Fix] Inferred category "Lifestyle" from URL path: ${urlPath}`)
+      }
+    } catch (urlError) {
+      console.warn(`[Guardian Category Fix] Failed to parse URL: ${url}`)
+    }
+  }
+
+  // Special handling for punchng.com to infer category from URL (fallback if listing fails)
+  if (
+    postListings[listing].website &&
+    postListings[listing].website.includes('punchng.com') &&
+    url &&
+    !category
+  ) {
+    try {
+      const urlPath = new URL(url).pathname.toLowerCase()
+
+      if (urlPath.includes('/topics/sports/') || urlPath.includes('/sports/')) {
+        category = 'Sports'
+        console.log(`[Punchng Category Fix] Inferred category "Sports" from URL path: ${urlPath}`)
+      } else if (urlPath.includes('/punch-lite/') || urlPath.includes('/gist/')) {
+        category = 'Gists'
+        console.log(`[Punchng Category Fix] Inferred category "Gists" from URL path: ${urlPath}`)
+      } else if (urlPath.includes('/entertainment/')) {
+        category = 'Entertainment'
+        console.log(`[Punchng Category Fix] Inferred category "Entertainment" from URL path: ${urlPath}`)
+      }
+    } catch (urlError) {
+      console.warn(`[Punchng Category Fix] Failed to parse URL: ${url}`)
+    }
+  }
+
+  // Special handling for premiumtimesng.com to infer category from URL (fallback if listing fails)
+  if (
+    postListings[listing].website &&
+    postListings[listing].website.includes('premiumtimesng.com') &&
+    url &&
+    !category
+  ) {
+    try {
+      const urlPath = new URL(url).pathname.toLowerCase()
+
+      if (urlPath.includes('/entertainment/')) {
+        category = 'Entertainment'
+        console.log(`[Premiumtimes Category Fix] Inferred category "Entertainment" from URL path: ${urlPath}`)
+      } else if (urlPath.includes('/category/sports/')) {
+        category = 'Sports'
+        console.log(`[Premiumtimes Category Fix] Inferred category "Sports" from URL path: ${urlPath}`)
+      } else if (urlPath.includes('/category/health/')) {
+        category = 'HealthAndFitness'
+        console.log(`[Premiumtimes Category Fix] Inferred category "HealthAndFitness" from URL path: ${urlPath}`)
+      } else if (urlPath.includes('/category/agriculture/') || urlPath.includes('/food/')) {
+        category = 'FoodAndDrink'
+        console.log(`[Premiumtimes Category Fix] Inferred category "FoodAndDrink" from URL path: ${urlPath}`)
+      }
+    } catch (urlError) {
+      console.warn(`[Premiumtimes Category Fix] Failed to parse URL: ${url}`)
+    }
+  }
+
+  // Special handling for yabaleftonline.ng to infer category from URL (fallback if listing fails)
+  if (
+    postListings[listing].website &&
+    postListings[listing].website.includes('yabaleftonline.ng') &&
+    url &&
+    !category
+  ) {
+    try {
+      const urlPath = new URL(url).pathname.toLowerCase()
+
+      if (urlPath.includes('/entertainment/')) {
+        category = 'Entertainment'
+        console.log(`[Yabaleft Category Fix] Inferred category "Entertainment" from URL path: ${urlPath}`)
+      } else if (urlPath.includes('/viral/')) {
+        category = 'Gists'
+        console.log(`[Yabaleft Category Fix] Inferred category "Gists" (viral) from URL path: ${urlPath}`)
+      }
+    } catch (urlError) {
+      console.warn(`[Yabaleft Category Fix] Failed to parse URL: ${url}`)
+    }
+  }
+
   category = normalizeCategory(category)
 
   // Extract the image link
