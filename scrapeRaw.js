@@ -842,12 +842,30 @@ export async function scrapeAndSaveRaw(
     postListings[listing].website &&
     postListings[listing].website.includes('yabaleftonline')
   ) {
+    // Handle lazy-loaded GIFs with data-src
     $(postEls.post.contentEl)
       .find('img[src$=".gif"]')
       .each(function () {
         const dataSrc = $(this).attr('data-src')
         if (dataSrc) {
           $(this).attr('src', dataSrc)
+        }
+      })
+
+    // Extract images from noscript tags and replace noscript with actual img tags
+    $(postEls.post.contentEl)
+      .find('noscript')
+      .each(function () {
+        const noscriptContent = $(this).html()
+        if (noscriptContent && noscriptContent.includes('<img')) {
+          // Parse the noscript content to extract the img tag
+          const $noscript = cheerio.load(noscriptContent)
+          const imgEl = $noscript('img').first()
+
+          if (imgEl.length) {
+            // Replace the noscript tag with the actual img tag
+            $(this).replaceWith(imgEl.toString())
+          }
         }
       })
   }
