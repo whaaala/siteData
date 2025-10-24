@@ -81,16 +81,24 @@ export async function postPhotoToInstagram({ imageUrl, caption }) {
   } catch (error) {
     console.error('[Instagram] Error posting to Instagram:', error.response?.data || error.message)
 
-    // Log specific error details
+    // Log specific error details and attach to error object for rate limit detection
     if (error.response?.data?.error) {
       console.error('[Instagram] Error details:', {
         message: error.response.data.error.message,
         type: error.response.data.error.type,
         code: error.response.data.error.code,
+        error_subcode: error.response.data.error.error_subcode,
       })
+
+      // Attach error details to main error object for rate limit detection
+      error.code = error.response.data.error.code
+      error.error_subcode = error.response.data.error.error_subcode
+      error.type = error.response.data.error.type
+      error.message = error.response.data.error.message || error.message
     }
 
-    return null
+    // Throw the error so publishStage.js can detect rate limits
+    throw error
   }
 }
 
@@ -220,16 +228,24 @@ export async function postStoryToInstagram({ imageUrl, link }) {
   } catch (error) {
     console.error('[Instagram Story] Error posting story:', error.response?.data || error.message)
 
-    // Log specific error details
+    // Log specific error details and attach to error object
     if (error.response?.data?.error) {
       console.error('[Instagram Story] Error details:', {
         message: error.response.data.error.message,
         type: error.response.data.error.type,
         code: error.response.data.error.code,
+        error_subcode: error.response.data.error.error_subcode,
       })
+
+      // Attach error details to main error object
+      error.code = error.response.data.error.code
+      error.error_subcode = error.response.data.error.error_subcode
+      error.type = error.response.data.error.type
+      error.message = error.response.data.error.message || error.message
     }
 
-    return null
+    // Throw the error for proper error handling
+    throw error
   }
 }
 
