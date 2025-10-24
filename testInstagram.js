@@ -24,7 +24,7 @@ async function testInstagramIntegration() {
   const testTitle = 'Test Post from Wahala Zone'
   const testExcerpt = 'This is a test post from the automated news aggregation system. Testing Instagram integration with AI content moderation.'
   const testWordPressUrl = 'https://nowahalazone.com/test-post'
-  const testImageUrl = 'https://picsum.photos/1080/1080' // Instagram prefers square images
+  const testImageUrl = 'https://nowahalazone.com/wp-content/uploads/2024/10/rema-2-1.jpeg' // Instagram prefers square images
 
   // Format caption
   const testCaption = `${testTitle}\n\n${testExcerpt}\n\n🔗 Read more: ${testWordPressUrl}`
