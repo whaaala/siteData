@@ -322,6 +322,34 @@ export function embedSocialLinksInContent(html) {
     $(section).html(sectionHtml)
   })
 
+  // Clean up Instagram blockquotes: Remove plain URLs inside them
+  $('.instagram-media').each((i, blockquote) => {
+    let blockquoteHtml = $(blockquote).html() || ''
+
+    // Remove Instagram post URLs - they're not needed inside the embed
+    blockquoteHtml = blockquoteHtml.replace(/https?:\/\/(www\.)?instagram\.com\/p\/[A-Za-z0-9_-]+[^\s<]*/g, '')
+
+    // Remove empty paragraphs and extra whitespace
+    blockquoteHtml = blockquoteHtml.replace(/<p[^>]*>\s*<\/p>/g, '')
+    blockquoteHtml = blockquoteHtml.trim()
+
+    $(blockquote).html(blockquoteHtml)
+  })
+
+  // Clean up Twitter/X blockquotes: Remove plain URLs inside them
+  $('.twitter-tweet').each((i, blockquote) => {
+    let blockquoteHtml = $(blockquote).html() || ''
+
+    // Remove Twitter/X status URLs - they're not needed inside the embed
+    blockquoteHtml = blockquoteHtml.replace(/https?:\/\/(www\.)?(twitter\.com|x\.com)\/[^/]+\/status\/\d+[^\s<]*/g, '')
+
+    // Remove empty paragraphs and extra whitespace
+    blockquoteHtml = blockquoteHtml.replace(/<p[^>]*>\s*<\/p>/g, '')
+    blockquoteHtml = blockquoteHtml.trim()
+
+    $(blockquote).html(blockquoteHtml)
+  })
+
   $('a').each((i, el) => {
     const href = $(el).attr('href')
     if (!href) return

@@ -1,0 +1,12 @@
+{
+  "isRateLimited": true,
+  "rateLimitedUntil": "2025-10-26T13:09:45.854Z",
+  "lastRateLimitError": {
+    "message": "Request failed with code 429",
+    "code": 429,
+    "title": "Too Many Requests",
+    "detail": "Too Many Requests",
+    "timestamp": "2025-10-25T13:09:45.854Z"
+  },
+  "totalRateLimitHits": 1
+}

@@ -37,6 +37,11 @@ import {
   markXRateLimited,
   isXRateLimitError
 } from './xRateLimitTracker.js'
+import {
+  formatEngagingFacebookPost,
+  formatEngagingInstagramPost,
+  formatEngagingTwitterPost,
+} from './socialMediaCaptionGenerator.js'
 
 /**
  * Format Facebook post message: Excerpt → Link → Image (below)
@@ -473,25 +478,26 @@ export async function postToWordpressStage(
       })
   })
 
-  // For any <iframe> with id or src containing "twitter", set height: 23.5rem; width: 23rem !important;
-  // $('iframe').each((_, el) => {
-  //   const id = ($(el).attr('id') || '').toLowerCase()
-  //   const src = ($(el).attr('src') || '').toLowerCase()
-  //   if (id.includes('twitter') || src.includes('twitter')) {
-  //     // Remove any existing height or width from the style attribute
-  //     let style = $(el).attr('style') || ''
-  //     style = style
-  //       .replace(/height\s*:\s*[^;]+;?/gi, '')
-  //       .replace(/width\s*:\s*[^;]+;?/gi, '')
-  //       .trim()
-  //     // Add the required styles (without !important, for better browser compatibility)
-  //     style = `${style} height: 23.5rem; width: 23rem;`.trim()
-  //     $(el).attr('style', style)
-  //     // Also set the HTML attributes for fallback
-  //     $(el).attr('height', '376') // 23.5rem ≈ 376px
-  //     $(el).attr('width', '368') // 23rem ≈ 368px
-  //   }
-  // })
+  // For any <iframe> with id or src containing "twitter" or "x.com", set proper video dimensions
+  $('iframe').each((_, el) => {
+    const id = ($(el).attr('id') || '').toLowerCase()
+    const src = ($(el).attr('src') || '').toLowerCase()
+    if (id.includes('twitter') || src.includes('twitter') || src.includes('x.com/')) {
+      // Remove any existing height or width from the style attribute
+      let style = $(el).attr('style') || ''
+      style = style
+        .replace(/height\s*:\s*[^;]+;?/gi, '')
+        .replace(/width\s*:\s*[^;]+;?/gi, '')
+        .trim()
+      // Add better dimensions for Twitter/X video embeds
+      // Twitter's default embed width is ~550px, use 35rem width and 45rem height for better video display
+      style = `${style} width: 35rem; height: 45rem;`.trim()
+      $(el).attr('style', style)
+      // Also set the HTML attributes for fallback
+      $(el).attr('height', '720') // 45rem ≈ 720px
+      $(el).attr('width', '560') // 35rem ≈ 560px
+    }
+  })
 
   // Add inline style "height:30rem; width:50rem;" for any <video> inside a <figure> with class containing "wp-block-video"
   $('figure.wp-block-video video, figure[class*="wp-block-video"] video').each(
@@ -606,12 +612,15 @@ export async function postToWordpressStage(
 
           if (moderationResult.isSafe) {
             // Content is safe, proceed with posting
-            // Format Facebook post with title, excerpt, and WordPress URL
-            const fbMessage = formatFacebookPostMessage(
+            // Generate engaging AI-powered Facebook caption
+            console.log('[Facebook Stage] Generating engaging caption...')
+            const fbMessage = await formatEngagingFacebookPost(
               post.rewrittenTitle,
               post.excerpt,
+              post.category,
               wpResult.link
             )
+            console.log('[Facebook Stage] Engaging caption generated ✓')
 
             // Get Facebook pages to post to based on category
             const facebookPages = getFacebookPagesForCategory(post.category)
@@ -728,23 +737,16 @@ export async function postToWordpressStage(
 
         if (igModerationResult.isSafe) {
           // Content is safe for Instagram, proceed with posting
-          // Format Instagram caption: Title + Excerpt + Full URL
-          // Note: Links in feed captions aren't clickable, but we show the URL
-          // The clickable link will be in the Story post
-          let igCaption = ''
-          if (post.rewrittenTitle) {
-            igCaption += `${post.rewrittenTitle}\n\n`
-          }
-          if (post.excerpt) {
-            const cleanExcerpt = post.excerpt.replace(/<[^>]*>/g, '').trim()
-            const excerptLimit = 2100 - igCaption.length - wpResult.link.length - 50 // Leave room for URL
-            if (cleanExcerpt.length > excerptLimit) {
-              igCaption += cleanExcerpt.substring(0, excerptLimit - 3) + '...\n\n'
-            } else {
-              igCaption += `${cleanExcerpt}\n\n`
-            }
-          }
-          igCaption += `🔗 ${wpResult.link}`
+          // Generate engaging AI-powered Instagram caption
+          console.log('[Instagram Stage] Generating engaging caption...')
+          let igCaption = await formatEngagingInstagramPost(
+            post.rewrittenTitle,
+            post.excerpt,
+            post.category
+          )
+          // Add link at the end (not clickable in feed, but users can copy it)
+          igCaption += `\n\n🔗 ${wpResult.link}`
+          console.log('[Instagram Stage] Engaging caption generated ✓')
 
           // Prepare image for Instagram (validate aspect ratio and resize if needed)
           console.log('[Instagram Stage] Preparing image for Instagram...')
@@ -883,12 +885,15 @@ export async function postToWordpressStage(
           console.log('[X Stage] Posting to X (Twitter)...')
           console.log(`[X Stage] ✅ Category "${post.category}" is allowed`)
 
-          // Format tweet text (title + link, max 280 characters)
-          const tweetText = formatTweetText(
+          // Generate engaging AI-powered tweet
+          console.log('[X Stage] Generating engaging tweet...')
+          const tweetText = await formatEngagingTwitterPost(
             post.rewrittenTitle,
             post.excerpt,
+            post.category,
             wpResult.link
           )
+          console.log('[X Stage] Engaging tweet generated ✓')
 
           // Use the Instagram-optimized image if available, otherwise use original
           const xImageUrl = instagramImageUrl || post.imageLink
