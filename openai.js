@@ -132,11 +132,11 @@ export async function rewriteContent(content) {
                 - USE POWER WORDS: "Reveals," "Explosive," "Unprecedented," "Shocking Truth," "Inside Story"
                 - TELL A STORY: Use narrative techniques - set the scene, build tension, deliver payoff
                 - EMOTIONAL CONNECTION: Appeal to curiosity, surprise, anger, joy, pride, concern
-                - CONVERSATIONAL TONE: Write like you're talking to a Nigerian friend - "Omo," "E shock you?," "This one pass me"
+                - CONVERSATIONAL TONE: Write naturally like talking to a Nigerian friend. Use VARIED expressions - avoid repeating the same phrases. Mix formal and informal tone for balance. Be authentic, not formulaic.
                 - VIVID DESCRIPTIONS: Paint pictures with words, make readers visualize
                 - SHORT PUNCHY PARAGRAPHS: 2-3 sentences max for readability
-                - RHETORICAL QUESTIONS: Engage readers throughout ("But wait, e finish so?")
-                - LOCAL EXPRESSIONS: Sprinkle Nigerian/African idioms naturally
+                - RHETORICAL QUESTIONS: Use DIVERSE questions throughout - vary your phrasing, avoid repetitive expressions
+                - LOCAL EXPRESSIONS: Use DIFFERENT Nigerian/African idioms naturally and sparingly - NEVER repeat the same expression in one article. Variety is key.
                 - RELATABLE EXAMPLES: Connect to everyday Nigerian experiences
 
                 🔥 SEO OPTIMIZATION TECHNIQUES:
