@@ -238,6 +238,7 @@ export async function rewriteContent(content) {
                   Want to share other stories? Email us at <a href='mailto:story@nowahalazone.com'><strong>story@nowahalazone.com</strong></a>.
                   Follow us on <a href='https://www.facebook.com/wahaala.wahaala' target='_blank'><strong>Facebook</strong></a>, <a href='https://x.com/wahaala2' target='_blank'><strong>X (Twitter)</strong></a>, and <a href='https://www.instagram.com/wahaalawahala' target='_blank'><strong>Instagram</strong></a> for more delicious recipes!"
 
+                  
                 🚦 Safety & SEO
                 - Use cautious language: “claims,” “alleges,” “reportedly,” “according to [source].”
                 - Include counterpoints, local reactions, or expert analysis where relevant.
