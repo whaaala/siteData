@@ -170,6 +170,22 @@ export async function postToX({ imageUrl, text, link }) {
       error.type = error.data.type
     }
 
+    // Extract status code from error (Twitter API can return it in different places)
+    if (error.code && !error.status) {
+      error.status = error.code
+    } else if (error.statusCode && !error.status) {
+      error.status = error.statusCode
+    } else if (error.response && error.response.status) {
+      error.status = error.response.status
+      error.code = error.response.status
+    }
+
+    // For rate limit errors (429), ensure we have the code set
+    if (error.message && error.message.includes('code 429')) {
+      error.code = 429
+      error.status = 429
+    }
+
     // Throw the error so publishStage.js can detect rate limits
     throw error
   }
