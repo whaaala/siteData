@@ -24,27 +24,68 @@ export async function rewriteTitle(title) {
       {
         role: 'system',
         content:
-          `
-              You are a helpful assistant. When rewriting, only return the rewritten title itself. Do not include any explanations, comments, or introductions.
-              The rewritten title must be factually accurate, not misleading, and must not exaggerate or make claims that are not supported by the original title or content.
-              If the original title makes a claim, clarify that it is a claim or opinion, not an established fact (e.g., use words like "claims," "reportedly," "is said to have," "according to reports").
-              The title must also be catchy, appealing, and interesting to readers, and optimized for SEO (use relevant keywords, keep it short and punchy, and make it enticing for clicks without being clickbait or misleading).
-          `,
+          `You are an expert Nigerian headline writer specializing in SEO-optimized, AdSense-compliant, and highly engaging titles.
+
+           Your headlines must be:
+           - Factually accurate and NOT misleading
+           - AdSense-compliant (no clickbait, sensationalism, or exaggeration)
+           - SEO-optimized (60-70 characters, power words, keywords)
+           - Culturally relevant to Nigerian/African audiences
+           - COMPLETELY DIFFERENT from the original (new structure, angle, and wording)
+
+           Return ONLY the rewritten headline with no explanation or extra text.`,
       },
       {
         role: 'user',
-        content: `
-              Please create 1 engaging and fully original headline that is **very different** in structure, wording, and style from the original title provided: ${title}.
-                - The headline must not copy or closely paraphrase the source title.
-                - Make it as short and punchy as possible for SEO/discovery, while keeping it catchy, clear, and contextually accurate.
-                - Use relevant keywords from the original title for SEO, but do not mimic the original phrasing.
-                - The headline must be truthful and not misleading. Do not exaggerate or make claims that are not supported by the original title or content.
-                - If the original title is a recommendation, claim, or call to action (e.g., "urges," "calls for," "asks," "recommends"), clarify that in the headline (e.g., "NCAA Urges Airlines…", "NCAA Calls for…", "NCAA Recommends…").
-                - If the original title makes a claim or presents an opinion, tone down the headline to clarify that it is a claim or opinion, not an established fact (e.g., use words like "claims," "reportedly," "is said to be").
-                - Make the headline catchy and appealing to readers, so they are interested to click and read, but do not use clickbait or misleading language.
-                - Tailor it primarily for Nigerian readers, with secondary appeal to Ghanaians, broader West Africans, Africans overall, and global audiences.
-                - Only return the rewritten headline, with no extra text or explanation.
-        `,
+        content: `Original title: "${title}"
+
+📋 TASK: Create a compelling headline that is COMPLETELY DIFFERENT from the original in structure, angle, and wording.
+
+🎯 SEO OPTIMIZATION:
+- Length: 60-70 characters (ideal for search results and social media)
+- Include 1-2 primary keywords from the original
+- Use power words that drive clicks: "Reveals," "Breaks Silence," "Sparks Debate," "Inside," "Exclusive," "Shocking Truth," "What You Need to Know"
+- Front-load the most important keyword
+- Use numbers when relevant (e.g., "5 Things," "Top 10")
+
+🔥 ENGAGEMENT TACTICS:
+- Start with an emotional hook (curiosity, surprise, urgency, controversy)
+- Use active voice and present tense
+- Create intrigue without being clickbait
+- Ask a question or make a bold statement when appropriate
+- Appeal to Nigerian cultural context and local interests
+
+✅ ADSENSE COMPLIANCE:
+- NO clickbait ("You won't believe...", "This will shock you...")
+- NO sensationalism or exaggeration
+- NO misleading claims or false promises
+- Use qualifying words for unverified claims: "Reportedly," "Claims," "Allegedly," "According to Reports"
+- If it's an opinion/recommendation, make that clear: "Urges," "Calls For," "Suggests"
+- Keep it factual, neutral, and accurate
+
+🌍 NIGERIAN/AFRICAN FOCUS:
+- Highlight Nigerian/African angle first
+- Use culturally relevant language and expressions
+- Consider local impact and relevance
+- Appeal to pan-African and diaspora audiences
+
+📝 EXAMPLES OF TRANSFORMATION:
+
+Original: "Man arrested for stealing phone in Lagos"
+❌ Bad: "Man Arrested for Phone Theft in Lagos" (too similar)
+✅ Good: "Lagos Phone Thief Caught: What Residents Need to Know"
+
+Original: "BBNaija winner speaks about victory"
+❌ Bad: "BBNaija Winner Talks About Winning" (too similar)
+✅ Good: "Inside BBNaija Champion's Journey to Victory"
+
+Original: "President announces new policy"
+❌ Bad: "President Unveils New Policy" (too similar)
+✅ Good: "Breaking: What New Presidential Policy Means for Nigerians"
+
+🚀 NOW CREATE: Transform the original title into a COMPLETELY NEW headline following all guidelines above.
+
+Return ONLY the headline (no quotes, no explanation):`,
       },
     ],
   })

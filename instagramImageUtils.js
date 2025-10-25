@@ -12,8 +12,8 @@ import fetch from 'node-fetch'
 const INSTAGRAM_CONSTRAINTS = {
   MIN_WIDTH: 320,
   MIN_HEIGHT: 320,
-  MAX_WIDTH: 1080,
-  MAX_HEIGHT: 1350,
+  MAX_WIDTH: 1440, // Increased from 1080 to 1440 for better quality on high-res displays
+  MAX_HEIGHT: 1800, // Increased from 1350 to 1800 (4:5 ratio of 1440)
   SQUARE: 1.0, // 1:1
   PORTRAIT_MAX: 0.8, // 4:5 = 0.8
   LANDSCAPE_MAX: 1.91, // 1.91:1
@@ -79,39 +79,41 @@ async function resizeForInstagram(imageBuffer, targetAspect = 'square') {
 
   switch (targetAspect) {
     case 'square':
-      // 1:1 - 1080x1080 (Instagram's recommended square)
-      targetWidth = 1080
-      targetHeight = 1080
+      // 1:1 - 1440x1440 (Higher resolution for better quality)
+      targetWidth = 1440
+      targetHeight = 1440
       break
 
     case 'portrait':
-      // 4:5 - 1080x1350 (Instagram's recommended portrait)
-      targetWidth = 1080
-      targetHeight = 1350
+      // 4:5 - 1440x1800 (Higher resolution for better quality)
+      targetWidth = 1440
+      targetHeight = 1800
       break
 
     case 'landscape':
-      // 1.91:1 - 1080x566 (Instagram's recommended landscape)
-      targetWidth = 1080
-      targetHeight = 566
+      // 1.91:1 - 1440x754 (Higher resolution for better quality)
+      targetWidth = 1440
+      targetHeight = 754
       break
 
     default:
       // Default to square
-      targetWidth = 1080
-      targetHeight = 1080
+      targetWidth = 1440
+      targetHeight = 1440
   }
 
-  // Resize and crop from center
+  // Resize and crop from center with high quality settings
   const resizedBuffer = await image
     .resize(targetWidth, targetHeight, {
       fit: 'cover', // Crop to fit
-      position: 'center' // Crop from center
+      position: 'center', // Crop from center
+      kernel: 'lanczos3' // Best quality resampling algorithm
     })
     .jpeg({
-      quality: 90,
+      quality: 95, // Increased from 90 to 95 for crystal clear images
       progressive: true,
-      mozjpeg: true
+      mozjpeg: true,
+      chromaSubsampling: '4:4:4' // Maximum color quality
     })
     .toBuffer()
 
@@ -149,14 +151,15 @@ export async function prepareImageForInstagram(imageUrl) {
   console.log(`[Instagram Image Prep] Aspect ratio: ${aspectRatio.toFixed(2)} - ${validation.reason}`)
 
   if (validation.valid) {
-    // Image is already valid, just optimize it
+    // Image is already valid, just optimize it with high quality
     console.log(`[Instagram Image Prep] ✅ Image already valid, optimizing...`)
 
     const optimizedBuffer = await sharp(imageBuffer)
       .jpeg({
-        quality: 90,
+        quality: 95, // Increased from 90 to 95 for better quality
         progressive: true,
-        mozjpeg: true
+        mozjpeg: true,
+        chromaSubsampling: '4:4:4' // Maximum color quality
       })
       .toBuffer()
 

@@ -204,24 +204,23 @@ export async function downloadImageAsJpgOrPngForUpload(imageUrl, filename) {
     // Optimize PNG: remove metadata, compress
     outputBuffer = await sharp(inputBuffer)
       .png({
-        quality: 90,
-        compressionLevel: 9,
+        quality: 95, // Increased from 90 to 95 for better quality
+        compressionLevel: 6, // Reduced from 9 to 6 for better quality (less compression)
         adaptiveFiltering: true
       })
       .withMetadata(false) // Remove EXIF/metadata
       .toBuffer()
   } else {
-    // Process as JPEG with optimization
-    // Auto-enhance: normalize, sharpen slightly
+    // Process as JPEG with high quality
+    // IMPORTANT: Quality set to 95 to prevent blurriness on social media and WordPress
     outputBuffer = await sharp(inputBuffer)
       .jpeg({
-        quality: 85,
+        quality: 95, // Increased from 85 to 95 for crystal clear images
         progressive: true,
-        mozjpeg: true // Better compression
+        mozjpeg: true, // Better compression without quality loss
+        chromaSubsampling: '4:4:4' // Maximum color quality (no color compression)
       })
-      .normalize() // Auto-adjust brightness/contrast
-      .sharpen({ sigma: 0.5 }) // Subtle sharpening for clarity
-      .withMetadata(false) // Remove EXIF/metadata for privacy and smaller file size
+      .withMetadata(false) // Remove EXIF/metadata for privacy
       .toBuffer()
 
     ext = '.jpg'
