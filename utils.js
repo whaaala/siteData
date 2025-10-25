@@ -289,12 +289,17 @@ export async function downloadImageAsJpgOrPngForUpload(imageUrl, filename) {
   let outputBuffer
 
   if (ext === '.png') {
-    // Optimize PNG: remove metadata, compress
+    // Optimize PNG with LOSSLESS compression only
+    // IMPORTANT: Do NOT use 'quality' parameter for PNG as it uses lossy pngquant
+    // Only use compressionLevel for lossless zlib compression
     outputBuffer = await sharp(inputBuffer)
       .png({
-        quality: 95, // Increased from 90 to 95 for better quality
-        compressionLevel: 6, // Reduced from 9 to 6 for better quality (less compression)
-        adaptiveFiltering: true
+        compressionLevel: 3, // 0-9, where 0=no compression, 9=max compression (all lossless)
+        // Using level 3 for faster processing with minimal size increase
+        // Level 6 is default, level 3 is slightly larger but much faster
+        adaptiveFiltering: true, // Better compression without quality loss
+        palette: false, // Keep as full-color PNG (no palette reduction)
+        effort: 1 // 1-10, lower is faster with slightly larger files (quality unchanged)
       })
       .withMetadata(false) // Remove EXIF/metadata
       .toBuffer()

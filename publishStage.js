@@ -544,6 +544,31 @@ export async function postToWordpressStage(
       margin: 0 auto !important;
       // max-width: 100%;
     }
+    /* Figcaption styling - centered and responsive */
+    figcaption {
+      display: block !important;
+      text-align: center !important;
+      margin: 0.5rem auto 1rem auto !important;
+      padding: 0.5rem 1rem !important;
+      max-width: 100% !important;
+      font-size: 0.9rem !important;
+      font-style: italic !important;
+      color: #666 !important;
+      line-height: 1.4 !important;
+    }
+    /* Responsive figcaptions for mobile */
+    @media (max-width: 768px) {
+      figcaption {
+        font-size: 0.85rem !important;
+        padding: 0.4rem 0.5rem !important;
+      }
+    }
+    /* Figure container styling */
+    figure {
+      margin: 1rem auto !important;
+      text-align: center !important;
+      max-width: 100% !important;
+    }
   </style>
   ${contentWithEmbeds}
 `
