@@ -801,6 +801,92 @@ export async function postToWordpressStage(
       max-width: 100% !important;
     }
 
+    /* Specific iframe sizing for better display */
+    iframe {
+      width: 100% !important;
+      min-height: 400px !important;
+      border: none !important;
+    }
+
+    /* YouTube and video iframes */
+    iframe[src*="youtube.com"],
+    iframe[src*="youtu.be"] {
+      width: 100% !important;
+      aspect-ratio: 16 / 9 !important;
+      min-height: 315px !important;
+      height: auto !important;
+    }
+
+    /* Twitter iframes */
+    iframe[src*="twitter.com"],
+    iframe[src*="x.com"] {
+      max-width: 550px !important;
+      min-height: 200px !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
+    }
+
+    /* Instagram iframes */
+    iframe[src*="instagram.com"] {
+      max-width: 540px !important;
+      min-height: 600px !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
+    }
+
+    /* TikTok iframes */
+    iframe[src*="tiktok.com"] {
+      max-width: 605px !important;
+      min-height: 700px !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
+    }
+
+    /* Facebook iframes */
+    iframe[src*="facebook.com"],
+    iframe[src*="fb.com"] {
+      max-width: 560px !important;
+      min-height: 400px !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
+    }
+
+    /* Spotify iframes */
+    iframe[src*="spotify.com"] {
+      width: 100% !important;
+      max-width: 100% !important;
+      height: 352px !important;
+      min-height: 352px !important;
+      border-radius: 12px !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
+    }
+
+    /* Responsive iframe sizing for mobile */
+    @media (max-width: 768px) {
+      iframe {
+        min-height: 300px !important;
+      }
+
+      iframe[src*="youtube.com"],
+      iframe[src*="youtu.be"] {
+        min-height: 200px !important;
+      }
+
+      iframe[src*="tiktok.com"] {
+        min-height: 500px !important;
+      }
+
+      iframe[src*="instagram.com"] {
+        min-height: 400px !important;
+      }
+
+      iframe[src*="spotify.com"] {
+        height: 352px !important;
+        min-height: 352px !important;
+      }
+    }
+
     /* Figcaption styling - centered and responsive */
     figcaption {
       display: block !important;

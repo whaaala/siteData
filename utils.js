@@ -119,7 +119,7 @@ export function cleanAllLinksInContent(htmlContent, sourceUrl) {
       reason = 'links to source site'
     }
 
-    // 2. Remove common Nigerian news site internal links
+    // 2. Remove ALL links to Nigerian news sites (we don't want to link to competitors)
     const nigerianNewsSites = [
       'pulse.ng', 'pulse.com.gh',
       'legit.ng',
@@ -134,17 +134,15 @@ export function cleanAllLinksInContent(htmlContent, sourceUrl) {
       'notjustok.com',
       'vanguardngr.com',
       'thecable.ng',
-      'saharareporters.com'
+      'saharareporters.com',
+      'dailytrust.com'
     ]
 
     for (const site of nigerianNewsSites) {
-      if (href.includes(site) && sourceDomain !== site) {
-        // Check if it's linking to another article on the same category
-        if (href.includes('/tag/') || href.includes('/category/') || href.includes('/author/')) {
-          shouldRemove = true
-          reason = `internal category/tag link to ${site}`
-          break
-        }
+      if (href.includes(site)) {
+        shouldRemove = true
+        reason = `links to competitor news site ${site}`
+        break
       }
     }
 
@@ -510,7 +508,7 @@ export async function processContentImages(
 /**
  * Finds social media links in the content, replaces them with embed HTML,
  * and returns the processed HTML.
- * Supported: Twitter, Instagram, YouTube, Facebook, TikTok
+ * Supported: Twitter, Instagram, YouTube, Facebook, TikTok, Spotify
  */
 export function embedSocialLinksInContent(html) {
   const $ = cheerio.load(html)
@@ -618,6 +616,17 @@ export function embedSocialLinksInContent(html) {
           <section> </section>
         </blockquote>
         <script async src="https://www.tiktok.com/embed.js"></script>
+      `)
+      return
+    }
+
+    // Spotify (track, album, playlist, episode, show, artist)
+    const spotifyMatch = href.match(/open\.spotify\.com\/(track|album|playlist|episode|show|artist)\/([A-Za-z0-9]+)/)
+    if (spotifyMatch) {
+      const contentType = spotifyMatch[1]
+      const contentId = spotifyMatch[2]
+      $(el).replaceWith(`
+        <iframe style="border-radius:12px" src="https://open.spotify.com/embed/${contentType}/${contentId}?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
       `)
       return
     }

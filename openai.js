@@ -188,8 +188,11 @@ export async function rewriteContent(content) {
                 - Avoid overly promotional tone; aim for editorial value and analysis.
 
                 🚦 Source Attribution & Links
-                - Where possible, link directly to official sources, press releases, court documents, or agency reports.
-                - Attribute quotes to named individuals (e.g., spokespersons, officials, activists) and include date/source if available.
+                - IMPORTANT: Do NOT add links to Nigerian news sites (Punch, Guardian Nigeria, Premium Times, Vanguard, Daily Trust, The Cable, Sahara Reporters, Pulse Nigeria, Legit.ng, Daily Post, etc.)
+                - Do NOT add links to competitor news websites or blogs
+                - ONLY link to official sources: government websites, press releases, court documents, agency reports, international organizations (WHO, UNICEF, UN, etc.)
+                - Attribute quotes to named individuals (e.g., spokespersons, officials, activists) and include date/source if available, but do NOT hyperlink to news sites
+                - You can mention source names in text (e.g., "according to Premium Times...") but do NOT create hyperlinks to them
 
                 🚦 Local Voices & Testimonials
                 - Include interviews, quotes, or perspectives from people in affected communities, local experts, or relevant stakeholders.

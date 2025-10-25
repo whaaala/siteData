@@ -18,7 +18,19 @@ const testCases = [
       <p>External: <a href="https://bbc.com/news">BBC News</a></p>
     `,
     expectedRemoved: 2,
-    description: 'Should remove pulse.ng links but keep BBC'
+    description: 'Should remove all pulse.ng links but keep BBC'
+  },
+  {
+    name: 'Nigerian news site links removal',
+    sourceUrl: 'https://yabaleftonline.ng/article-123',
+    html: `
+      <p>According to <a href="https://www.premiumtimesng.com/news/article">Premium Times</a>,
+      the court ordered. <a href="https://dailytrust.com/hisbah-article">Daily Trust</a> also reported.</p>
+      <p>International: <a href="https://www.unicef.org/report">UNICEF Report</a></p>
+      <p>More from <a href="https://guardian.ng/news/politics">Guardian Nigeria</a>.</p>
+    `,
+    expectedRemoved: 3,
+    description: 'Should remove all Nigerian news site links but keep UNICEF'
   },
   {
     name: 'Broken links removal',
