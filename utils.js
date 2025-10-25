@@ -147,6 +147,94 @@ export function extractImageUrlFromMultipleSelectors(
 }
 
 /**
+ * Finds the largest/best quality image from post content.
+ * Compares all images in the content with the initial feature image.
+ * Returns the URL and dimensions of the largest image.
+ * @param {Array<string>} postDetails - Array of HTML content strings
+ * @param {string} initialImageUrl - The initially extracted feature image URL
+ * @returns {Promise<{url: string, width: number, height: number, pixels: number}>}
+ */
+export async function findLargestImageInContent(postDetails, initialImageUrl) {
+  console.log('[Image Optimization] Finding largest image in content...')
+
+  // Extract all unique image URLs from content
+  const imageUrls = new Set()
+
+  // Add the initial image URL
+  if (initialImageUrl && !initialImageUrl.startsWith('data:')) {
+    imageUrls.add(initialImageUrl)
+  }
+
+  // Extract all images from content
+  for (const htmlContent of postDetails) {
+    const $ = cheerio.load(htmlContent)
+    $('img').each((_, el) => {
+      let src = $(el).attr('src') || $(el).attr('data-src') || $(el).attr('data-lazy-src')
+
+      // Skip data URIs, placeholders, and empty sources
+      if (src && !src.startsWith('data:') && !src.includes('placeholder') && !src.includes('lazy_placeholder')) {
+        imageUrls.add(src)
+      }
+    })
+  }
+
+  console.log(`[Image Optimization] Found ${imageUrls.size} unique images to compare`)
+
+  if (imageUrls.size === 0) {
+    console.log('[Image Optimization] No valid images found')
+    return null
+  }
+
+  // Compare all images by dimensions
+  let largestImage = null
+
+  for (const imageUrl of imageUrls) {
+    try {
+      console.log(`[Image Optimization] Checking: ${imageUrl.substring(0, 80)}...`)
+
+      // Fetch the image
+      const res = await fetch(imageUrl, { timeout: 10000 })
+      if (!res.ok) {
+        console.warn(`[Image Optimization] Failed to fetch: ${res.statusText}`)
+        continue
+      }
+
+      // Get image buffer
+      const buffer = Buffer.from(await res.arrayBuffer())
+
+      // Get dimensions using Sharp
+      const metadata = await sharp(buffer).metadata()
+      const pixels = metadata.width * metadata.height
+
+      console.log(`[Image Optimization] Dimensions: ${metadata.width}x${metadata.height} (${pixels.toLocaleString()} pixels)`)
+
+      // Check if this is the largest so far
+      if (!largestImage || pixels > largestImage.pixels) {
+        largestImage = {
+          url: imageUrl,
+          width: metadata.width,
+          height: metadata.height,
+          pixels: pixels
+        }
+        console.log(`[Image Optimization] ✓ New largest image found: ${metadata.width}x${metadata.height}`)
+      }
+    } catch (error) {
+      console.warn(`[Image Optimization] Error checking image: ${error.message}`)
+      continue
+    }
+  }
+
+  if (largestImage) {
+    console.log(`[Image Optimization] ✅ Largest image selected: ${largestImage.width}x${largestImage.height} (${largestImage.pixels.toLocaleString()} pixels)`)
+    console.log(`[Image Optimization] URL: ${largestImage.url}`)
+  } else {
+    console.log('[Image Optimization] ⚠️ No valid images found after checking all URLs')
+  }
+
+  return largestImage
+}
+
+/**
  * Downloads an image from a URL and returns a buffer and filename with the correct extension.
  * If the image is already .jpg, .jpeg, or .png, keep the original extension.
  * Otherwise, convert to .jpg.
