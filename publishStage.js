@@ -538,7 +538,8 @@ export async function postToWordpressStage(
     /* Main content container with proper margins and padding */
     .post-content, .entry-content, article .content, .article-content {
       max-width: 100% !important; /* Full width, theme handles container */
-      padding: 1rem !important; /* Responsive padding */
+      padding: 0 !important; /* No padding - let theme handle spacing */
+      margin-top: 0 !important; /* No top margin - consistent spacing after featured image */
       text-align: justify !important;
       text-justify: inter-word !important; /* Better justification */
       font-size: 1.125rem !important; /* 18px - comfortable reading size */
@@ -550,11 +551,13 @@ export async function postToWordpressStage(
       box-sizing: border-box !important; /* Include padding in width calculations */
     }
 
-    /* Ensure content is contained properly on larger screens */
-    @media (min-width: 1024px) {
-      .post-content, .entry-content, article .content, .article-content {
-        padding: 2rem !important;
-      }
+    /* Remove top margin from first element to ensure consistent spacing after featured image across all posts */
+    .post-content > *:first-child,
+    .entry-content > *:first-child,
+    article .content > *:first-child,
+    .article-content > *:first-child {
+      margin-top: 0 !important;
+      padding-top: 0 !important; /* Also remove any top padding */
     }
 
     /* Paragraph styling for better readability */
@@ -722,7 +725,6 @@ export async function postToWordpressStage(
     @media (max-width: 1024px) {
       .post-content, .entry-content, article .content, .article-content {
         max-width: 100% !important;
-        padding: 1.5rem 1.25rem !important;
       }
     }
 
@@ -730,7 +732,6 @@ export async function postToWordpressStage(
     @media (max-width: 768px) {
       .post-content, .entry-content, article .content, .article-content {
         max-width: 100% !important;
-        padding: 1rem !important;
         font-size: 1.0625rem !important; /* 17px on mobile */
         line-height: 1.65 !important;
       }
@@ -779,10 +780,6 @@ export async function postToWordpressStage(
 
     /* Extra small mobile devices */
     @media (max-width: 480px) {
-      .post-content, .entry-content, article .content, .article-content {
-        padding: 0.75rem !important;
-      }
-
       .post-content ul, .post-content ol,
       .entry-content ul, .entry-content ol,
       article .content ul, article .content ol,
