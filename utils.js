@@ -74,6 +74,123 @@ export function removeSourceSiteLinks(htmlContent, siteDomain) {
 }
 
 /**
+ * Comprehensive link cleaning for post content.
+ * Removes source site links, broken links, and invalid references.
+ * @param {string} htmlContent - The post content HTML
+ * @param {string} sourceUrl - The original URL where the post was scraped from
+ * @returns {string} - Cleaned HTML content
+ */
+export function cleanAllLinksInContent(htmlContent, sourceUrl) {
+  const $ = cheerio.load(htmlContent)
+
+  // Extract domain from source URL
+  let sourceDomain = ''
+  try {
+    const urlObj = new URL(sourceUrl)
+    sourceDomain = urlObj.hostname.replace(/^www\./, '')
+  } catch (e) {
+    console.warn('[Link Cleaning] Invalid source URL:', sourceUrl)
+  }
+
+  console.log(`[Link Cleaning] Cleaning links, source domain: ${sourceDomain}`)
+
+  let linksRemoved = 0
+  let linksProcessed = 0
+
+  // Process all anchor tags
+  $('a').each(function () {
+    linksProcessed++
+    const $link = $(this)
+    const href = $link.attr('href') || ''
+    const text = $link.text().trim()
+
+    // Skip social media embeds (these should remain as they are)
+    const isInEmbed = $link.closest('.twitter-tweet, .instagram-media, .tiktok-embed, .fb-post, .fb-video').length > 0
+    if (isInEmbed) {
+      return // Skip this link
+    }
+
+    let shouldRemove = false
+    let reason = ''
+
+    // 1. Remove if link points to source site
+    if (sourceDomain && href.includes(sourceDomain)) {
+      shouldRemove = true
+      reason = 'links to source site'
+    }
+
+    // 2. Remove common Nigerian news site internal links
+    const nigerianNewsSites = [
+      'pulse.ng', 'pulse.com.gh',
+      'legit.ng',
+      'dailypost.ng',
+      'punchng.com',
+      'premiumtimesng.com',
+      'guardian.ng',
+      'yabaleftonline.ng',
+      'gistreel.com',
+      'naijanews.com',
+      'brila.net',
+      'notjustok.com',
+      'vanguardngr.com',
+      'thecable.ng',
+      'saharareporters.com'
+    ]
+
+    for (const site of nigerianNewsSites) {
+      if (href.includes(site) && sourceDomain !== site) {
+        // Check if it's linking to another article on the same category
+        if (href.includes('/tag/') || href.includes('/category/') || href.includes('/author/')) {
+          shouldRemove = true
+          reason = `internal category/tag link to ${site}`
+          break
+        }
+      }
+    }
+
+    // 3. Remove empty or invalid links
+    if (!href || href === '#' || href === 'javascript:void(0)' || href === 'javascript:;') {
+      shouldRemove = true
+      reason = 'empty or invalid href'
+    }
+
+    // 4. Remove links with only whitespace text
+    if (!text || text === '') {
+      shouldRemove = true
+      reason = 'empty link text'
+    }
+
+    // 5. Remove self-referencing links (links that just say "here" or "click here" with no actual destination)
+    if (href.startsWith('#') && text.toLowerCase().match(/^(here|click here|read more|source)$/i)) {
+      shouldRemove = true
+      reason = 'generic anchor link'
+    }
+
+    // 6. Remove broken reference format links (sometimes scrapers leave these)
+    if (href.includes('undefined') || href.includes('null') || href === '/') {
+      shouldRemove = true
+      reason = 'broken reference'
+    }
+
+    // If link should be removed, replace with text content
+    if (shouldRemove) {
+      linksRemoved++
+      console.log(`[Link Cleaning] Removing link: "${text}" (href: ${href}) - Reason: ${reason}`)
+
+      if (text) {
+        $link.replaceWith(text)
+      } else {
+        $link.remove()
+      }
+    }
+  })
+
+  console.log(`[Link Cleaning] Processed ${linksProcessed} links, removed ${linksRemoved} invalid/source links`)
+
+  return $.html()
+}
+
+/**
  * Removes the last element in the HTML content that contains a Facebook or X link,
  * but only if the post is from notjustok.com.
  * @param {string} htmlContent
