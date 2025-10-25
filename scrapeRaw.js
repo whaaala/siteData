@@ -6,6 +6,7 @@ import {
   replaceSiteNamesOutsideTags,
   replaceSiteNamesInPostDetails,
   downloadImageAsJpgOrPngForUpload,
+  findLargestImageInContent,
 } from './utils.js'
 import { uploadBufferToWordpress } from './wordpress.js'
 
@@ -836,6 +837,33 @@ export async function scrapeAndSaveRaw(
   postDetails = postDetails.map((htmlContent) =>
     replaceSiteNamesOutsideTags(htmlContent)
   )
+
+  // === FEATURE IMAGE OPTIMIZATION ===
+  // Find the largest image in content and use it as the feature image if it's larger than the initial one
+  try {
+    console.log('[Image Optimization] Starting feature image optimization...')
+    console.log(`[Image Optimization] Initial feature image: ${imageLink}`)
+
+    const largestImage = await findLargestImageInContent(postDetails, imageLink)
+
+    if (largestImage && largestImage.url !== imageLink) {
+      console.log(`[Image Optimization] 🎯 Found larger image in content!`)
+      console.log(`[Image Optimization] Switching from: ${imageLink}`)
+      console.log(`[Image Optimization] Switching to: ${largestImage.url}`)
+      console.log(`[Image Optimization] New dimensions: ${largestImage.width}x${largestImage.height}`)
+
+      // Use the largest image as the feature image
+      imageLink = largestImage.url
+    } else if (largestImage && largestImage.url === imageLink) {
+      console.log(`[Image Optimization] ✓ Initial feature image is already the largest`)
+    } else {
+      console.log(`[Image Optimization] ⚠️ Could not find any larger images, keeping initial feature image`)
+    }
+  } catch (error) {
+    console.warn(`[Image Optimization] ⚠️ Error during image optimization: ${error.message}`)
+    console.log(`[Image Optimization] Falling back to initial feature image`)
+  }
+  // === END FEATURE IMAGE OPTIMIZATION ===
 
   // Inside getPostCotent, after loading HTML with Cheerio and before extracting postDetails:
   if (
