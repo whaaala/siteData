@@ -536,29 +536,43 @@ export async function postToWordpressStage(
   const styledContent = `
   <style>
     /* Main content container with proper margins and padding */
-    .post-content {
-      max-width: 800px !important; /* Optimal reading width */
-      margin: 0 auto !important; /* Center the content */
-      padding: 2rem 1.5rem !important; /* Generous padding on all sides */
+    .post-content, .entry-content, article .content, .article-content {
+      max-width: 100% !important; /* Full width, theme handles container */
+      padding: 1rem !important; /* Responsive padding */
       text-align: justify !important;
       text-justify: inter-word !important; /* Better justification */
       font-size: 1.125rem !important; /* 18px - comfortable reading size */
       line-height: 1.7 !important; /* Spacious line height for readability */
       color: #333 !important; /* Slightly softer than pure black */
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji" !important; /* Modern system font stack */
+      -webkit-font-smoothing: antialiased !important; /* Smooth font rendering on macOS */
+      -moz-osx-font-smoothing: grayscale !important; /* Smooth font rendering on Firefox macOS */
+      box-sizing: border-box !important; /* Include padding in width calculations */
+    }
+
+    /* Ensure content is contained properly on larger screens */
+    @media (min-width: 1024px) {
+      .post-content, .entry-content, article .content, .article-content {
+        padding: 2rem !important;
+      }
     }
 
     /* Paragraph styling for better readability */
-    .post-content p {
+    .post-content p, .entry-content p, article .content p, .article-content p {
       margin-bottom: 1.5rem !important;
       margin-top: 0 !important;
       font-size: 1.125rem !important;
       line-height: 1.7 !important;
       text-align: justify !important;
       text-justify: inter-word !important;
+      font-family: inherit !important;
     }
 
     /* Heading sizes and spacing for hierarchy */
-    .post-content h1, .post-content h2, .post-content h3, .post-content h4, .post-content h5, .post-content h6 {
+    .post-content h1, .post-content h2, .post-content h3, .post-content h4, .post-content h5, .post-content h6,
+    .entry-content h1, .entry-content h2, .entry-content h3, .entry-content h4, .entry-content h5, .entry-content h6,
+    article .content h1, article .content h2, article .content h3, article .content h4, article .content h5, article .content h6,
+    .article-content h1, .article-content h2, .article-content h3, .article-content h4, .article-content h5, .article-content h6 {
       line-height: 1.3 !important;
       margin-top: 2rem !important;
       margin-bottom: 1rem !important;
@@ -566,113 +580,147 @@ export async function postToWordpressStage(
       text-justify: inter-word !important;
       font-weight: 700 !important;
       color: #222 !important;
+      font-family: inherit !important;
     }
 
-    .post-content h1 {
+    .post-content h1, .entry-content h1, article .content h1, .article-content h1 {
       font-size: 2rem !important; /* 32px */
       margin-top: 2.5rem !important;
     }
 
-    .post-content h2 {
+    .post-content h2, .entry-content h2, article .content h2, .article-content h2 {
       font-size: 1.75rem !important; /* 28px */
     }
 
-    .post-content h3 {
+    .post-content h3, .entry-content h3, article .content h3, .article-content h3 {
       font-size: 1.5rem !important; /* 24px */
     }
 
-    .post-content h4 {
+    .post-content h4, .entry-content h4, article .content h4, .article-content h4 {
       font-size: 1.25rem !important; /* 20px */
     }
 
     /* Bullet points and lists - proper indentation and spacing */
-    .post-content ul, .post-content ol {
+    .post-content ul, .post-content ol,
+    .entry-content ul, .entry-content ol,
+    article .content ul, article .content ol,
+    .article-content ul, .article-content ol {
       margin: 1.5rem 0 1.5rem 2rem !important; /* Left margin for proper indentation */
       padding: 0 !important;
       text-align: left !important; /* Lists should be left-aligned, not justified */
+      font-family: inherit !important; /* Inherit from parent */
     }
 
-    .post-content ul li, .post-content ol li {
+    .post-content ul li, .post-content ol li,
+    .entry-content ul li, .entry-content ol li,
+    article .content ul li, article .content ol li,
+    .article-content ul li, .article-content ol li {
       margin-bottom: 0.75rem !important;
       line-height: 1.7 !important;
       padding-left: 0.5rem !important; /* Extra space after bullet */
       text-align: left !important;
+      font-family: inherit !important; /* Inherit from parent */
     }
 
-    .post-content ul {
+    .post-content ul, .entry-content ul, article .content ul, .article-content ul {
       list-style-type: disc !important; /* Proper bullet points */
       list-style-position: outside !important; /* Bullets hang outside */
     }
 
-    .post-content ol {
+    .post-content ol, .entry-content ol, article .content ol, .article-content ol {
       list-style-type: decimal !important; /* Numbered lists */
       list-style-position: outside !important;
     }
 
     /* Nested lists */
-    .post-content ul ul, .post-content ol ul {
+    .post-content ul ul, .post-content ol ul,
+    .entry-content ul ul, .entry-content ol ul,
+    article .content ul ul, article .content ol ul,
+    .article-content ul ul, .article-content ol ul {
       margin-top: 0.5rem !important;
       margin-bottom: 0.5rem !important;
       margin-left: 1.5rem !important;
     }
 
-    .post-content ul ul {
+    .post-content ul ul, .entry-content ul ul, article .content ul ul, .article-content ul ul {
       list-style-type: circle !important; /* Hollow circles for nested */
     }
 
-    .post-content ul ul ul {
+    .post-content ul ul ul, .entry-content ul ul ul, article .content ul ul ul, .article-content ul ul ul {
       list-style-type: square !important; /* Squares for deeply nested */
     }
 
     /* Blockquotes - proper styling and indentation */
-    .post-content blockquote {
+    .post-content blockquote,
+    .entry-content blockquote,
+    article .content blockquote,
+    .article-content blockquote {
       margin: 1.5rem 0 1.5rem 2rem !important;
       padding: 1rem 1.5rem !important;
       border-left: 4px solid #ddd !important;
       background: #f9f9f9 !important;
       font-style: italic !important;
       color: #555 !important;
+      font-family: inherit !important; /* Inherit from parent */
     }
 
     /* Links - proper styling */
-    .post-content a {
+    .post-content a,
+    .entry-content a,
+    article .content a,
+    .article-content a {
       color: #0066cc !important;
       text-decoration: underline !important;
       word-wrap: break-word !important; /* Prevent long URLs from breaking layout */
     }
 
-    .post-content a:hover {
+    .post-content a:hover,
+    .entry-content a:hover,
+    article .content a:hover,
+    .article-content a:hover {
       color: #0052a3 !important;
     }
 
     /* Images - proper spacing */
-    .post-content img {
+    .post-content img,
+    .entry-content img,
+    article .content img,
+    .article-content img {
       margin: 1.5rem auto !important;
       max-width: 100% !important;
       height: auto !important;
     }
 
     /* Tables - proper styling if present */
-    .post-content table {
+    .post-content table,
+    .entry-content table,
+    article .content table,
+    .article-content table {
       width: 100% !important;
       margin: 1.5rem 0 !important;
       border-collapse: collapse !important;
     }
 
-    .post-content table td, .post-content table th {
+    .post-content table td, .post-content table th,
+    .entry-content table td, .entry-content table th,
+    article .content table td, article .content table th,
+    .article-content table td, .article-content table th {
       padding: 0.75rem !important;
       border: 1px solid #ddd !important;
       text-align: left !important;
     }
 
-    .post-content table th {
+    .post-content table th,
+    .entry-content table th,
+    article .content table th,
+    .article-content table th {
       background: #f5f5f5 !important;
       font-weight: 700 !important;
     }
 
     /* Responsive design for tablets */
     @media (max-width: 1024px) {
-      .post-content {
+      .post-content, .entry-content, article .content, .article-content {
         max-width: 100% !important;
         padding: 1.5rem 1.25rem !important;
       }
@@ -680,44 +728,50 @@ export async function postToWordpressStage(
 
     /* Responsive design for mobile */
     @media (max-width: 768px) {
-      .post-content {
+      .post-content, .entry-content, article .content, .article-content {
         max-width: 100% !important;
         padding: 1rem !important;
         font-size: 1.0625rem !important; /* 17px on mobile */
         line-height: 1.65 !important;
       }
 
-      .post-content p {
+      .post-content p, .entry-content p, article .content p, .article-content p {
         font-size: 1.0625rem !important;
         margin-bottom: 1.25rem !important;
       }
 
-      .post-content h1 {
+      .post-content h1, .entry-content h1, article .content h1, .article-content h1 {
         font-size: 1.625rem !important; /* 26px */
         margin-top: 2rem !important;
       }
 
-      .post-content h2 {
+      .post-content h2, .entry-content h2, article .content h2, .article-content h2 {
         font-size: 1.5rem !important; /* 24px */
         margin-top: 1.75rem !important;
       }
 
-      .post-content h3 {
+      .post-content h3, .entry-content h3, article .content h3, .article-content h3 {
         font-size: 1.25rem !important; /* 20px */
         margin-top: 1.5rem !important;
       }
 
-      .post-content h4 {
+      .post-content h4, .entry-content h4, article .content h4, .article-content h4 {
         font-size: 1.125rem !important; /* 18px */
       }
 
       /* Adjust list indentation for mobile */
-      .post-content ul, .post-content ol {
+      .post-content ul, .post-content ol,
+      .entry-content ul, .entry-content ol,
+      article .content ul, article .content ol,
+      .article-content ul, .article-content ol {
         margin-left: 1.25rem !important;
       }
 
       /* Adjust blockquote margins for mobile */
-      .post-content blockquote {
+      .post-content blockquote,
+      .entry-content blockquote,
+      article .content blockquote,
+      .article-content blockquote {
         margin-left: 1rem !important;
         padding: 0.75rem 1rem !important;
       }
@@ -725,11 +779,14 @@ export async function postToWordpressStage(
 
     /* Extra small mobile devices */
     @media (max-width: 480px) {
-      .post-content {
+      .post-content, .entry-content, article .content, .article-content {
         padding: 0.75rem !important;
       }
 
-      .post-content ul, .post-content ol {
+      .post-content ul, .post-content ol,
+      .entry-content ul, .entry-content ol,
+      article .content ul, article .content ol,
+      .article-content ul, .article-content ol {
         margin-left: 1rem !important;
       }
     }
