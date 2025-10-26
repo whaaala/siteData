@@ -1,8 +1,8 @@
-# Facebook Link at Top Fix - Move "Read Full Story" to Top of Caption
+# Facebook Link Positioning Fix - Engaging Content Before "See More"
 
 ## Change Made
 
-Moved the "🔗 Read full story" link from the **bottom** of Facebook post captions to the **top**, making it the first thing users see.
+Restructured Facebook post captions so that **engaging content appears first** (visible before "See more" truncation), then the "🔗 Read full story" link appears after the first paragraph/hook.
 
 ## Reason for Change
 

@@ -54,7 +54,7 @@ Create an engaging ${platform} caption that:
 
 ${platform === 'instagram' ? 'Use line breaks for readability and more emojis for visual appeal.' : ''}
 ${platform === 'twitter' ? 'CRITICAL: Keep TOTAL length under 250 characters to leave room for the link. This is NON-NEGOTIABLE.' : ''}
-${platform === 'facebook' ? 'Can be longer (300-500 chars) for storytelling but stay engaging.' : ''}
+${platform === 'facebook' ? 'Can be longer (300-500 chars) for storytelling but stay engaging. NOTE: The link will be added at the TOP, so your caption should flow naturally after the link.' : ''}
 
 ${platform === 'twitter' ? 'TWITTER CHARACTER LIMIT: Your caption + link must be under 280 chars. Keep caption under 250 chars.' : ''}
 
@@ -81,7 +81,8 @@ Return ONLY the caption text, no explanations or meta-commentary.`
 
     // Add link (Facebook at top, Twitter at end)
     if (platform === 'facebook') {
-      // Put link at the TOP for Facebook
+      // For Facebook: Put link at the top, then engaging content
+      // This ensures users see: Link → Engaging hook → "See more" (if content is long)
       caption = `🔗 Read full story: ${link}\n\n${caption}`
     } else if (platform === 'twitter') {
       // For Twitter, link is usually added at the end
@@ -158,7 +159,7 @@ function generateManualCaption({ title, excerpt, category, platform, link }) {
     // Twitter needs to be short
     caption = `${emoji} ${title.substring(0, 200)}\n\n${hashtags}\n\n${link}`
   } else {
-    // Facebook - Link at TOP
+    // Facebook - Link at top, then engaging content
     caption = `🔗 Read full story: ${link}\n\n${emoji} ${title}\n\n${excerpt.substring(0, 250)}...\n\n${hashtags}\n\n💬 What do you think? Share your thoughts!`
   }
 
