@@ -79,11 +79,12 @@ Return ONLY the caption text, no explanations or meta-commentary.`
 
     let caption = response.choices[0].message.content.trim()
 
-    // Add link at the end (except for Instagram which doesn't support clickable links in captions)
+    // Add link (Facebook at top, Twitter at end)
     if (platform === 'facebook') {
-      caption += `\n\n🔗 Read full story: ${link}`
+      // Put link at the TOP for Facebook
+      caption = `🔗 Read full story: ${link}\n\n${caption}`
     } else if (platform === 'twitter') {
-      // For Twitter, link is usually added separately or within the character count
+      // For Twitter, link is usually added at the end
       caption += `\n\n${link}`
     }
     // Instagram: Link goes in bio or story, not caption
@@ -157,8 +158,8 @@ function generateManualCaption({ title, excerpt, category, platform, link }) {
     // Twitter needs to be short
     caption = `${emoji} ${title.substring(0, 200)}\n\n${hashtags}\n\n${link}`
   } else {
-    // Facebook
-    caption = `${emoji} ${title}\n\n${excerpt.substring(0, 250)}...\n\n${hashtags}\n\n👉 Read more: ${link}\n\n💬 What do you think? Share your thoughts!`
+    // Facebook - Link at TOP
+    caption = `🔗 Read full story: ${link}\n\n${emoji} ${title}\n\n${excerpt.substring(0, 250)}...\n\n${hashtags}\n\n💬 What do you think? Share your thoughts!`
   }
 
   return caption

@@ -1064,13 +1064,19 @@ export async function scrapeAndSaveRaw(
     lastP.children().each((_, child) => {
       const text = $(child).text().toLowerCase()
       const href = ($(child).attr('href') || '').toLowerCase()
+
+      // Check if this is a Facebook/X embed URL (should be kept, not removed)
+      const isFacebookEmbed = href.match(/facebook\.com\/[^/]+\/(posts|videos)\/\d+/)
+      const isTwitterEmbed = href.match(/(?:twitter\.com|x\.com)\/[^/]+\/status\/\d+/)
+
+      // Only remove if it's promotional text, not an actual embed URL
       if (
         text.includes('updates') ||
         text.includes('notjustok') ||
-        text.includes('facebook') ||
-        text.includes('x') ||
-        href.includes('facebook.com') ||
-        href.includes('x.com')
+        (text.includes('facebook') && !isFacebookEmbed) ||
+        (text.includes('x') && !isTwitterEmbed) ||
+        (href.includes('facebook.com') && !isFacebookEmbed) ||
+        (href.includes('x.com') && !isTwitterEmbed)
       ) {
         shouldRemove = true
       }
@@ -1078,11 +1084,20 @@ export async function scrapeAndSaveRaw(
 
     // Also check the last <p> itself for direct text (not just children)
     const lastPText = lastP.text().toLowerCase()
+
+    // Check if paragraph contains embed URLs
+    const hasFacebookEmbed = lastP.find('a').toArray().some(a =>
+      $(a).attr('href') && $(a).attr('href').match(/facebook\.com\/[^/]+\/(posts|videos)\/\d+/)
+    )
+    const hasTwitterEmbed = lastP.find('a').toArray().some(a =>
+      $(a).attr('href') && $(a).attr('href').match(/(?:twitter\.com|x\.com)\/[^/]+\/status\/\d+/)
+    )
+
     if (
       lastPText.includes('updates') ||
       lastPText.includes('notjustok') ||
-      lastPText.includes('facebook') ||
-      lastPText.includes('x')
+      (lastPText.includes('facebook') && !hasFacebookEmbed) ||
+      (lastPText.includes('x') && !hasTwitterEmbed)
     ) {
       shouldRemove = true
     }
