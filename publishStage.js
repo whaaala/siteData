@@ -1033,12 +1033,41 @@ export async function postToWordpressStage(
       margin-right: auto !important;
     }
 
+    /* Native video elements (mp4, webm, etc.) */
+    .post-content video,
+    .entry-content video,
+    article .content video,
+    .article-content video,
+    video {
+      width: 100% !important;
+      max-width: 800px !important;  /* Same as YouTube for consistency */
+      height: auto !important;
+      aspect-ratio: 16 / 9 !important;  /* Maintain proper video proportions */
+      display: block !important;
+      margin: 1.5rem auto !important;  /* Center horizontally with spacing */
+      border: none !important;
+      border-radius: 8px !important;  /* Rounded corners for modern look */
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;  /* Subtle shadow */
+      object-fit: contain !important;  /* Prevent video from being cropped or stretched */
+      background: #000 !important;  /* Black background for letterboxing */
+    }
+
     /* Responsive iframe sizing for tablets and mobile */
     @media (max-width: 1024px) {
       iframe[src*="youtube.com"],
       iframe[src*="youtu.be"] {
         max-width: 100% !important;
         min-height: 280px !important;
+        border-radius: 6px !important;
+      }
+
+      /* Native video elements on tablets */
+      .post-content video,
+      .entry-content video,
+      article .content video,
+      .article-content video,
+      video {
+        max-width: 100% !important;
         border-radius: 6px !important;
       }
     }
@@ -1067,6 +1096,17 @@ export async function postToWordpressStage(
         height: 352px !important;
         min-height: 352px !important;
       }
+
+      /* Native video elements on mobile */
+      .post-content video,
+      .entry-content video,
+      article .content video,
+      .article-content video,
+      video {
+        border-radius: 4px !important;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.1) !important;  /* Lighter shadow on mobile */
+        margin: 1rem auto !important;  /* Reduced spacing on mobile */
+      }
     }
 
     /* Extra small mobile devices */
@@ -1075,6 +1115,15 @@ export async function postToWordpressStage(
       iframe[src*="youtu.be"] {
         min-height: 180px !important;
         margin-bottom: 1rem !important;
+      }
+
+      /* Native video elements on extra small screens */
+      .post-content video,
+      .entry-content video,
+      article .content video,
+      .article-content video,
+      video {
+        margin: 0.75rem auto !important;  /* Even more compact spacing */
       }
     }
 
@@ -1108,9 +1157,13 @@ export async function postToWordpressStage(
   </style>
   ${contentWithEmbeds}
 `
+  // Add all social media embed scripts at the end
+  const twitterScript = `<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>`
   const instagramScript = `<script async src="https://www.instagram.com/embed.js"></script>`
+  const tiktokScript = `<script async src="https://www.tiktok.com/embed.js"></script>`
+  const facebookScript = `<script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v12.0"></script>`
 
-  const finalContent = styledContent + instagramScript
+  const finalContent = styledContent + twitterScript + instagramScript + tiktokScript + facebookScript
   try {
     if (typeof post.wpFeaturedMediaId !== 'number') {
       console.log(
