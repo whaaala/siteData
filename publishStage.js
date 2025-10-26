@@ -579,8 +579,7 @@ export async function postToWordpressStage(
       line-height: 1.3 !important;
       margin-top: 2rem !important;
       margin-bottom: 1rem !important;
-      text-align: justify !important;
-      text-justify: inter-word !important;
+      text-align: left !important;  /* Headings left-aligned, not justified */
       font-weight: 700 !important;
       color: #222 !important;
       font-family: inherit !important;
@@ -812,12 +811,24 @@ export async function postToWordpressStage(
     iframe[src*="youtube.com"],
     iframe[src*="youtu.be"] {
       width: 100% !important;
-      aspect-ratio: 16 / 9 !important;
+      max-width: 800px !important;  /* Prevent too wide on large screens */
+      aspect-ratio: 16 / 9 !important;  /* Maintain proper video proportions */
       min-height: 315px !important;
       height: auto !important;
+      margin-left: auto !important;  /* Center horizontally */
+      margin-right: auto !important;
+      border: none !important;
+      border-radius: 8px !important;  /* Rounded corners for modern look */
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;  /* Subtle shadow */
     }
 
-    /* Twitter iframes */
+    /* Twitter embeds (blockquote and iframe) */
+    .twitter-tweet {
+      max-width: 550px !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
+    }
+
     iframe[src*="twitter.com"],
     iframe[src*="x.com"] {
       max-width: 550px !important;
@@ -826,7 +837,18 @@ export async function postToWordpressStage(
       margin-right: auto !important;
     }
 
-    /* Instagram iframes */
+    /* Instagram embeds (blockquote and iframe) */
+    .instagram-media {
+      max-width: 540px !important;
+      min-width: 326px !important;
+      width: calc(100% - 2px) !important;
+      background: #FFF !important;
+      border: 0 !important;
+      border-radius: 3px !important;
+      box-shadow: 0 0 1px 0 rgba(0,0,0,0.5), 0 1px 10px 0 rgba(0,0,0,0.15) !important;
+      padding: 0 !important;
+    }
+
     iframe[src*="instagram.com"] {
       max-width: 540px !important;
       min-height: 600px !important;
@@ -834,7 +856,14 @@ export async function postToWordpressStage(
       margin-right: auto !important;
     }
 
-    /* TikTok iframes */
+    /* TikTok embeds (blockquote and iframe) */
+    .tiktok-embed {
+      max-width: 605px !important;
+      min-width: 325px !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
+    }
+
     iframe[src*="tiktok.com"] {
       max-width: 605px !important;
       min-height: 700px !important;
@@ -842,7 +871,14 @@ export async function postToWordpressStage(
       margin-right: auto !important;
     }
 
-    /* Facebook iframes */
+    /* Facebook embeds (div and iframe) */
+    .fb-post,
+    .fb-video {
+      max-width: 560px !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
+    }
+
     iframe[src*="facebook.com"],
     iframe[src*="fb.com"] {
       max-width: 560px !important;
@@ -862,7 +898,16 @@ export async function postToWordpressStage(
       margin-right: auto !important;
     }
 
-    /* Responsive iframe sizing for mobile */
+    /* Responsive iframe sizing for tablets and mobile */
+    @media (max-width: 1024px) {
+      iframe[src*="youtube.com"],
+      iframe[src*="youtu.be"] {
+        max-width: 100% !important;
+        min-height: 280px !important;
+        border-radius: 6px !important;
+      }
+    }
+
     @media (max-width: 768px) {
       iframe {
         min-height: 300px !important;
@@ -871,6 +916,8 @@ export async function postToWordpressStage(
       iframe[src*="youtube.com"],
       iframe[src*="youtu.be"] {
         min-height: 200px !important;
+        border-radius: 4px !important;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.1) !important;  /* Lighter shadow on mobile */
       }
 
       iframe[src*="tiktok.com"] {
@@ -884,6 +931,15 @@ export async function postToWordpressStage(
       iframe[src*="spotify.com"] {
         height: 352px !important;
         min-height: 352px !important;
+      }
+    }
+
+    /* Extra small mobile devices */
+    @media (max-width: 480px) {
+      iframe[src*="youtube.com"],
+      iframe[src*="youtu.be"] {
+        min-height: 180px !important;
+        margin-bottom: 1rem !important;
       }
     }
 

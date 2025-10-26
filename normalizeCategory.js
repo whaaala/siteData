@@ -40,7 +40,8 @@ export function normalizeCategory(rawCategory) {
     cat === 'international' ||
     cat === 'education' ||
     cat === 'dollar to naira exchange rates' ||
-    cat === 'business'
+    cat === 'business' ||
+    cat === 'features'  // Added - Guardian.ng features are news articles
   ) {
     return 'News';
   } else if (
