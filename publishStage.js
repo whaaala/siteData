@@ -291,25 +291,160 @@ export async function postToWordpressStage(
 
   $ = load(contentWithEmbeds)
 
-  const seenTikTokUrls = new Set()
+  // Deduplicate TikTok embeds by video ID
+  const seenTikTokVideoIds = new Set()
   const tiktokPromises = []
   $('blockquote.tiktok-embed').each((_, el) => {
-    const url = $(el).attr('cite') || $(el).data('video-id')
-    if (url) {
-      let tiktokUrl = url
-      if (!/^https?:\/\//.test(tiktokUrl) && $(el).data('video-id')) {
-        tiktokUrl = `https://www.tiktok.com/@/video/${$(el).data('video-id')}`
+    const cite = $(el).attr('cite')
+    const dataVideoId = $(el).attr('data-video-id')
+
+    // Extract video ID from cite URL or use data-video-id
+    let videoId = dataVideoId
+    if (cite) {
+      const match = cite.match(/\/video\/(\d+)/)
+      if (match) {
+        videoId = match[1]
       }
-      if (seenTikTokUrls.has(tiktokUrl)) {
-        // Remove duplicate embed
+    }
+
+    if (videoId) {
+      if (seenTikTokVideoIds.has(videoId)) {
+        // Remove duplicate embed - same video ID already embedded
+        console.log(`[TikTok Dedup] Removing duplicate TikTok video: ${videoId}`)
         $(el).remove()
         return
       }
-      seenTikTokUrls.add(tiktokUrl)
+      seenTikTokVideoIds.add(videoId)
       tiktokPromises.push((async () => {})())
     }
   })
   await Promise.all(tiktokPromises)
+
+  // Deduplicate Instagram embeds by post ID
+  const seenInstagramPostIds = new Set()
+  $('blockquote.instagram-media').each((_, el) => {
+    const permalink = $(el).attr('data-instgrm-permalink')
+
+    // Extract post ID from permalink URL (format: /p/ABC123/)
+    let postId = null
+    if (permalink) {
+      const match = permalink.match(/\/p\/([A-Za-z0-9_-]+)/)
+      if (match) {
+        postId = match[1]
+      }
+    }
+
+    if (postId) {
+      if (seenInstagramPostIds.has(postId)) {
+        console.log(`[Instagram Dedup] Removing duplicate Instagram post: ${postId}`)
+        $(el).remove()
+        return
+      }
+      seenInstagramPostIds.add(postId)
+    }
+  })
+
+  // Deduplicate YouTube embeds by video ID
+  const seenYouTubeVideoIds = new Set()
+  $('iframe[src*="youtube.com"], iframe[src*="youtu.be"]').each((_, el) => {
+    const src = $(el).attr('src')
+
+    // Extract video ID from src URL (format: /embed/ABC123 or /watch?v=ABC123)
+    let videoId = null
+    if (src) {
+      const embedMatch = src.match(/\/embed\/([A-Za-z0-9_-]+)/)
+      const watchMatch = src.match(/[?&]v=([A-Za-z0-9_-]+)/)
+      if (embedMatch) {
+        videoId = embedMatch[1]
+      } else if (watchMatch) {
+        videoId = watchMatch[1]
+      }
+    }
+
+    if (videoId) {
+      if (seenYouTubeVideoIds.has(videoId)) {
+        console.log(`[YouTube Dedup] Removing duplicate YouTube video: ${videoId}`)
+        $(el).remove()
+        return
+      }
+      seenYouTubeVideoIds.add(videoId)
+    }
+  })
+
+  // Deduplicate Twitter/X embeds by status ID
+  const seenTwitterStatusIds = new Set()
+  $('blockquote.twitter-tweet').each((_, el) => {
+    const link = $(el).find('a').attr('href')
+
+    // Extract status ID from link URL (format: /status/123456789)
+    let statusId = null
+    if (link) {
+      const match = link.match(/\/status\/(\d+)/)
+      if (match) {
+        statusId = match[1]
+      }
+    }
+
+    if (statusId) {
+      if (seenTwitterStatusIds.has(statusId)) {
+        console.log(`[Twitter Dedup] Removing duplicate Twitter status: ${statusId}`)
+        $(el).remove()
+        return
+      }
+      seenTwitterStatusIds.add(statusId)
+    }
+  })
+
+  // Deduplicate Facebook embeds by post ID
+  const seenFacebookPostIds = new Set()
+  $('.fb-post, .fb-video').each((_, el) => {
+    const dataHref = $(el).attr('data-href')
+
+    // Extract post/video ID from data-href (format: /posts/123456/ or /videos/123456/)
+    let postId = null
+    if (dataHref) {
+      const postsMatch = dataHref.match(/\/posts\/(\d+)/)
+      const videosMatch = dataHref.match(/\/videos\/(\d+)/)
+      if (postsMatch) {
+        postId = postsMatch[1]
+      } else if (videosMatch) {
+        postId = videosMatch[1]
+      }
+    }
+
+    if (postId) {
+      if (seenFacebookPostIds.has(postId)) {
+        console.log(`[Facebook Dedup] Removing duplicate Facebook post: ${postId}`)
+        $(el).remove()
+        return
+      }
+      seenFacebookPostIds.add(postId)
+    }
+  })
+
+  // Deduplicate Spotify embeds by content ID
+  const seenSpotifyContentIds = new Set()
+  $('iframe[src*="spotify.com"]').each((_, el) => {
+    const src = $(el).attr('src')
+
+    // Extract content ID from src (format: /embed/track/ABC123 or /embed/album/ABC123, etc.)
+    let contentId = null
+    if (src) {
+      const match = src.match(/\/embed\/(?:track|album|playlist|episode|show|artist)\/([A-Za-z0-9]+)/)
+      if (match) {
+        contentId = match[1]
+      }
+    }
+
+    if (contentId) {
+      if (seenSpotifyContentIds.has(contentId)) {
+        console.log(`[Spotify Dedup] Removing duplicate Spotify content: ${contentId}`)
+        $(el).remove()
+        return
+      }
+      seenSpotifyContentIds.add(contentId)
+    }
+  })
 
   // 4. Assign back to contentWithEmbeds
   contentWithEmbeds = $.root().html()
